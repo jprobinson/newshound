@@ -1,0 +1,334 @@
+<table id="" class="table sender">
+    <colgroup>
+        <col span="1" style="width: 200px;">
+        <col span="12" style="width: 100px;">
+    </colgroup>
+    <thead>
+        <tr style="padding-top:0!important;font-size:0.9em;">
+            <th>
+                &nbsp;
+            </th>
+            <th colspan="2">
+                <b>Alerts Per Week</b>
+            </th>
+            <th colspan="2">
+                <b>Events Per Week</b>
+            </th>
+            <th colspan="2">
+                <b>Event Attendance %</b>
+            </th>
+            <th title="Higher scores indicate that this sender does not send a lot of mail, but when they do, they tend to be part of an event AND they tend to be one of the first to arrive in the event. (Attendance % / # Alerts) / Avg. Placement" colspan="2">
+                <b>Event Attendance Rating</b>
+            </th>
+            <th colspan="2">
+                <b>Avg Event Placement</b>
+            </th>
+            <th colspan="2">
+                <b>Avg Event Arrival (min)</b>
+            </th>
+        </tr>
+        <tr style="font-size:0.9em;">
+            <th ng-click="changeSorting('sender')">
+                &nbsp; 
+				<span ng-show="sort.column != 'sender'" class="inactive glyphicon glyphicon-sort"></span>
+				<span ng-show="sort.column == 'sender' && !sort.descending" class="glyphicon glyphicon-sort-by-order-alt"></span>
+				<span ng-show="sort.column == 'sender' && sort.descending" class="glyphicon glyphicon-sort-by-order"></span>								
+            </th>
+            <th ng-click="changeSorting('avg_alerts_per_week')">
+                3 Mo. Avg.
+				<span ng-show="sort.column != 'avg_alerts_per_week'" class="inactive glyphicon glyphicon-sort"></span>
+				<span ng-show="sort.column == 'avg_alerts_per_week' && !sort.descending" class="glyphicon glyphicon-sort-by-order-alt"></span>
+				<span ng-show="sort.column == 'avg_alerts_per_week' && sort.descending" class="glyphicon glyphicon-sort-by-order"></span>				
+            </th>
+            <th ng-click="changeSorting('alerts_last_week')">
+                Last Week
+				<span ng-show="sort.column != 'alerts_last_week'" class="inactive glyphicon glyphicon-sort"></span>
+				<span ng-show="sort.column == 'alerts_last_week' && !sort.descending" class="glyphicon glyphicon-sort-by-order-alt"></span>
+				<span ng-show="sort.column == 'alerts_last_week' && sort.descending" class="glyphicon glyphicon-sort-by-order"></span>	
+            </th>
+            <th ng-click="changeSorting('avg_events_per_week')">
+                3 Mo. Avg.
+				<span ng-show="sort.column != 'avg_events_per_week'" class="inactive glyphicon glyphicon-sort"></span>
+				<span ng-show="sort.column == 'avg_events_per_week' && !sort.descending" class="glyphicon glyphicon-sort-by-order-alt"></span>
+				<span ng-show="sort.column == 'avg_events_per_week' && sort.descending" class="glyphicon glyphicon-sort-by-order"></span>	
+            </th>
+            <th ng-click="changeSorting('events_last_week')">
+                Last Week
+				<span ng-show="sort.column != 'events_last_week'" class="inactive glyphicon glyphicon-sort"></span>
+				<span ng-show="sort.column == 'events_last_week' && !sort.descending" class="glyphicon glyphicon-sort-by-order-alt"></span>
+				<span ng-show="sort.column == 'events_last_week' && sort.descending" class="glyphicon glyphicon-sort-by-order"></span>	
+            </th>
+            <th ng-click="changeSorting('event_attendance')">
+                Last 3 Mo.
+				<span ng-show="sort.column != 'event_attendance'" class="inactive glyphicon glyphicon-sort"></span>
+				<span ng-show="sort.column == 'event_attendance' && !sort.descending" class="glyphicon glyphicon-sort-by-order-alt"></span>
+				<span ng-show="sort.column == 'event_attendance' && sort.descending" class="glyphicon glyphicon-sort-by-order"></span>	
+            </th>
+            <th ng-click="changeSorting('event_attendance_last_week')">
+                Last Week
+				<span ng-show="sort.column != 'event_attendance_last_week'" class="inactive glyphicon glyphicon-sort"></span>
+				<span ng-show="sort.column == 'event_attendance_last_week' && !sort.descending" class="glyphicon glyphicon-sort-by-order-alt"></span>
+				<span ng-show="sort.column == 'event_attendance_last_week' && sort.descending" class="glyphicon glyphicon-sort-by-order"></span>	
+            </th>
+            <th ng-click="changeSorting('event_attendance_rating')">
+                Last 3 Mo.
+				<span ng-show="sort.column != 'event_attendance_rating'" class="inactive glyphicon glyphicon-sort"></span>
+				<span ng-show="sort.column == 'event_attendance_rating' && !sort.descending" class="glyphicon glyphicon-sort-by-order-alt"></span>
+				<span ng-show="sort.column == 'event_attendance_rating' && sort.descending" class="glyphicon glyphicon-sort-by-order"></span>	
+            </th>
+            <th ng-click="changeSorting('event_attendance_rating_last_week')">
+                Last Week
+				<span ng-show="sort.column != 'event_attendance_rating_last_week'" class="inactive glyphicon glyphicon-sort"></span>
+				<span ng-show="sort.column == 'event_attendance_rating_last_week' && !sort.descending" class="glyphicon glyphicon-sort-by-order-alt"></span>
+				<span ng-show="sort.column == 'event_attendance_rating_last_week' && sort.descending" class="glyphicon glyphicon-sort-by-order"></span>	
+            </th>
+            <th ng-click="changeSorting('avg_event_rank')">
+                3 Mo. Avg.
+				<span ng-show="sort.column != 'avg_event_rank'" class="inactive glyphicon glyphicon-sort"></span>
+				<span ng-show="sort.column == 'avg_event_rank' && !sort.descending" class="glyphicon glyphicon-sort-by-order-alt"></span>
+				<span ng-show="sort.column == 'avg_event_rank' && sort.descending" class="glyphicon glyphicon-sort-by-order"></span>	
+            </th>
+            <th ng-click="changeSorting('avg_event_rank_last_week')">
+                Last Week
+				<span ng-show="sort.column != 'avg_event_rank_last_week'" class="inactive glyphicon glyphicon-sort"></span>
+				<span ng-show="sort.column == 'avg_event_rank_last_week' && !sort.descending" class="glyphicon glyphicon-sort-by-order-alt"></span>
+				<span ng-show="sort.column == 'avg_event_rank_last_week' && sort.descending" class="glyphicon glyphicon-sort-by-order"></span>	
+            </th>
+            <th ng-click="changeSorting('avg_event_arrival')">
+                3 Mo. Avg.
+				<span ng-show="sort.column != 'avg_event_arrival'" class="inactive glyphicon glyphicon-sort"></span>
+				<span ng-show="sort.column == 'avg_event_arrival' && !sort.descending" class="glyphicon glyphicon-sort-by-order-alt"></span>
+				<span ng-show="sort.column == 'avg_event_arrival' && sort.descending" class="glyphicon glyphicon-sort-by-order"></span>	
+            </th>
+            <th ng-click="changeSorting('avg_event_arrival_last_week')">
+                Last Week
+				<span ng-show="sort.column != 'avg_event_arrival_last_week'" class="inactive glyphicon glyphicon-sort"></span>
+				<span ng-show="sort.column == 'avg_event_arrival_last_week' && !sort.descending" class="glyphicon glyphicon-sort-by-order-alt"></span>
+				<span ng-show="sort.column == 'avg_event_arrival_last_week' && sort.descending" class="glyphicon glyphicon-sort-by-order"></span>	
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+		<tr ng-repeat="sender in senderReport | orderBy: sort.column: sort.descending">
+            <td class="border_right">
+				<a href="#/report?sender={{sender.sender}}" class="sender_info_link"><b>{{sender.sender}}</b></a>
+            </td>
+            <td class="text-right">
+				{{sender.avg_alerts_per_week | number:2 }}
+            </td>
+            <td class="border_right text-right">
+				{{sender.alerts_last_week | number }}
+            </td>
+            <td class="text-right">
+                {{sender.avg_events_per_week | number:2 }}
+            </td>
+            <td class="border_right text-right">
+                {{sender.events_last_week | number }}
+            </td>
+            <td class="text-right">
+				{{sender.event_attendance | number:2 }}
+            </td>
+            <td class="border_right text-right">
+				{{sender.event_attendance_last_week | number:2 }}
+            </td>
+            <td class="text-right">
+                {{sender.event_attendance_rating | number:2 }}
+            </td>
+            <td class="border_right text-right">
+                {{sender.event_attendance_rating_last_week | number:2 }}
+            </td>
+            <td class="text-right">
+                {{sender.avg_event_rank | number:2 }}
+            </td>
+            <td class="border_right text-right">
+				{{sender.avg_event_rank_last_week | number:2 }}
+            </td>
+            <td class="text-right">
+                {{ (sender.avg_event_arrival/60) | number:2 }}
+            </td>
+            <td class="text-right">
+                {{ (sender.avg_event_arrival_last_week/60) | number:2 }}
+            </td>
+		</tr>
+		<tr class="totals_row">
+            <td class="border_right">
+				<b>TOTALS</b>
+            </td>
+            <td class="text-right">
+				{{totals.avg_alerts_per_week | number:2 }}
+            </td>
+            <td class="border_right text-right">
+				{{totals.alerts_last_week | number }}
+            </td>
+            <td class="text-right">
+                {{totals.avg_events_per_week | number:2 }}
+            </td>
+            <td class="border_right text-right">
+                {{totals.events_last_week | number }}
+            </td>
+            <td>
+				&nbsp;
+            </td>
+            <td class="border_right">
+				&nbsp;
+            </td>
+            <td>
+				&nbsp;
+            </td>
+            <td class="border_right">
+         		&nbsp;
+            </td>
+            <td>
+				&nbsp;
+            </td>
+            <td class="border_right">
+				&nbsp;
+            </td>
+            <td>
+				&nbsp;
+            </td>
+            <td>
+				&nbsp;
+            </td>
+		</tr>
+    </tbody>
+</table>
+
+
+<script type="text/ng-template" id="senderInfoModal.html">
+	<div class="modal-header {{senderClass}}-header" >
+		<h4>{{ senderName }}</h4>
+	</div>
+	<div class="modal-body" style="padding-top:0;">
+		<div class="row">
+			<table id="" class="table sender">
+			    <colgroup>
+			        <col span="12" style="width: 100px;">
+			    </colgroup>
+			    <thead>
+			        <tr style="padding-top:0!important;font-size:0.9em;">
+			            <th colspan="2">
+			                <b>Alerts Per Week</b>
+			            </th>
+			            <th colspan="2">
+			                <b>Events Per Week</b>
+			            </th>
+			            <th colspan="2">
+			                <b>Event Attendance %</b>
+			            </th>
+			            <th colspan="2">
+			                <b>Event Attendance Rating</b>
+			            </th>
+			            <th colspan="2">
+			                <b>Avg Event Placement</b>
+			            </th>
+			            <th colspan="2">
+			                <b>Avg Event Arrival (min)</b>
+			            </th>
+			        </tr>
+			        <tr style="font-size:0.9em;">
+			            <th>
+			                3 Mo. Avg.
+			            </th>
+			            <th>
+			                Last Week
+			            </th>
+			            <th>
+			                3 Mo. Avg.
+			            </th>
+			            <th>
+			                Last Week
+			            </th>
+			            <th>
+			                Last 3 Mo.
+			            </th>
+			            <th>
+			                Last Week
+			            </th>
+			            <th>
+			                Last 3 Mo.
+			            </th>
+			            <th>
+			                Last Week
+			            </th>
+			            <th>
+			                3 Mo. Avg.
+			            </th>
+			            <th>
+			                Last Week
+			            </th>
+			            <th>
+			                3 Mo. Avg.
+			            </th>
+			            <th>
+			                Last Week
+			            </th>
+			        </tr>
+			    </thead>
+			    <tbody>
+					<tr ng-repeat="sender in senderReport | filter: filterBySender">
+			            <td class="text-right">
+							{{sender.avg_alerts_per_week | number:2 }}
+			            </td>
+			            <td class="border_right text-right">
+							{{sender.alerts_last_week | number }}
+			            </td>
+			            <td class="text-right">
+			                {{sender.avg_events_per_week | number:2 }}
+			            </td>
+			            <td class="border_right text-right">
+			                {{sender.events_last_week | number }}
+			            </td>
+			            <td class="text-right">
+							{{sender.event_attendance | number:2 }}
+			            </td>
+			            <td class="border_right text-right">
+							{{sender.event_attendance_last_week | number:2 }}
+			            </td>
+			            <td class="text-right">
+			                {{sender.event_attendance_rating | number:2 }}
+			            </td>
+			            <td class="border_right text-right">
+			                {{sender.event_attendance_rating_last_week | number:2 }}
+			            </td>
+			            <td class="text-right">
+			                {{sender.avg_event_rank | number:2 }}
+			            </td>
+			            <td class="border_right text-right">
+							{{sender.avg_event_rank_last_week | number:2 }}
+			            </td>
+			            <td class="text-right">
+			                {{ (sender.avg_event_arrival/60) | number:2 }}
+			            </td>
+			            <td class="text-right">
+			                {{ (sender.avg_event_arrival_last_week/60) | number:2 }}
+			            </td>
+					</tr>
+			    </tbody>
+			</table>
+		</div
+	</div>
+	<div class="row">
+	<tabset>
+	    <tab heading="Top 15 Phrases">
+			<highchart config="senderPhrasesChartConfig" style="width:1012px"></highchart>
+	    </tab>
+	    <tab heading="Alerts Per Week">
+			<highchart config="senderAlertsChartConfig" style="width:1012px"></highchart>
+	    </tab>
+	    <tab heading="Events Per Week">
+			<highchart config="senderEventsChartConfig" style="width:1012px"></highchart>
+	    </tab>
+	    <tab heading="Avg Event Placement By Week">
+			<highchart config="senderPlacementChartConfig" style="width:1012px"></highchart>
+	    </tab>
+	    <tab heading="Avg Event Arrival By Week">
+			<highchart config="senderArrivalChartConfig" style="width:1012px"></highchart>
+	    </tab>
+	    <tab heading="Alerts Per Hour">
+			<highchart config="senderHoursChartConfig" style="width:1012px"></highchart>
+	    </tab>
+	  </tabset>
+		
+	</div>
+</script>

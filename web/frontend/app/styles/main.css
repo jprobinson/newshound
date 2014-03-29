@@ -1,0 +1,432 @@
+th {
+	text-align:center!important;
+}
+
+th .glyphicon {
+	float:right;
+}
+
+.nav-tabs {
+	margin-left:15px!important;
+}
+
+.table th, .table .border_right {
+    border-right:1px solid #DDD;
+}
+
+.table th:last-child {
+	border-right:none;
+}
+
+
+.inactive {
+	color:#eee;
+}
+
+.totals_row {
+	background-color:#c4d2f8;	
+}
+
+/* Custom page header */
+.header {
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.navbar {
+	height:55px;
+}
+
+.navbar li a {
+	line-height:10px;
+	padding: 29px 15px 16px 15px !important;
+}
+
+.navbar-default .navbar-nav > li > a:hover, .navbar-default .navbar-nav > li > a:focus {
+    background-color: #eee;
+}
+.newshound-logo {
+	padding: 2px 25px !important;
+}
+
+/* Make the masthead heading the same height as the navigation */
+.header h3 {
+  margin-top: 0;
+  margin-bottom: 0;
+  line-height: 40px;
+  padding-bottom: 19px;
+}
+
+/* Custom page footer */
+.footer {
+  padding-top: 19px;
+  color: #777;
+  border-top: 1px solid #e5e5e5;
+}
+
+.btn-group > .btn {
+  border-radius:0 !important;
+}
+
+.btn-primary {
+	background-color: #428bca;
+	border-color: #357ebd;
+}
+
+/* Customize container */
+@media (min-width: 768px) {
+  .container {
+	width: 99%;
+  }
+}
+.container-narrow > hr {
+  margin: 30px 0;
+}
+
+/* Main marketing message and sign up button */
+.jumbotron {
+  text-align: center;
+  border-bottom: 1px solid #e5e5e5;
+}
+.jumbotron .btn {
+  font-size: 21px;
+  padding: 14px 24px;
+}
+
+/* Responsive: Portrait tablets and up */
+@media screen and (min-width: 768px) {
+  /* Remove the padding we set earlier */
+  .header,
+  .marketing,
+  .footer {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  /* Space out the masthead */
+  .header {
+    margin-bottom: 30px;
+  }
+  /* Remove the bottom border on the jumbotron for visual effect */
+  .jumbotron {
+    border-bottom: 0;
+  }
+}
+
+/* CUSTOM GOODIES */ 
+.modal-header {
+	height:45px!important;
+}
+.xlarge-modal .modal-dialog {
+	min-width:1024px !important;
+}
+
+
+.large-modal .modal-dialog {
+	min-width:850px !important;
+}
+
+.fc-event{
+    cursor:pointer;
+}
+
+.ui-dialog .ui-widget-content {
+	background:white;
+}
+.cnn,.cnn div{
+    background:white;
+    border-color:#B60002;
+    color:#B60002;
+}
+.cnn .fc-event-time, .cnn-header, .cnn .ui-dialog-titlebar {
+    background:#B60002;
+    border-color:white;
+    color:white;
+}
+.foxnewscom,.foxnewscom div{
+    background:white;
+    border-color:#234E6C;
+    color:#234E6C;
+}
+.foxnewscom .fc-event-time, .foxnewscom-header, .foxnewscom .ui-dialog-titlebar  {
+    background:#234E6C;
+    border-color:white;
+    color:white;
+}
+.foxbusinesscom,.foxbusinesscom div{
+    background:white;
+    border-color:#343434;
+    color:#343434;
+}
+.foxbusinesscom .fc-event-time, .foxbusinesscom-header, .foxbusinesscom .ui-dialog-titlebar  {
+    background:#343434;
+    border-color:white;
+    color:white;
+}
+.nbcnewscom,.nbcnewscom div{
+    background:white;
+    border-color:#343434;
+    color:#343434;
+}
+.nbcnewscom .fc-event-time, .nbcnewscom-header, .nbcnewscom .ui-dialog-titlebar  {
+    background:black url('http://msnbcmedia.msn.com/i/MSNBC/Templates/z_Story_Hybrid/img/msnbc-hdr-bg.jpg') bottom no-repeat;;
+    border-color:white;
+    color:white;
+}
+.nytimescom,.nytimescom div{
+    background:white;
+    border-color:#004276;
+    color:#004276;
+}
+.nytimescom .fc-event-time, .nytimescom-header, .nytimescom .ui-dialog-titlebar  {
+    background:#1A1A1A;
+    border-color:white;
+    color:white;
+}
+.thewashingtonpost, .thewashingtonpost div{
+    background:white;
+    border-color:#222;
+    color:black;
+}
+.thewashingtonpost .fc-event-time, .thewashingtonpost-header, .thewashingtonpost .ui-dialog-titlebar  {
+    background:#222;
+    border-color:white;
+    color:white;
+}
+.wsjcom, .wsjcom div{
+    background:white;
+    border-color:#444242;
+    color:black;
+}
+.wsjcom .fc-event-time, .wsjcom-header, .wsjcom .ui-dialog-titlebar  {
+    background:#444242;
+    border-color:white;
+    color:white;
+}
+.politico, .politico div{
+    background:white;
+    border-color:#256396;
+    color:#AA0101;
+}
+.politico .fc-event-time, .politico-header, .politico .ui-dialog-titlebar  {
+    background:#256396;
+    border-color:white;
+    color:white;
+}
+.losangelestimes .fc-event-time, .losangelestimes-header, .losangelestimes .ui-dialog-titlebar  {
+    background:black;
+    border-color:white;
+    color:white;
+}
+.losangelestimes, .losangelestimes div{
+    background-color:white;
+    border-color:black;
+    color:black;
+}
+
+.abc .fc-event-time, .abc-header, .abc .ui-dialog-titlebar  {
+    background:url('http://a.abcnews.com/assets/images/v2/default_nav_bg.gif') repeat-x;
+    border-color:white;
+    color:white;
+}
+.abc, .abc div{
+    background-color:white;
+    border-color:black;
+    color:black;
+}
+
+.cbs .fc-event-time, .cbs-header, .cbs .ui-dialog-titlebar  {
+    background:url('http://asset1.cbsistatic.com/cnwk.1d/i/cbs/generic/genericNavBg.jpg') repeat-x;
+    border-color:white;
+    color:white;
+}
+.cbs, .cbs div{
+    background-color:white;
+    border-color:black;
+    color:black;
+}
+.usatodaycom, .usatodaycom div{
+    background:white;
+    border-color:#1877B6;
+    color:black;
+}
+.usatodaycom .fc-event-time, .usatodaycom-header, .usatodaycom .ui-dialog-titlebar  {
+    background:#1877B6;
+    border-color:#1877B6;
+    color:white;
+}
+
+.yahoo, .yahoo div{
+    background:white;
+    border-color:#7B0099;
+    color:black;
+}
+.yahoo .fc-event-time, .yahoo-header, .yahoo .ui-dialog-titlebar  {
+    background:#7B0099;
+    border-color:#7B0099;
+    color:white;
+}
+
+.ft, .ft div{
+    background:white;
+    border-color:#2e6e9e;
+    color:black;
+}
+.ft .fc-event-time, .ft-header, .ft .ui-dialog-titlebar  {
+    background:#FFF1E0;
+    border-color:#2e6e9e;
+    color:black;
+}
+
+.bbc, .bbc div{
+    background:white;
+    border-color:#c00000;
+    color:black;
+}
+.bbc .fc-event-time, .bbc-header, .bbc.ui-dialog-titlebar  {
+    background:#c00000;
+    border-color:#c00000;
+    color:white;
+}
+
+.news_event_cal, .news_event_cal div{
+    border-color:black!important;
+    color:black!important;
+}
+.news_event_cal .fc-event-time, .news_event_cal .ui-dialog-titlebar  {
+    border-color:black!important;
+    color:black!important;
+}
+.news_event_cal_small, .news_event_cal_small div, .news_event_cal_small .fc-event-time, .news_event_cal_small .ui-dialog-titlebar  {
+    background:#d1e3fd!important;
+}
+.news_event_cal_4, .news_event_cal_4 div, .news_event_cal_4 .fc-event-time, .news_event_cal_4 .ui-dialog-titlebar  {
+    background:#b1cffb!important;
+}
+.news_event_cal_5, .news_event_cal_5 div, .news_event_cal_5 .fc-event-time, .news_event_cal_5 .ui-dialog-titlebar  {
+    background:#91bbf9!important;
+}
+.news_event_cal_6, .news_event_cal_6 div, .news_event_cal_6 .fc-event-time, .news_event_cal_6 .ui-dialog-titlebar  {
+    background:#70a7f8!important;
+}
+.news_event_cal_7, .news_event_cal_7 div, .news_event_cal_7 .fc-event-time, .news_event_cal_7 .ui-dialog-titlebar  {
+    background:#5093f6!important;
+}
+.news_event_cal_8, .news_event_cal_8 div, .news_event_cal_8 .fc-event-time, .news_event_cal_8 .ui-dialog-titlebar  {
+    background:#307ff4!important;
+    color:white!important;
+}
+.news_event_cal_9, .news_event_cal_9 div, .news_event_cal_9 .fc-event-time, .news_event_cal_9 .ui-dialog-titlebar  {
+    background:#0f6cf3!important;
+    color:white!important;
+}
+.news_event_cal_large, .news_event_cal_large div, .news_event_cal_large .fc-event-time, .news_event_cal_large .ui-dialog-titlebar  {
+    background:#0b5dd5!important;
+    color:white!important;    
+}
+
+#wrapper{
+    width:100%;
+    height:100%;
+}
+#page_header{
+    width:95%;
+    margin:0 auto;
+}
+#calendar{
+    width:95%;
+    margin:0 auto;
+}
+#senders{
+    float:right;
+    width:236px;
+    margin:0 0 0 0;
+}
+#page_view{
+    margin: 0 0 0 0;
+    font-size: 0.9em;
+    display: inline-block;
+    width: 70%;
+    position: relative;
+    left: 22%;
+}
+
+#cal_view{
+    margin: 0 0 0 0;
+    width: 244px;
+    font-size: 0.9em;
+}
+
+.fc-event{
+    font-size:.7em;
+}
+.select2-container{
+    width:225px;
+    margin-bottom:5px;
+}
+
+#key_words header {
+    font-weight:bold;
+}
+
+#key_words div {
+    height:85px;
+}
+
+.alert-dialog-info {
+	height:125px;
+}
+.alert-dialog-info li div {
+	margin-bottom:10px;
+}
+
+.news_alert_body {
+	height:365px;
+	width: 100%;
+    overflow-y: scroll;
+    border: solid 1px black;
+    margin-top: 20px;
+}
+
+#eventChart {
+	height:400px;
+}
+
+.highcharts-container {
+	border:solid black 1px;
+}
+
+/* FULLCALENDAR OVERRIDES */
+
+
+.fc-state-default {
+	background-image: none !important;
+	background-repeat: none ! important;
+	text-shadow: none !important;
+	box-shadow: none !important;
+}
+
+.fc-state-down,
+.fc-state-active {
+	background-image: none;
+	box-shadow: none !important;
+}
+
+.fc-event {
+	cursor: pointer;
+}
+
+	
+.fc-state-highlight { 
+	background: #f8f8f8;
+}
+	
+
+.fc-state-default.fc-corner-left,
+.fc-state-default.fc-corner-right,	
+.fc-ltr .fc-event-hori.fc-event-start,
+.fc-rtl .fc-event-hori.fc-event-end,
+.fc-ltr .fc-event-hori.fc-event-end,
+.fc-rtl .fc-event-hori.fc-event-start,
+.fc-event-vert.fc-event-end,
+.fc-event-vert.fc-event-start {
+	border-radius: 0 !important;
+}

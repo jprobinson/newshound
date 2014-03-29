@@ -1,0 +1,14 @@
+#!/bin/bash
+
+LOGDIR=/var/nyt/logs/newshound
+LOGFILE=$LOGDIR/newshound.log
+
+mkdir -p $LOGDIR
+chown superbad $LOGDIR
+
+RUNNING=`ps -ef | grep 'newshound-fetch.py' | grep -v grep | wc -l`
+if (($RUNNING == 0)); then
+	su superbad -c "python -u /opt/nyt/bin/newshound-fetch.py -f -m >> $LOGFILE 2>&1"
+else
+    exit 0;
+fi
