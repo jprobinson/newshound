@@ -33,36 +33,36 @@ func NewNewsReports(db *mgo.Database) NewsReports {
 // for the past week and for the past 3 months.
 type TotalSummaryReport struct {
 	Sender           string  `json:"sender"`
-	AvgAlertsPerWeek float64 `json:"avg_alerts_per_week"`
-	AlertsLastWeek   int64   `json:"alerts_last_week"`
-	AvgEventsPerWeek float64 `json:"avg_events_per_week"`
-	EventsLastWeek   int64   `json:"events_last_week"`
+	AvgAlertsPerWeek float64 `json:"avg_alerts_per_week"bson:"avg_alerts_per_week"`
+	AlertsLastWeek   int64   `json:"alerts_last_week"bson:"alerts_last_week"`
+	AvgEventsPerWeek float64 `json:"avg_events_per_week"bson:"avg_events_per_week"`
+	EventsLastWeek   int64   `json:"events_last_week"bson:"events_last_week"`
 }
 
 // SenderSummaryReport is a struct to hold News Alert & News Event statistics
 // for a specific Sender Newshound tracks for the past week and for the past 3 months.
 type SenderSummaryReport struct {
 	Sender                        string  `json:"sender"`
-	AvgAlertsPerWeek              float64 `json:"avg_alerts_per_week"`
-	AlertsLastWeek                int64   `json:"alerts_last_week"`
-	AvgEventsPerWeek              float64 `json:"avg_events_per_week"`
-	EventsLastWeek                int64   `json:"events_last_week"`
-	EventAttendance               float64 `json:"event_attendance"`
-	EventAttendanceRatingLastWeek float64 `json:"event_attendance_rating_last_week"`
-	AvgEventRankLastWeek          float64 `json:"avg_event_rank_last_week"`
-	EventAttendanceRating         float64 `json:"event_attendance_rating"`
-	EventAttendanceLast_Week      int64   `json:"event_attendance_last_week"`
-	AvgEventRank                  float64 `json:"avg_event_rank"`
-	AvgEventArrival               float64 `json:"avg_event_arrival"`
-	AvgEventArrivalLastWeek       float64 `json:"avg_event_arrival_last_week"`
+	AvgAlertsPerWeek              float64 `json:"avg_alerts_per_week"bson:"avg_alerts_per_week"`
+	AlertsLastWeek                int64   `json:"alerts_last_week"bson:"alerts_last_week"`
+	AvgEventsPerWeek              float64 `json:"avg_events_per_week"bson:"avg_events_per_week"`
+	EventsLastWeek                int64   `json:"events_last_week"bson:"events_last_week"`
+	EventAttendance               float64 `json:"event_attendance"bson:"event_attendance"`
+	EventAttendanceRatingLastWeek float64 `json:"event_attendance_rating_last_week"bson:"event_attendance_rating_last_week"`
+	AvgEventRankLastWeek          float64 `json:"avg_event_rank_last_week"bson:"avg_event_rank_last_week"`
+	EventAttendanceRating         float64 `json:"event_attendance_rating"bson:"event_attendance_rating"`
+	EventAttendanceLast_Week      int64   `json:"event_attendance_last_week"bson:"event_attendance_last_week"`
+	AvgEventRank                  float64 `json:"avg_event_rank"bson:"avg_event_rank"`
+	AvgEventArrival               float64 `json:"avg_event_arrival"bson:"avg_event_arrival"`
+	AvgEventArrivalLastWeek       float64 `json:"avg_event_arrival_last_week"bson:"avg_event_arrival_last_week"`
 }
 
 // SenderInfo is a struct for containing the Sender Info report for the past 3 months.
 type SenderInfo struct {
-	AlertsPerWeek []AlertWeekInfo `json:"alerts_per_week"`
-	EventsPerWeek []EventWeekInfo `json:"events_per_week"`
-	TagArray      []TagInfo       `json:"tag_array"`
-	AlertsPerHour []int64         `json:"alerts_per_hour"`
+	AlertsPerWeek []AlertWeekInfo `json:"alerts_per_week"bson:"alerts_per_week"`
+	EventsPerWeek []EventWeekInfo `json:"events_per_week"bson:"events_per_week"`
+	TagArray      []TagInfo       `json:"tag_array"bson:"tag_array"`
+	AlertsPerHour []int64         `json:"alerts_per_hour"bson:"alerts_per_hour"`
 }
 
 // AlertWeekInfo holds the 'alerts per week' counts for a particular sender.
@@ -70,7 +70,7 @@ type AlertWeekInfo struct {
 	Id    WeekInfoID `json:"_id" bson:"_id"`
 	Value struct {
 		Alerts int              `json:"alerts"`
-		TagMap map[string]int64 `json:"tag_map"`
+		TagMap map[string]int64 `json:"tag_map"bson:"tag_map"`
 	} `json:"value"`
 }
 
@@ -78,12 +78,12 @@ type AlertWeekInfo struct {
 type EventWeekInfo struct {
 	Id    WeekInfoID `json:"_id" bson:"_id"`
 	Value struct {
-		TotalEvents     int64            `json:"total_events"`
-		TotalRank       int64            `json:"total_rank"`
-		AvgRank         float64          `json:"avg_rank"`
-		TotalTimeLapsed int64            `json:"total_time_lapsed"`
-		AvgTimeLapsed   float64          `json:"avg_time_lapsed"`
-		TagMap          map[string]int64 `json:"tag_map"`
+		TotalEvents     int64            `json:"total_events"bson:"total_events"`
+		TotalRank       int64            `json:"total_rank"bson:"total_rank"`
+		AvgRank         float64          `json:"avg_rank"bson:"avg_rank"`
+		TotalTimeLapsed int64            `json:"total_time_lapsed"bson:"total_time_lapsed"`
+		AvgTimeLapsed   float64          `json:"avg_time_lapsed"bson:"avg_time_lapsed"`
+		TagMap          map[string]int64 `json:"tag_map"bson:"tag_map"`
 	} `json:"value"`
 }
 
@@ -91,7 +91,7 @@ type EventWeekInfo struct {
 // 'events per week' info from the database.
 type WeekInfoID struct {
 	Sender    string    `json:"sender"`
-	WeekStart time.Time `json:"week_start"`
+	WeekStart time.Time `json:"week_start"bson:"week_start"`
 }
 
 // TagInfo is used to hold the 'top tags' for a particular Sender.
@@ -104,7 +104,7 @@ type TagInfo struct {
 // from the database.
 type TagArrayResult struct {
 	Value struct {
-		TagArray []TagInfo
+		TagArray []TagInfo `bson:"tag_array"`
 	}
 }
 

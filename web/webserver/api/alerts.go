@@ -23,8 +23,8 @@ func NewNewsAlerts(db *mgo.Database) NewsAlerts {
 // when pulling large lists of Alerts. Mainly used for 'findByDate' scenarios.
 type NewsAlertLite struct {
 	Id         bson.ObjectId `json:"id" bson:"_id"`
-	InstanceID string        `json:"instance_id"`
-	ArticleUrl string        `json:"article_url"`
+	InstanceID string        `json:"instance_id"bson:"instance_id"`
+	ArticleUrl string        `json:"article_url"bson:"article_url"`
 	Sender     string        `json:"sender"`
 	Timestamp  time.Time     `json:"timestamp"`
 	Tags       []string      `json:"tags"`
@@ -35,8 +35,8 @@ type NewsAlertLite struct {
 // data. This struct is used for access to a single Alert's information.
 type NewsAlertFull struct {
 	Id          bson.ObjectId `json:"id" bson:"_id"`
-	InstanceID  string        `json:"instance_id"`
-	Article_Url string        `json:"article_url"`
+	InstanceID  string        `json:"instance_id"bson:"instance_id"`
+	Article_Url string        `json:"article_url"bson:"article_url"`
 	Sender      string        `json:"sender"`
 	Timestamp   time.Time     `json:"timestamp"`
 	Tags        []string      `json:"tags"`
