@@ -93,6 +93,7 @@ th .glyphicon {
 }
 .container {
     min-width:800px;
+    width:90%;
 }
 .container-narrow > hr {
     margin: 30px 0;
