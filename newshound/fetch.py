@@ -29,12 +29,12 @@ from datetime import datetime, time, timedelta, date, MAXYEAR, MINYEAR
 class NewsAlert:
 
     SENDER_STORY_URL = {
-            'CBS'					:	1,
-            'FT'					:	3,
+            'CBS'				:	1,
+            'FT'				:	3,
             'WSJ.com'				:	0,
             'USATODAY.com'			:	1,
             'NYTimes.com'			:	6,
-            'The Washington Post'	:	3,
+            'The Washington Post'		:	3,
             'FoxNews.com'			:	0,
             }		 
 
@@ -136,6 +136,7 @@ class NewsAlert:
     def __get_body(self,message):
         if message.is_multipart():
             html = None
+	    text = ""
             for part in message.get_payload():
                 if part.get_content_charset() is None:
                     charset = chardet.detect(str(part))['encoding']
@@ -188,8 +189,8 @@ class NewsAlert:
         url = str()
 
         # we can only access nyt @ www so dont try anyone else for now
-        if sender != "NYTimes.com":
-            return url 
+        #if sender != "NYTimes.com":
+        #    return url 
 
         if sender in self.SENDER_STORY_URL:
             soup = BeautifulSoup(body)
@@ -295,7 +296,8 @@ class NewsEvent:
 class NewsAlertService:
 
     def __init__(self,db_replica_set,db_user,db_pw):
-        connection = pymongo.ReplicaSetConnection(db_replica_set,replicaSet='paperboy-newshound')
+        # connection = pymongo.ReplicaSetConnection(db_replica_set,replicaSet='newshound')
+	connection = pymongo.MongoClient(db_replica_set)
         self.db = connection.newshound
         self.db.authenticate(db_user,db_pw)
         self.news_alerts = self.db["news_alerts"]
@@ -508,7 +510,7 @@ class EmailFetcher:
 
     def __init__(self):
         configParser = SafeConfigParser()
-        configParser.read('/opt/nyt/etc/newshound.ini')
+        configParser.read('/opt/newshound/etc/config.ini')
         self.imap_server_info = {
             "user":configParser.get("imap_server_info", "user"),
             "password":configParser.get("imap_server_info", "password"),
