@@ -16,11 +16,12 @@ class NewsStats:
     
     def __init__(self):
         configParser = SafeConfigParser()
-        configParser.read('/opt/nyt/etc/newshound.ini')
+        configParser.read('/opt/newshound/etc/config.ini')
         db_replica_set = configParser.get("newshound_db","replica_set").replace("/newshound","")
         db_pw = configParser.get("newshound_db","password")
         db_user = configParser.get("newshound_db","user") 
-        connection = pymongo.ReplicaSetConnection(db_replica_set,replicaSet='paperboy-newshound')
+        #connection = pymongo.ReplicaSetConnection(db_replica_set,replicaSet='paperboy-newshound')
+	connection = pymongo.MongoClient(db_replica_set)
         self.db = connection.newshound
         self.db.authenticate(db_user,db_pw)
         self.news_alerts = self.db["news_alerts"]
