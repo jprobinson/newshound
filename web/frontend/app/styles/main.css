@@ -10,6 +10,26 @@ th .glyphicon {
 	margin-left:15px!important;
 }
 
+.nav > li {
+    display:inline-block!important;
+}
+.navbar-header {
+    float:left;
+}
+.navbar-nav {
+    float: left;
+    margin: 0;
+}
+.navbar-nav > li {
+    float: left;
+}
+
+@media (max-width: 750px) {
+  .navbar-nav > li {
+      font-size:0.7em!important;
+  }
+}
+
 .table th, .table .border_right {
     border-right:1px solid #DDD;
 }
@@ -71,15 +91,11 @@ th .glyphicon {
 	background-color: #428bca;
 	border-color: #357ebd;
 }
-
-/* Customize container */
-@media (min-width: 768px) {
-  .container {
-	width: 99%;
-  }
+.container {
+    min-width:800px;
 }
 .container-narrow > hr {
-  margin: 30px 0;
+    margin: 30px 0;
 }
 
 /* Main marketing message and sign up button */

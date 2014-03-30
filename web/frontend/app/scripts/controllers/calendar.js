@@ -341,7 +341,7 @@ angular.module('newshoundApp')
 					theme: false,
 					defaultView: 'agendaWeek',
 					editable: false,
-					contentHeight: ($(window).height() - 165),
+					contentHeight: Math.max($(window).height() - 165,300),
 					allDaySlot: false,
 					header: {
 						left: '',
@@ -349,7 +349,7 @@ angular.module('newshoundApp')
 						right: 'today prev,next agendaWeek,agendaDay'
 					},
 					windowResize: function(view) {
-						view.setHeight($(document).height() - 250);
+						view.setHeight(Math.max($(document).height() - 250,300));
 					},
 					viewRender: viewRender,
 					eventAfterAllRender: filterCalEvents,
