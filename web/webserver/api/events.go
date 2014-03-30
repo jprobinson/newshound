@@ -23,23 +23,23 @@ func NewNewsEvents(db *mgo.Database) NewsEvents {
 type NewsEvent struct {
 	Id         bson.ObjectId    `json:"id" bson:"_id"`
 	Tags       []string         `json:"tags"`
-	EventStart time.Time        `json:"event_start"`
-	EventEnd   time.Time        `json:"event_end"`
-	NewsAlerts []NewsEventAlert `json:"news_alerts"`
+	EventStart time.Time        `json:"event_start"bson:"event_start"`
+	EventEnd   time.Time        `json:"event_end"bson:"event_end"`
+	NewsAlerts []NewsEventAlert `json:"news_alerts"bson:"news_alerts"`
 }
 
 // NewsEventAlert is a struct for holding a smaller version of
 // News Alert data. This struct has extra fields for determining the order
 // and time differences of the News Alerts within the News Event.
 type NewsEventAlert struct {
-	AlertId    bson.ObjectId `json:"alertID"`
-	InstanceID string        `json:"instance_id"`
-	ArticleUrl string        `json:"article_url"`
+	AlertId    bson.ObjectId `json:"alert_id"bson:"alert_id"`
+	InstanceID string        `json:"instance_id"bson:"instance_id"`
+	ArticleUrl string        `json:"article_url"bson:"article_url"`
 	Sender     string        `json:"sender"`
 	Tags       []string      `json:"tags"`
 	Subject    string        `json:"subject"`
 	Order      int64         `json:"order"`
-	TimeLapsed int64         `json:"time_lapsed"`
+	TimeLapsed int64         `json:"time_lapsed"bson:"time_lapsed"`
 }
 
 // FindByDate accepts a start and end date and returns all the News Events that occured in that timeframe.
