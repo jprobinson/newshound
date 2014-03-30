@@ -10,12 +10,12 @@ This library contains the code to:
 5. Use MongoDB mapreduce to generate aggregated statistics about each news source
 
 
-This library is dependent upon the following Python modules:
+This library expects the following Python modules to be installed:
 
-numpy
-chardet
-imaplib
-pymongo
-requests
-BeautifulSoup
+- numpy
+- chardet
+- imaplib
+- pymongo
+- requests
+- BeautifulSoup
 
