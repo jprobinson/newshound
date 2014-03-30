@@ -4,10 +4,10 @@
 # description: The the Noun Phrase extractor service
 # processname: np_extractor 
 
-BIN_PATH=/opt/nyt/bin
+BIN_PATH=/opt/newshound/bin
 SERVICE=$BIN_PATH/np_extractor_run.py
 PID_FILE=/var/run/np_extractor.pid
-LOGDIR=/var/nyt/logs/np_extractor
+LOGDIR=/var/log/np_extractor
 LOG=$LOGDIR/np_extractor.log
 
 function launchDaemon() {
@@ -17,11 +17,9 @@ function launchDaemon() {
     if [ $id -eq 0 ]
     then
         touch $PID_FILE
-        chown superbad $PID_FILE
         mkdir -p $LOGDIR
-        chown superbad $LOGDIR
         cd $BIN_PATH
-        su superbad -c "python $SERVICE >> $LOG 2>&1 & echo \$! > $PID_FILE"
+        python $SERVICE >> $LOG 2>&1 & echo \$! > $PID_FILE
         echo "np_extractor started"
     else
         echo "np_extractor is running already"
