@@ -10,5 +10,6 @@ You can post to the server directly or import the np_extractor.service module an
 This library expects the following Python modules to be installed:
 
 - nltk
-- nltk's brown corpora and tokenizers
+- nltk's brown corpora, stopwords and punkt tokenizers
+- simplejson
 
