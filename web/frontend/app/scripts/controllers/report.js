@@ -422,7 +422,8 @@ angular.module('newshoundApp')
 			    };
 			};
 
-			var senderDialogCtrl = function($scope, $modalInstance, info, senderReport, senderName) {
+			var senderDialogCtrl = ['$scope', '$modalInstance', 'info', 'senderReport', 'senderName', 
+			    function($scope, $modalInstance, info, senderReport, senderName) {
 				$scope.senderReport = senderReport;
 				$scope.info = info;
 				$scope.senderName = senderName;
@@ -436,7 +437,7 @@ angular.module('newshoundApp')
 				$scope.senderPlacementChartConfig = createPlacementChart(senderName, info);
 				$scope.senderArrivalChartConfig = createArrivalChart(senderName, info);
 				$scope.senderHoursChartConfig = createHoursChart(senderName, info);
-			}
+			}];
 
 			// handle sender dialog
 			var displaySenderDialog = function() {

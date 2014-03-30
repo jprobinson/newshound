@@ -179,12 +179,12 @@ angular.module('newshoundApp')
                     $scope.alertDialog = $modal.open({
                         templateUrl: 'alertModal.html',
                         windowClass: 'large-modal',
-                        controller: function($scope, $modalInstance, alert) {
+                        controller: ['$scope', '$modalInstance', 'alert', function($scope, $modalInstance, alert) {
                             var htmlUrl = config.apiHost() + "/alert_html/" + alert.id;
                             $scope.alertHtmlUrl = $sce.trustAsResourceUrl(htmlUrl);
                             $scope.alert = alert;
                             $scope.senderClass = news.getSenderClassName(alert.sender);
-                        },
+                        }],
                         resolve: {
                             alert: function() {
                                 return alert;
@@ -240,7 +240,7 @@ angular.module('newshoundApp')
                     $scope.eventDialog = $modal.open({
                         templateUrl: 'eventModal.html',
                         windowClass: 'large-modal',
-                        controller: function($scope, $modalInstance, event) {
+                        controller: ['$scope', '$modalInstance', 'event', function($scope, $modalInstance, event) {
                             $scope.event = event;
 
                             var maxLapsed = 0.0;
@@ -317,7 +317,7 @@ angular.module('newshoundApp')
                                 series: $scope.eventChartSeries
                             };
 
-                        },
+                        }],
                         resolve: {
                             event: function() {
                                 return event;
