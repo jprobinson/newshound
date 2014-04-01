@@ -1,2 +1,0 @@
-*/1 * * * * root /bin/bash /opt/nyt/bin/newshound-fetch
-

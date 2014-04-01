@@ -92,7 +92,7 @@ th .glyphicon {
 	border-color: #357ebd;
 }
 .container {
-    min-width:800px;
+    min-width:300px;
     width:90%;
 }
 .container-narrow > hr {
@@ -302,6 +302,27 @@ th .glyphicon {
     background:#c00000;
     border-color:#c00000;
     color:white;
+}
+
+.cal-date {
+    font-size:1.8em;
+    height:50px;
+    width:200px;
+    border:none;
+}
+.cal-date-to {
+    font-size:1.2em;
+}
+
+@media (max-width: 750px) {
+  .cal-date-to {
+        font-size:0.9em;
+    }
+  .cal-date {
+    font-size:0.8em!important;
+    height:30px;
+    width:100px;
+  }
 }
 
 .news_event_cal, .news_event_cal div{

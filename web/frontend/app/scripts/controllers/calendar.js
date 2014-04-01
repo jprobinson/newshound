@@ -117,6 +117,8 @@ angular.module('newshoundApp')
                 }
 
                 promise.then(function(events) {
+                    $scope.start = start;
+                    $scope.end = end;
                     callback(events);
                 }, function(reason) {
                     alert('Failed getting event data!: ' + reason);
@@ -336,20 +338,39 @@ angular.module('newshoundApp')
                 });
             };
 
+            var getCalViews = function(current){
+                var views = "agendaWeek,agendaDay";
+                var view = current;
+                var width = $(document).width();
+                if(width < 800){
+                    views = "basicWeek,basicDay";
+                    if(view.indexOf("Day") != -1){
+                        view = "basicDay";
+                    }else {
+                        view = "basicWeek";
+                    }
+                }
+                return {view:view, views:views};
+            };
+
             $scope.uiConfig = {
                 calendar: {
                     theme: false,
-                    defaultView: 'agendaWeek',
+                    defaultView: getCalViews('agendaWeek').view,
                     editable: false,
                     contentHeight: Math.max($(window).height() - 165, 300),
                     allDaySlot: false,
                     header: {
-                        left: '',
-                        center: 'title',
-                        right: 'today prev,next agendaWeek,agendaDay'
+                        left: 'today prev,next',
+                        center: '',
+                        right: getCalViews('agendaWeek').views
                     },
                     windowResize: function(view) {
                         view.setHeight(Math.max($(document).height() - 250, 300));
+                        var views = getCalViews(view); 
+                        if(view != views.view){
+                            view.changeView(views.view);
+                        }
                     },
                     ignoreTimezone: false,
                     viewRender: viewRender,

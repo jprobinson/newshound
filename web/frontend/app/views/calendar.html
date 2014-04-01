@@ -10,6 +10,16 @@
 			<option ng-repeat="(senderClass, sender) in senders" value="{{senderClass}}">{{sender}}</option>
 		</select>
 	</div>
+    <div class="clearfix"></div>
+    <div class="col-lg-3 col-lg-offset-3 text-right">
+        <input type="text" class="form-control cal-date" datepicker-popup="MMM d, y" ng-model="start"/>
+    </div>
+    <div class="col-lg-1 text-center cal-date-to">
+        - to -
+    </div>
+    <div class="col-lg-3">
+        <input type="text" class="form-control cal-date" datepicker-popup="MMM d, y" ng-model="end"/>
+    </div>    
 </div>
 
 <div ui-calendar="uiConfig.calendar" calendar="theCalendar" ng-model="calEvents" />
