@@ -1,5 +1,5 @@
 th {
-	text-align:center!important;
+	text-align:center!import!importantant;
 }
 
 th .glyphicon {
@@ -22,12 +22,6 @@ th .glyphicon {
 }
 .navbar-nav > li {
     float: left;
-}
-
-@media (max-width: 750px) {
-  .navbar-nav > li {
-      font-size:0.7em!important;
-  }
 }
 
 .table th, .table .border_right {
@@ -54,11 +48,12 @@ th .glyphicon {
 
 .navbar {
 	height:55px;
+    margin-bottom:10px;
 }
 
 .navbar li a {
 	line-height:10px;
-	padding: 29px 15px 16px 15px !important;
+	padding: 29px 15px 16px 15px;
 }
 
 .navbar-default .navbar-nav > li > a:hover, .navbar-default .navbar-nav > li > a:focus {
@@ -67,6 +62,19 @@ th .glyphicon {
 .newshound-logo {
 	padding: 2px 25px !important;
 }
+
+@media (max-width: 750px) {
+   .navbar {
+        height:42px!important;
+    }
+  .navbar-nav > li {
+      font-size:0.7em!important;
+  }
+  .navbar li a {
+    padding-top:23px;
+  }
+}
+
 
 /* Make the masthead heading the same height as the navigation */
 .header h3 {
@@ -93,7 +101,7 @@ th .glyphicon {
 }
 .container {
     min-width:300px;
-    width:90%;
+    width:98%;
 }
 .container-narrow > hr {
     margin: 30px 0;
@@ -305,23 +313,44 @@ th .glyphicon {
 }
 
 .cal-date {
-    font-size:1.8em;
+    font-size:1.9em;
     height:50px;
-    width:200px;
+    width:185px;
     border:none;
+    cursor:pointer;
+    padding:0;
+    -webkit-box-shadow:none;
 }
 .cal-date-to {
-    font-size:1.2em;
-}
+    float:left;
+    width:14px;
+    padding:17px 0 0 0;
+    margin:0;
+    z-index:1000;
+} 
 
 @media (max-width: 750px) {
-  .cal-date-to {
-        font-size:0.9em;
+    .newshound-logo img {
+        height:40px;
     }
+    .cal-alert-toggle {
+        padding-bottom:10px;
+    }
+    .sender-filter {
+        font-size:0.8em;
+    }
+    .cal-alert-toggle button {
+        font-size:0.8em;
+    }
+  .cal-date-to {
+      font-size:0.7em;
+    padding:7px 0 0 0;
+  }
   .cal-date {
-    font-size:0.8em!important;
+    float:left;
+    font-size:1.2em!important;
     height:30px;
-    width:100px;
+    width:128px;
   }
 }
 

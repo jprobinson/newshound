@@ -1,24 +1,26 @@
 <div class="row">
-	<div class="btn-group col-lg-3">
+	<div class="btn-group col-lg-3 cal-alert-toggle">
 		<button type="button" class="btn btn-primary" ng-model="calDisplay" btn-radio="'alerts'">News Alerts</button>
 		<button type="button" class="btn btn-primary" ng-model="calDisplay" btn-radio="'events'">News Events</button>
 	</div>
 	
-	<div class="btn-group col-lg-offset-6 col-lg-3 text-right">
+	<div class="btn-group col-lg-offset-6 col-lg-3 text-right sender-filter">
 		<select class="text-left" ui-select2="{ allowClear: true}" ng-model="senderFilter" data-placeholder="select a sender to filter">
 			<option value=""></option>
 			<option ng-repeat="(senderClass, sender) in senders" value="{{senderClass}}">{{sender}}</option>
 		</select>
 	</div>
+
     <div class="clearfix"></div>
-    <div class="col-lg-3 col-lg-offset-3 text-right">
-        <input type="text" class="form-control cal-date" datepicker-popup="MMM d, y" ng-model="start"/>
+
+    <div class="col-lg-2 col-md-3 col-sm-3 col-xs-4 col-xs-offset-2 col-lg-offset-4 text-right" style="padding-right:5px;">
+        <input type="text" class="form-control text-right cal-date" datepicker-popup="MMM d, y" ng-model="startInput" style="float:right"/>
     </div>
-    <div class="col-lg-1 text-center cal-date-to">
-        - to -
+    <div class="cal-date-to">
+        <span class="glyphicon glyphicon-minus">&nbsp;</span>
     </div>
-    <div class="col-lg-3">
-        <input type="text" class="form-control cal-date" datepicker-popup="MMM d, y" ng-model="end"/>
+    <div class="col-lg-2 col-md-3 col-sm-3 col-xs-4" style="padding-left:5px">
+        <input type="text" class="form-control cal-date" datepicker-popup="MMM d, y" ng-model="endInput"/>
     </div>    
 </div>
 

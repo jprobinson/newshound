@@ -64,6 +64,8 @@ angular.module('newshoundApp')
                 }
             };
 
+            
+
             $scope.senders = senders;
             $scope.$watch('calDisplay', function() {
                 if (displayInit) {
@@ -105,6 +107,17 @@ angular.module('newshoundApp')
             };
             $scope.$watch('senderFilter', filterCalEvents);
 
+            var dateChange = function(newDate, oldDate) {
+                var newDateStr = $filter('date')(newDate, "yyyy-MM-dd");
+                if(newDate && 
+                    ($scope.startDate >= newDateStr) || 
+                    ($scope.endDate <= newDateStr)) {
+                    $scope.theCalendar.fullCalendar('gotoDate', newDate);
+                }
+            }
+            $scope.$watch('startInput', dateChange);
+            $scope.$watch('endInput', dateChange);
+
             $scope.calEvents = [];
             var getCalEvents = function(start, end, callback) {
                 var promise;
@@ -117,8 +130,6 @@ angular.module('newshoundApp')
                 }
 
                 promise.then(function(events) {
-                    $scope.start = start;
-                    $scope.end = end;
                     callback(events);
                 }, function(reason) {
                     alert('Failed getting event data!: ' + reason);
@@ -157,7 +168,9 @@ angular.module('newshoundApp')
 
                 } else if ((start != $scope.startDate) || (end != $scope.endDate)) {
                     $scope.startDate = start;
+                    $scope.startInput = start;
                     $scope.endDate = end;
+                    $scope.endInput = end;
                     searchVals.start = $filter('date')(view.start, "yyyy-MM-dd");
                     searchVals.end = $filter('date')(view.end, "yyyy-MM-dd");
                     searchVals.display = $scope.calDisplay;
@@ -344,11 +357,7 @@ angular.module('newshoundApp')
                 var width = $(document).width();
                 if(width < 800){
                     views = "basicWeek,basicDay";
-                    if(view.indexOf("Day") != -1){
-                        view = "basicDay";
-                    }else {
-                        view = "basicWeek";
-                    }
+                    view = "basicDay";
                 }
                 return {view:view, views:views};
             };
