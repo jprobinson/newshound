@@ -134,19 +134,20 @@ th .glyphicon {
   .jumbotron {
     border-bottom: 0;
   }
+
 }
 
 /* CUSTOM GOODIES */ 
 .modal-header {
-	height:45px!important;
+	min-height:45px;
 }
 .xlarge-modal .modal-dialog {
-	min-width:1024px !important;
+	min-width:70%!important;
 }
 
 
 .large-modal .modal-dialog {
-	min-width:850px !important;
+	min-width:60% !important;
 }
 
 .fc-event{
@@ -161,7 +162,7 @@ th .glyphicon {
     border-color:#B60002;
     color:#B60002;
 }
-.cnn .fc-event-time, .cnn-header, .cnn .ui-dialog-titlebar {
+.cnn .fc-event-time, .cnn-header, .cnn-header .close, .cnn .ui-dialog-titlebar {
     background:#B60002;
     border-color:white;
     color:white;
@@ -320,6 +321,15 @@ th .glyphicon {
     cursor:pointer;
     padding:0;
     -webkit-box-shadow:none;
+    display: block;
+    line-height: 1.428571429;
+    color: #555555;
+    vertical-align: middle;
+    background-color: #ffffff;
+    background-image: none;
+}
+.cal-end-date {
+    padding-top:6px;
 }
 .cal-date-to {
     float:left;
@@ -330,8 +340,14 @@ th .glyphicon {
 } 
 
 @media (max-width: 750px) {
+    .modal-header { 
+        font-size:1.0em!important;
+    }
     .newshound-logo img {
         height:40px;
+    }
+    .cal-end-date {
+        padding-top:3px;
     }
     .cal-alert-toggle {
         padding-bottom:10px;
@@ -439,7 +455,7 @@ th .glyphicon {
 }
 
 .alert-dialog-info {
-	height:125px;
+	min-height:125px;
 }
 .alert-dialog-info li div {
 	margin-bottom:10px;
@@ -455,6 +471,18 @@ th .glyphicon {
 
 #eventChart {
 	height:400px;
+}
+
+.chart-wrapper {
+    position: relative;
+    height:100%;
+    padding-bottom:400px;
+}
+
+.chart-inner {
+    position: absolute;
+    width: 100%; height: 100%;
+    margin:auto;
 }
 
 .highcharts-container {

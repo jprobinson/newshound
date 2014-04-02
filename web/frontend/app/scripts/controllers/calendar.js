@@ -108,7 +108,13 @@ angular.module('newshoundApp')
             $scope.$watch('senderFilter', filterCalEvents);
 
             var dateChange = function(newDate, oldDate) {
+                if(newDate == oldDate){
+                    return;
+                }
                 var newDateStr = $filter('date')(newDate, "yyyy-MM-dd");
+                console.log(newDate);
+                console.log(newDateStr);
+                console.log($scope.startDate);
                 if(newDate && 
                     ($scope.startDate >= newDateStr) || 
                     ($scope.endDate <= newDateStr)) {
@@ -116,7 +122,6 @@ angular.module('newshoundApp')
                 }
             }
             $scope.$watch('startInput', dateChange);
-            $scope.$watch('endInput', dateChange);
 
             $scope.calEvents = [];
             var getCalEvents = function(start, end, callback) {
@@ -130,6 +135,8 @@ angular.module('newshoundApp')
                 }
 
                 promise.then(function(events) {
+                    $scope.startInput = start;
+                    $scope.endInput = end;
                     callback(events);
                 }, function(reason) {
                     alert('Failed getting event data!: ' + reason);
@@ -168,9 +175,7 @@ angular.module('newshoundApp')
 
                 } else if ((start != $scope.startDate) || (end != $scope.endDate)) {
                     $scope.startDate = start;
-                    $scope.startInput = start;
                     $scope.endDate = end;
-                    $scope.endInput = end;
                     searchVals.start = $filter('date')(view.start, "yyyy-MM-dd");
                     searchVals.end = $filter('date')(view.end, "yyyy-MM-dd");
                     searchVals.display = $scope.calDisplay;
@@ -199,6 +204,7 @@ angular.module('newshoundApp')
                             $scope.alertHtmlUrl = $sce.trustAsResourceUrl(htmlUrl);
                             $scope.alert = alert;
                             $scope.senderClass = news.getSenderClassName(alert.sender);
+                            $scope.close = function(){ $modalInstance.close(); };
                         }],
                         resolve: {
                             alert: function() {
@@ -256,6 +262,7 @@ angular.module('newshoundApp')
                         templateUrl: 'eventModal.html',
                         windowClass: 'large-modal',
                         controller: ['$scope', '$modalInstance', 'event', function($scope, $modalInstance, event) {
+                            $scope.close = function(){ $modalInstance.close(); };
                             $scope.event = event;
 
                             var maxLapsed = 0.0;

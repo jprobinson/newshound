@@ -19,8 +19,8 @@
     <div class="cal-date-to">
         <span class="glyphicon glyphicon-minus">&nbsp;</span>
     </div>
-    <div class="col-lg-2 col-md-3 col-sm-3 col-xs-4" style="padding-left:5px">
-        <input type="text" class="form-control cal-date" datepicker-popup="MMM d, y" ng-model="endInput"/>
+    <div class="col-lg-2 col-md-3 col-sm-3 col-xs-4" style="padding-left:5px; vertical">
+        <span class="cal-end-date cal-date">{{ endInput | date: 'MMM d, y'}}</span>
     </div>    
 </div>
 
@@ -28,8 +28,11 @@
 
 <script type="text/ng-template" id="alertModal.html">
 	<div class="modal-header {{senderClass}}-header">
-		<h4>{{alert.sender}} - {{ alert.timestamp | date:'medium' }}</h4>
-	</div>
+        <button type="button" class="close" ng-click="close()" aria-hidden="true">&times;</button>
+        <h4 class="col-lg-10">
+            {{alert.sender}} - {{ alert.timestamp | date:'medium' }}
+        </h4>
+    </div>
 	<div class="modal-body">
 		<ul class="list-unstyled alert-dialog-info">
 			<li class="row">
@@ -60,7 +63,7 @@
 				<div class="col-lg-2">
 					<b>URL:</b>
 				</div>
-				<div class="col-lg-10">
+				<div class="col-lg-10" style="overflow-x:scroll;">
 					<a href="{{alert.article_url}}" target="_blank">
 						{{alert.article_url}}
 					</a>
@@ -74,6 +77,7 @@
 
 <script type="text/ng-template" id="eventModal.html">
 	<div class="modal-header">
+        <button type="button" class="close" ng-click="close()" aria-hidden="true">&times;</button>
 		<h4>{{ event.event_start | date:'medium' }}</h4>
 	</div>
 	<div class="modal-body">
@@ -92,8 +96,10 @@
 				</div>
 			</li>
 		</ul>
-	</div>
-	<div>
-		<highchart id="eventChart" config="eventChartConfig" style="width:850px"></highchart>
+        <div class="chart-wrapper">
+        <div class="chart-inner">
+            <highchart config="eventChartConfig" ></highchart>
+        </div>
+    </div>
 	</div>
 </script>
