@@ -31,12 +31,18 @@ class NPService(BaseHTTPRequestHandler):
     def extract(self, raw_text):
         sentences = sent_detector.tokenize(raw_text)
         results = dict() 
+        max_phrases = -1
+        top_sent = ""
         for sent in sentences:
             result = np_extractor.extract(sent)
             for key in result.keys():
                 results[key] = result[key]
 
-        return {'noun_phrases':results, 'count':len(results)}
+            if len(result.keys()) > max_phrases:
+                max_phrases = len(result.keys())
+                top_sent = sent 
+
+        return {'noun_phrases':results, 'top_sentence': top_sent, 'count':len(results)}
 
 
 def np_extract(text):
