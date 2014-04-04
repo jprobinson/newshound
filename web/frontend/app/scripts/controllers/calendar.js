@@ -269,6 +269,7 @@ angular.module('newshoundApp')
                             var seriesData = [];
                             var eventSenders = [];
                             $scope.eventChartSeries = [];
+                            $scope.displayAlertDialog = displayAlertDialog;
                             $.each(event.news_alerts, function(index, alert) {
                                 var minDiff = alert.time_lapsed / 60;
                                 var secDiff = alert.time_lapsed % 60;
@@ -277,6 +278,7 @@ angular.module('newshoundApp')
                                     subject: alert.subject,
                                     time_diff_str: timeDiffStr,
                                     name: alert.sender,
+                                    senderClass:news.getSenderClassName(alert.sender),
                                     obj_id: alert.alert_id,
                                     y: minDiff,
                                     color: senderColors[news.getSenderClassName(alert.sender)],
@@ -291,6 +293,7 @@ angular.module('newshoundApp')
                                     maxLapsed = minDiff;
                                 }
                             });
+                            $scope.alerts = seriesData;
                             // bump it up a lil bit so theres something to click on.
                             seriesData[0].y = (maxLapsed / 100);
 
@@ -299,10 +302,11 @@ angular.module('newshoundApp')
                                 data: seriesData
                             });
 
+                            console.log(senders)
                             $scope.eventChartConfig = {
                                 options: {
                                     chart: {
-                                        type: 'bar'
+                                        type: 'bar',
                                     },
                                     credits: {
                                         enabled: false

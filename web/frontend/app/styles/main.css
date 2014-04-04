@@ -137,17 +137,33 @@ th .glyphicon {
 
 }
 
+.event-alerts {
+    cursor:pointer;
+    background-color:#efefef;
+}
+.event-alert p {
+    padding-botton:0;
+
+}
+
 /* CUSTOM GOODIES */ 
 .modal-header {
 	min-height:45px;
 }
 .xlarge-modal .modal-dialog {
-	min-width:70%!important;
+	width:800px;
 }
 
+.modal-body {
+    padding:10px
+}
 
 .large-modal .modal-dialog {
-	min-width:60% !important;
+	min-width:60%;
+}
+
+.event-chart {
+    width:100%;
 }
 
 .fc-event{
@@ -476,7 +492,7 @@ th .glyphicon {
 .chart-wrapper {
     position: relative;
     height:100%;
-    padding-bottom:400px;
+    width:800px;
 }
 
 .chart-inner {

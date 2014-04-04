@@ -96,10 +96,23 @@
 				</div>
 			</li>
 		</ul>
-        <div class="chart-wrapper">
-        <div class="chart-inner">
-            <highchart config="eventChartConfig" ></highchart>
-        </div>
+        <!-- <highchart config="eventChartConfig" class="event-chart"></highchart> -->
+        <ul class="list-unstyled event-alerts">
+            <li ng-repeat="alert in alerts">
+                <div class="event-alert" ng-click="displayAlertDialog(alert.obj_id)">
+                    <header class="{{ alert.senderClass }}-header">
+                        <h4>
+                            {{ alert.name }} 
+                            <small ng-show="$first">First to arrive</small>
+                            <small ng-show="!$first">Time Lapsed: {{ alert.time_diff_str }}</small>
+                        </h4> 
+                    </header>
+                    <p>
+                        {{ alert.subject }}
+                    </p>
+                </div>
+            </li>
+        </ul>
     </div>
 	</div>
 </script>
