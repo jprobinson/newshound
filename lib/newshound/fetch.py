@@ -29,10 +29,11 @@ from datetime import datetime, time, timedelta, date, MAXYEAR, MINYEAR
 class NewsAlert:
 
     SENDER_STORY_URL = {
-            'CBS'                   :    1,
-            'FT'                    :    3,
-            'WSJ.com'               :    0,
-            'USATODAY.com'          :    1,
+            'BBC'                   :    4,
+            'CBS'                   :    2,
+            'FT'                    :    2,
+            'WSJ.com'               :    1,
+            'USATODAY.com'          :    6,
             'NYTimes.com'           :    6,
             'The Washington Post'   :    3,
             'FoxNews.com'           :    0,
@@ -48,7 +49,7 @@ class NewsAlert:
                 "on the go?", "more newsletters", "manage email", 'text "breaking', "read more", "(c)", "contact your cable", 
                 "share this", "for the latest", "|", "to your address book", "unsubscribe", "and watch ", "if this message", 
                 "to view this email", "more on this", "more stories", "go to nbcnews", "to ensure", "privacy policy",
-                "manage portfolio", "forward this email", "subscribe to",
+                "manage portfolio", "forward this email", "subscribe to","view it in your browser",
                 "share on facebook", "video alerts", "on your cell phone", "more coverage"]
 
     def __init__(self,raw_message, alert_info={}):
@@ -60,7 +61,6 @@ class NewsAlert:
             alert_info["subject"] = self.__parse_subject(message)
             alert_info["raw_body"] = self.__get_body(message)
             alert_info["timestamp"] = self.__get_date(message)
-            alert_info["article_url"] = self.__find_article_url(alert_info["sender"],alert_info["raw_body"])
             instance_id = self.__get_instance_id(message)
             if(instance_id):
                 alert_info["instance_id"] = instance_id
@@ -69,7 +69,8 @@ class NewsAlert:
 
         self.alert_info     = alert_info            
         self.alert_info["body"] = self.__strip_unsub_links(alert_info["raw_body"])
-        (self.alert_info["tags"], self.alert_info["top_sentence"]) = self.__create_tags(alert_info["sender"],alert_info["raw_body"],alert_info["subject"])
+        alert_info["article_url"] = self.__find_article_url(alert_info["sender"],alert_info["raw_body"])
+        (self.alert_info["tags"], self.alert_info["sentences"],self.alert_info["top_sentence"]) = self.__create_tags(alert_info["sender"],alert_info["raw_body"],alert_info["subject"])
 
     def get_id(self):
         return self.alert_info["_id"]
@@ -210,7 +211,7 @@ class NewsAlert:
             # attempt to find final url...most have click tracking 
             try:
                 new_url = requests.get(url)
-                url = new_url.url
+                url = new_url.url.split("?")[0]
             except:
                 # log("unable to open url!")
                 pass
@@ -280,9 +281,7 @@ class NewsAlert:
         tag_results = np_extract(article_text.encode("utf-8"))
         tags = tag_results["noun_phrases"].keys()
         tags = [tag.replace(" 's", "'s") for tag in tags]
-        
-
-        return (tags, tag_results["top_sentence"])
+        return (tags, tag_results["sentences"], tag_results["top_sentence"])
 
 class NewsEvent:
 
@@ -339,6 +338,8 @@ class NewsAlertService:
                         "subject":alert.alert_info["subject"],
                         "sender":alert.alert_info["sender"],
                         "tags":alert.alert_info["tags"],
+                        "sentences":alert.alert_info["sentences"],
+                        "top_sentence":alert.alert_info["top_sentence"],
                         "instance_id":alert.alert_info.get("instance_id",None),
                         "article_url":alert.alert_info["article_url"]})
             all_alerts.append(alert)

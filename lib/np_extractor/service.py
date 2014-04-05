@@ -33,16 +33,21 @@ class NPService(BaseHTTPRequestHandler):
         results = dict() 
         max_phrases = -1
         top_sent = ""
+        sents = list() 
         for sent in sentences:
             result = np_extractor.extract(sent)
-            for key in result.keys():
-                results[key] = result[key]
 
             if len(result.keys()) > max_phrases:
                 max_phrases = len(result.keys())
                 top_sent = sent 
 
-        return {'noun_phrases':results, 'top_sentence': top_sent, 'count':len(results)}
+            sents.append({'sentence':sent, 'noun_phrases': result.keys()})
+
+            for key in result.keys():
+                results[key] = result[key]
+
+            
+        return {'noun_phrases':results, 'top_sentence': top_sent, 'sentences': sents, 'count':len(results)}
 
 
 def np_extract(text):

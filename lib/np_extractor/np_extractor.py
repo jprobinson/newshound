@@ -26,7 +26,10 @@ STOP_WORDS = stopwords.words('english') + [ u'—', u'»', u'000', u'8211', u'82
                 u'watch', u'watch live', u'way', u'wed', u'wednesday', u'week', u'west', u'without', u'wnbc', u'wsj', u'wsj news alert', u'year', u'years', u'pm edt']
 
 class NPExtractor(object):
-
+    """
+    Most of this code is from Slomi Babluki's very helpful blog post:
+    http://thetokenizer.com/2013/05/09/efficient-way-to-extract-the-main-topics-of-a-sentence/
+    """
     def __init__(self):
         # This is our fast Part of Speech tagger
         brown_train = brown.tagged_sents(categories=['news'])
@@ -78,6 +81,9 @@ class NPExtractor(object):
 
         if clean_tag.startswith("'s "):
             clean_tag = clean_tag[3:]
+
+        if 'http' in clean_tag:
+            clean_tag = clean_tag.replace("http","")
 
         if clean_tag.startswith('"') or clean_tag.startswith(u"•")  or clean_tag.startswith("'") or clean_tag.startswith(u'“') or clean_tag.startswith(u'‘'):
             clean_tag = clean_tag[1:]
