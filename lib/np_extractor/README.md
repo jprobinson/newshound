@@ -12,4 +12,6 @@ This library expects the following Python modules to be installed:
 - nltk
 - nltk's brown corpora, stopwords and punkt tokenizers
 - simplejson
+- dateutil
+- pymongo
 
