@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-
 	"github.com/jprobinson/go-utils/utils"
 	"github.com/jprobinson/go-utils/web"
 

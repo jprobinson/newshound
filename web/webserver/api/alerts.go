@@ -22,13 +22,15 @@ func NewNewsAlerts(db *mgo.Database) NewsAlerts {
 // data. This struct lacks a Body and Raw Body to reduce the size
 // when pulling large lists of Alerts. Mainly used for 'findByDate' scenarios.
 type NewsAlertLite struct {
-	Id         bson.ObjectId `json:"id" bson:"_id"`
-	InstanceID string        `json:"instance_id"bson:"instance_id"`
-	ArticleUrl string        `json:"article_url"bson:"article_url"`
-	Sender     string        `json:"sender"`
-	Timestamp  time.Time     `json:"timestamp"`
-	Tags       []string      `json:"tags"`
-	Subject    string        `json:"subject"`
+	Id          bson.ObjectId `json:"id" bson:"_id"`
+	InstanceID  string        `json:"instance_id"bson:"instance_id"`
+	ArticleUrl  string        `json:"article_url"bson:"article_url"`
+	Sender      string        `json:"sender"`
+	Timestamp   time.Time     `json:"timestamp"`
+	Tags        []string      `json:"tags"`
+	Subject     string        `json:"subject"`
+	TopSentence string        `json:"top_sentence"bson:"top_sentence"`
+	Sentences   []Sentence    `json:"sentences"`
 }
 
 // NewsAlertFull is a struct that contains all News Alert
@@ -42,6 +44,11 @@ type NewsAlertFull struct {
 	Tags        []string      `json:"tags"`
 	Subject     string        `json:"subject"`
 	Body        string        `json:"body"`
+}
+
+type Sentence struct {
+	Value   string   `json:"sentence"bson:"sentence"`
+	Phrases []string `json:"noun_phrases"bson:"noun_phrases"`
 }
 
 // FindByDate will accept a date range and return any News Alerts that occured within it. News Alert information
