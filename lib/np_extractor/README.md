@@ -14,4 +14,5 @@ This library expects the following Python modules to be installed:
 - simplejson
 - dateutil
 - pymongo
+- BeautifulSoup
 
