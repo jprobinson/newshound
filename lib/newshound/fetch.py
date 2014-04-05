@@ -69,7 +69,7 @@ class NewsAlert:
 
         self.alert_info     = alert_info            
         self.alert_info["body"] = self.__strip_unsub_links(alert_info["raw_body"])
-        self.alert_info["tags"] = self.__create_tags(alert_info["sender"],alert_info["raw_body"],alert_info["subject"])
+        (self.alert_info["tags"], self.alert_info["top_sentence"]) = self.__create_tags(alert_info["sender"],alert_info["raw_body"],alert_info["subject"])
 
     def get_id(self):
         return self.alert_info["_id"]
@@ -280,8 +280,9 @@ class NewsAlert:
         tag_results = np_extract(article_text.encode("utf-8"))
         tags = tag_results["noun_phrases"].keys()
         tags = [tag.replace(" 's", "'s") for tag in tags]
+        
 
-        return tags
+        return (tags, tag_results["top_sentence"])
 
 class NewsEvent:
 
