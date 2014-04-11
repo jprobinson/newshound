@@ -29,10 +29,11 @@ from datetime import datetime, time, timedelta, date, MAXYEAR, MINYEAR
 class NewsAlert:
 
     SENDER_STORY_URL = {
-            'CBS'                   :    1,
-            'FT'                    :    3,
-            'WSJ.com'               :    0,
-            'USATODAY.com'          :    1,
+            'BBC'                   :    4,
+            'CBS'                   :    2,
+            'FT'                    :    2,
+            'WSJ.com'               :    1,
+            'USATODAY.com'          :    6,
             'NYTimes.com'           :    6,
             'The Washington Post'   :    3,
             'FoxNews.com'           :    0,
@@ -48,7 +49,8 @@ class NewsAlert:
                 "on the go?", "more newsletters", "manage email", 'text "breaking', "read more", "(c)", "contact your cable", 
                 "share this", "for the latest", "|", "to your address book", "unsubscribe", "and watch ", "if this message", 
                 "to view this email", "more on this", "more stories", "go to nbcnews", "to ensure", "privacy policy",
-                "manage portfolio", "forward this email", "subscribe to",
+                "manage portfolio", "forward this email", "subscribe to","view it in your browser","you are currently subscribed",
+                "to unsubscribe",
                 "share on facebook", "video alerts", "on your cell phone", "more coverage"]
 
     def __init__(self,raw_message, alert_info={}):
@@ -69,7 +71,7 @@ class NewsAlert:
 
         self.alert_info     = alert_info            
         self.alert_info["body"] = self.__strip_unsub_links(alert_info["raw_body"])
-        (self.alert_info["tags"], self.alert_info["top_sentence"]) = self.__create_tags(alert_info["sender"],alert_info["raw_body"],alert_info["subject"])
+        (self.alert_info["tags"], self.alert_info["sentences"],self.alert_info["top_sentence"]) = self.__create_tags(alert_info["sender"],alert_info["raw_body"],alert_info["subject"])
 
     def get_id(self):
         return self.alert_info["_id"]
@@ -160,7 +162,7 @@ class NewsAlert:
         return text.strip()
 
     def __strip_unsub_links(self,body):
-        body = body.replace('breaking.news.catcher','')
+        body = body.replace(curr_email,'')
         body = body.replace('unsubscribe','')
         body = body.replace('Unsubscribe','')
         body = body.replace('dyn.politico.com','')
@@ -210,7 +212,7 @@ class NewsAlert:
             # attempt to find final url...most have click tracking 
             try:
                 new_url = requests.get(url)
-                url = new_url.url
+                url = new_url.url.split("?")[0]
             except:
                 # log("unable to open url!")
                 pass
@@ -232,6 +234,9 @@ class NewsAlert:
         if line.lower() in self.BREAKING_NEWS:
             return False
 
+        if curr_email in line.lower():
+            return False
+        
         for filler_phrase in self.EMAIL_FILLERS:
             if filler_phrase in line.lower():
                 return False
@@ -256,6 +261,7 @@ class NewsAlert:
         return not line.startswith("http")
 
     def __create_tags(self,sender,body,subject = ''):
+
         tagable_text = self.__find_tagable_text(sender,body,subject)
         valid_lines = [] 
         bad_line_count = 0
@@ -279,10 +285,8 @@ class NewsAlert:
         
         tag_results = np_extract(article_text.encode("utf-8"))
         tags = tag_results["noun_phrases"].keys()
-        tags = [tag.replace(" 's", "'s") for tag in tags]
-        
-
-        return (tags, tag_results["top_sentence"])
+        tags = [tag.replace(" 's", "'s").replace(curr_email,'') for tag in tags]
+        return (tags, tag_results["sentences"], tag_results["top_sentence"])
 
 class NewsEvent:
 
@@ -339,6 +343,8 @@ class NewsAlertService:
                         "subject":alert.alert_info["subject"],
                         "sender":alert.alert_info["sender"],
                         "tags":alert.alert_info["tags"],
+                        "sentences":alert.alert_info["sentences"],
+                        "top_sentence":alert.alert_info["top_sentence"],
                         "instance_id":alert.alert_info.get("instance_id",None),
                         "article_url":alert.alert_info["article_url"]})
             all_alerts.append(alert)
@@ -455,6 +461,8 @@ class NewsAlertService:
                 "alert_id":alert["_id"],
                 "article_url":alert["article_url"],
                 "time_lapsed": time_lapsed.seconds,
+                "sentences":alert["sentences"],
+                "top_sentence":alert["top_sentence"],
                 "tags":alert["tags"]})
             order += 1
 
@@ -517,7 +525,7 @@ class NewsAlertService:
             if self.__minimum_sender_count(event_alerts) and (len(event_alerts) > 2):
                 self.__create_or_merge_event(event_coll,event_alerts,event_tags)
 
-
+curr_email = ""
 class EmailFetcher:
 
     def __init__(self):
@@ -528,6 +536,10 @@ class EmailFetcher:
             "password":configParser.get("imap_server_info", "password"),
             "server_name":configParser.get("imap_server_info", "server_name")
         }
+        global curr_email 
+        curr_email = self.imap_server_info["user"].split("@")[0]
+        if len(curr_email) > 21:
+            curr_email = curr_email[:21]
         self.db_replica_set = configParser.get("newshound_db","replica_set").replace("/newshound","")
         self.db_user = configParser.get("newshound_db","user")
         self.db_pw = configParser.get("newshound_db","password")
@@ -537,7 +549,7 @@ class EmailFetcher:
         if not self.imap_server_info.get("server_name"):
             log('No server configured, not running.')
             return
-
+        
         try:
             imap_conn = imaplib.IMAP4_SSL(self.imap_server_info['server_name'])
         except:
@@ -547,6 +559,7 @@ class EmailFetcher:
         try:
             imap_conn.login(self.imap_server_info['user'],self.imap_server_info['password'])
             log('logged into IMAP server')
+            email = self.imap_server_info['user'].split('@')[0]
         except:
             log('Unable to authenticate with pop server:'+self.imap_server_info['server_name']+' invalid creds:'+self.imap_server_info['user'])
             sys.exit(1)

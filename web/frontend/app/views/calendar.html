@@ -35,39 +35,31 @@
     </div>
 	<div class="modal-body">
 		<ul class="list-unstyled alert-dialog-info">
-			<li class="row">
-				<div class="col-lg-2">
-					<b>Sender:</b>
-				</div>
-				<div class="col-lg-10">
-					{{alert.sender}}
-				</div>
+        	<li>
+                <p class="text-muted"> 
+                    <b>KEY QUOTE</b>
+                </p>
+                <blockquote>
+                  <p>{{ alert.top_sentence }}</p>
+                </blockquote>
 			</li>
-			<li class="row">
-				<div class="col-lg-2">
-					<b>Subject:</b>
-				</div>
-				<div class="col-lg-10">
+			<li>
+				<p class="text-muted">
+					<b>SUBJECT</b>
+				</p>
+				<p class="">
 					{{alert.subject}}
-				</div>
+				</p>
 			</li>
-			<li class="row">
-				<div class="col-lg-2">
-					<b>Key Phrases:</b>
-				</div>
-				<div class="col-lg-10" style="max-height:60px;overflow-y:scroll;">
-					{{alert.tags.join(", ")}}
-				</div>
-			</li>
-			<li ng-show="alert.article_url.length > 0" class="row">
-				<div class="col-lg-2">
-					<b>URL:</b>
-				</div>
-				<div class="col-lg-10" style="overflow-x:scroll;">
+			<li ng-show="alert.article_url.length > 0">
+				<p class="text-muted">
+					<b>URL</b>
+				</p>
+				<p style="overflow-x:scroll;">
 					<a href="{{alert.article_url}}" target="_blank">
 						{{alert.article_url}}
 					</a>
-				</div>
+				</p>
 			</li>						
 		</ul>
 	</div>
@@ -82,33 +74,35 @@
 	</div>
 	<div class="modal-body">
 		<ul class="list-unstyled alert-dialog-info">
-			<li class="row">
-				<div class="col-lg-12">
-					<b>{{event.news_alerts.length}} Alerts</b>
-				</div>
+			<li>
+				<p class="text-muted">
+					<b>{{event.news_alerts.length}} ALERTS</b>
+				</p>
 			</li>
-			<li class="row">
-				<div class="col-lg-2">
-					<b>Key Phrases:</b>
-				</div>
-				<div class="col-lg-10" style="max-height:100px;overflow-y:scroll;">
-					{{event.tags.join(", ")}}
-				</div>
+			<li>
+				<p class="text-muted">
+					<b>KEY QUOTE:</b>
+				</p>
+                <blockquote>
+                    <p>{{ event.news_alerts[0].top_sentence }}</p>
+                </blockquote>
 			</li>
 		</ul>
         <!-- <highchart config="eventChartConfig" class="event-chart"></highchart> -->
         <ul class="list-unstyled event-alerts">
-            <li ng-repeat="alert in alerts">
-                <div class="event-alert" ng-click="displayAlertDialog(alert.obj_id)">
-                    <header class="{{ alert.senderClass }}-header">
-                        <h4>
-                            {{ alert.name }} 
-                            <small ng-show="$first">First to arrive</small>
-                            <small ng-show="!$first">Time Lapsed: {{ alert.time_diff_str }}</small>
-                        </h4> 
+            <li ng-repeat="alert in event.news_alerts">
+                <div class="event-alert" ng-click="displayAlertDialog(alert.alert_id)">
+                    <header class="{{ alert.senderClass }}-header" style="padding:2px 2px;">
+                        <h4 style="margin:2px 3px;">
+                            {{ alert.sender }} 
+                                                   </h4> 
                     </header>
-                    <p>
-                        {{ alert.subject }}
+                     <p class="text-muted" style="margin:0; padding:0 3px;">
+                        <span ng-show="$first">FIRST TO ARRIVE</span>
+                        <span ng-show="!$first">TIME LAPSED {{ alert.timeDiff }}</span>
+                     </p>
+                     <p style="padding:0 3px;">
+                        {{ alert.top_sentence }}
                     </p>
                 </div>
             </li>

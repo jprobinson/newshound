@@ -1,3 +1,6 @@
+body {
+    font-family: georgia,serif;
+}
 th {
 	text-align:center!import!importantant;
 }
@@ -471,7 +474,7 @@ th .glyphicon {
 }
 
 .alert-dialog-info {
-	min-height:125px;
+	min-height:50px;
 }
 .alert-dialog-info li div {
 	margin-bottom:10px;
@@ -480,9 +483,8 @@ th .glyphicon {
 .news_alert_body {
 	height:365px;
 	width: 100%;
-    overflow-y: scroll;
+    overflow: scroll;
     border: solid 1px black;
-    margin-top: 20px;
 }
 
 #eventChart {

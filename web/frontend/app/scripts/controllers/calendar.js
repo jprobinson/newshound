@@ -112,9 +112,6 @@ angular.module('newshoundApp')
                     return;
                 }
                 var newDateStr = $filter('date')(newDate, "yyyy-MM-dd");
-                console.log(newDate);
-                console.log(newDateStr);
-                console.log($scope.startDate);
                 if(newDate && 
                     ($scope.startDate >= newDateStr) || 
                     ($scope.endDate <= newDateStr)) {
@@ -266,82 +263,17 @@ angular.module('newshoundApp')
                             $scope.event = event;
 
                             var maxLapsed = 0.0;
-                            var seriesData = [];
                             var eventSenders = [];
-                            $scope.eventChartSeries = [];
-                            $scope.displayAlertDialog = displayAlertDialog;
                             $.each(event.news_alerts, function(index, alert) {
                                 var minDiff = alert.time_lapsed / 60;
                                 var secDiff = alert.time_lapsed % 60;
-                                var timeDiffStr = Math.floor(minDiff) + " minute(s), " + secDiff + " seconds";
-                                seriesData.push({
-                                    subject: alert.subject,
-                                    time_diff_str: timeDiffStr,
-                                    name: alert.sender,
-                                    senderClass:news.getSenderClassName(alert.sender),
-                                    obj_id: alert.alert_id,
-                                    y: minDiff,
-                                    color: senderColors[news.getSenderClassName(alert.sender)],
-                                    events: {
-                                        click: function(event) {
-                                            displayAlertDialog(event.point.obj_id);
-                                        }
-                                    }
-                                });
+                                event.news_alerts[index].timeDiff = Math.floor(minDiff) + " minute(s), " + secDiff + " seconds";
+                                event.news_alerts[index].senderClass = news.getSenderClassName(alert.sender);
                                 eventSenders.push(alert.sender);
                                 if (minDiff > maxLapsed) {
                                     maxLapsed = minDiff;
                                 }
                             });
-                            $scope.alerts = seriesData;
-                            // bump it up a lil bit so theres something to click on.
-                            seriesData[0].y = (maxLapsed / 100);
-
-                            $scope.eventChartSeries.push({
-                                name: 'News Alerts',
-                                data: seriesData
-                            });
-
-                            console.log(senders)
-                            $scope.eventChartConfig = {
-                                options: {
-                                    chart: {
-                                        type: 'bar',
-                                    },
-                                    credits: {
-                                        enabled: false
-                                    },
-                                    plotOptions: {
-                                        bar: {
-                                            cursor: 'pointer'
-                                        }
-                                    },
-                                    title: {
-                                        text: 'News Alert Time Differences'
-                                    },
-                                    tooltip: {
-                                        formatter: function(something) {
-                                            var time_str;
-                                            if (this.y == seriesData[0].y) time_str = '<span style="font-weight:bold;">This was the first alert to arrive!</span>';
-                                            else time_str = 'Arrived ' + this.point.time_diff_str + ' after first alert';
-                                            return this.key + '<br/>' + time_str + '<br/>' + this.point.subject.substr(0, 80);
-                                        }
-                                    },
-                                    xAxis: {
-                                        categories: eventSenders,
-                                    },
-                                    yAxis: {
-                                        minPadding: 1.5,
-                                        title: {
-                                            text: 'Time Elapsed (minutes)'
-                                        }
-                                    },
-                                    legend: {
-                                        enabled: false
-                                    }
-                                },
-                                series: $scope.eventChartSeries
-                            };
 
                         }],
                         resolve: {

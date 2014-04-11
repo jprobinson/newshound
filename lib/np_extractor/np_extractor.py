@@ -14,7 +14,7 @@ STOP_WORDS = stopwords.words('english') + [ u'—', u'»', u'000', u'8211', u'82
                 u'dealbook','dealbook alert', u'dec', u'december', u'democrat', u'earn', u'east', u'edt', u'emailfoxnews', u'est', u'et', u'evening', u'expected',
                 u'extramarital', u'fall', u'feb', u'february', u'file', u'filed', u'fill', u'fire', u'fired', u'fires', u'first', u'found', u'fox', u'full story',
                 u'foxbusiness', u'foxnews', u'foxnewscom', u'foxnews.com', u'foxs', u'fri', u'friday', u'full', u'get', u'gmt', u'hln', u'home','hour', u'hours', u'http', u'invite', u'invites', u'jan', u'history',
-                u'january', u'july', u'jul', u'jun', u'june', u'l.a', u'least', u'level', u'live', u'long', u'los angeles', u'lowest', u'mar', u'march', u'may',
+                u'january', u'july', u'jul', u'jun', u'june', u'l.a', u'least', u'level', u'live', u'long', u'los angeles', u'lowest', u'mar', u'march', u'may', u'gmail.com',
                 u'million', u'minute', u'minutes', u'mon', u'monday', u'month', u'morning', u'must', u'name', u'nbc', u'nbcnews',  u'nbc news', u'nbcs', u'nbsp', u'new', u'news', u'news alert', u'next', u'news update',
                 u'north', u'nov', u'november', u'oct', u'october', u'office', u'old', u'p.m', u'pdt', u'people', u'percent', u'plan', u'plans', u'planned', u'pm', u'point',
                 u'police', u'politic', u'politico', u'politics', u'post', u'presid', u'president', u'press', u'prior', u'pst', u'pt', u'rate', u're', u'n\'t',
@@ -26,7 +26,10 @@ STOP_WORDS = stopwords.words('english') + [ u'—', u'»', u'000', u'8211', u'82
                 u'watch', u'watch live', u'way', u'wed', u'wednesday', u'week', u'west', u'without', u'wnbc', u'wsj', u'wsj news alert', u'year', u'years', u'pm edt']
 
 class NPExtractor(object):
-
+    """
+    Most of this code is from Slomi Babluki's very helpful blog post:
+    http://thetokenizer.com/2013/05/09/efficient-way-to-extract-the-main-topics-of-a-sentence/
+    """
     def __init__(self):
         # This is our fast Part of Speech tagger
         brown_train = brown.tagged_sents(categories=['news'])
@@ -78,6 +81,9 @@ class NPExtractor(object):
 
         if clean_tag.startswith("'s "):
             clean_tag = clean_tag[3:]
+
+        if 'http' in clean_tag:
+            clean_tag = clean_tag.replace("http","")
 
         if clean_tag.startswith('"') or clean_tag.startswith(u"•")  or clean_tag.startswith("'") or clean_tag.startswith(u'“') or clean_tag.startswith(u'‘'):
             clean_tag = clean_tag[1:]
