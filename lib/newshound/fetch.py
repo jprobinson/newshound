@@ -162,7 +162,7 @@ class NewsAlert:
         return text.strip()
 
     def __strip_unsub_links(self,body):
-        body = body.replace('breaking.news.catcher','')
+        body = body.replace(curr_email,'')
         body = body.replace('unsubscribe','')
         body = body.replace('Unsubscribe','')
         body = body.replace('dyn.politico.com','')
@@ -461,6 +461,8 @@ class NewsAlertService:
                 "alert_id":alert["_id"],
                 "article_url":alert["article_url"],
                 "time_lapsed": time_lapsed.seconds,
+                "sentences":alert["sentences"],
+                "top_sentence":alert["top_sentence"],
                 "tags":alert["tags"]})
             order += 1
 
@@ -536,6 +538,8 @@ class EmailFetcher:
         }
         global curr_email 
         curr_email = self.imap_server_info["user"].split("@")[0]
+        if len(curr_email) > 21:
+            curr_email = curr_email[:21]
         self.db_replica_set = configParser.get("newshound_db","replica_set").replace("/newshound","")
         self.db_user = configParser.get("newshound_db","user")
         self.db_pw = configParser.get("newshound_db","password")

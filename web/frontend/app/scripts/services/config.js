@@ -7,7 +7,8 @@ angular.module('newshoundApp')
                 apiHost: function() {
                     var apiHost = "svc/newshound-api/v1";
                     if ($location.host().indexOf('jprbnsn.com') == -1) {
-                        apiHost = "http://newshound.jprbnsn.com/" + apiHost;
+                        apiHost = "http://localhost:8080/"+ apiHost;
+                       // apiHost = "http://newshound.jprbnsn.com/" + apiHost;
                     }
                     return apiHost;
                 }
