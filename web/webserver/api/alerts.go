@@ -30,7 +30,6 @@ type NewsAlertLite struct {
 	Tags        []string      `json:"tags"`
 	Subject     string        `json:"subject"`
 	TopSentence string        `json:"top_sentence"bson:"top_sentence"`
-	Sentences   []Sentence    `json:"sentences"`
 }
 
 // NewsAlertFull is a struct that contains all News Alert
@@ -44,6 +43,8 @@ type NewsAlertFull struct {
 	Tags        []string      `json:"tags"`
 	Subject     string        `json:"subject"`
 	Body        string        `json:"body"`
+	TopSentence string        `json:"top_sentence"bson:"top_sentence"`
+	Sentences   []Sentence    `json:"sentences"`
 }
 
 type Sentence struct {
