@@ -21,11 +21,13 @@ func NewNewsEvents(db *mgo.Database) NewsEvents {
 // NewsEvent is a struct that contains all the information for
 // a particular News Event.
 type NewsEvent struct {
-	Id         bson.ObjectId    `json:"id" bson:"_id"`
-	Tags       []string         `json:"tags"`
-	EventStart time.Time        `json:"event_start"bson:"event_start"`
-	EventEnd   time.Time        `json:"event_end"bson:"event_end"`
-	NewsAlerts []NewsEventAlert `json:"news_alerts"bson:"news_alerts"`
+	Id          bson.ObjectId    `json:"id" bson:"_id"`
+	Tags        []string         `json:"tags"`
+	EventStart  time.Time        `json:"event_start"bson:"event_start"`
+	EventEnd    time.Time        `json:"event_end"bson:"event_end"`
+	NewsAlerts  []NewsEventAlert `json:"news_alerts"bson:"news_alerts"`
+	TopSentence string           `json:"top_sentence"bson:"top_sentence"`
+	TopSender   string           `json:"top_sender"bson:"top_sender"`
 }
 
 // NewsEventAlert is a struct for holding a smaller version of
@@ -39,7 +41,7 @@ type NewsEventAlert struct {
 	Tags        []string      `json:"tags"`
 	Subject     string        `json:"subject"`
 	TopSentence string        `json:"top_sentence"bson:"top_sentence"`
-	Sentences   []Sentence    `json:"sentences"`
+	//Sentences   []Sentence    `json:"sentences"`
 	Order       int64         `json:"order"`
 	TimeLapsed  int64         `json:"time_lapsed"bson:"time_lapsed"`
 }
