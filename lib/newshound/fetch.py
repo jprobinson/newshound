@@ -58,20 +58,20 @@ class NewsAlert:
         if raw_message:
             message = email.message_from_string(raw_message[0][1])
             alert_info = {}
-            alert_info["sender"] = self.__find_sender_name(message)
-            alert_info["subject"] = self.__parse_subject(message)
-            alert_info["raw_body"] = self.__get_body(message)
-            alert_info["timestamp"] = self.__get_date(message)
-            alert_info["article_url"] = self.__find_article_url(alert_info["sender"],alert_info["raw_body"])
-            instance_id = self.__get_instance_id(message)
+            alert_info["sender"] = self._find_sender_name(message)
+            alert_info["subject"] = self._parse_subject(message)
+            alert_info["raw_body"] = self._get_body(message)
+            alert_info["timestamp"] = self._get_date(message)
+            alert_info["article_url"] = self._find_article_url(alert_info["sender"],alert_info["raw_body"])
+            instance_id = self._get_instance_id(message)
             if(instance_id):
                 alert_info["instance_id"] = instance_id
             else:
                 alert_info["instance_id"] = None
 
         self.alert_info     = alert_info            
-        self.alert_info["body"] = self.__strip_unsub_links(alert_info["raw_body"])
-        (self.alert_info["tags"], self.alert_info["sentences"],self.alert_info["top_sentence"]) = self.__create_tags(alert_info["sender"],alert_info["raw_body"],alert_info["subject"])
+        self.alert_info["body"] = self._strip_unsub_links(alert_info["raw_body"])
+        (self.alert_info["tags"], self.alert_info["sentences"],self.alert_info["top_sentence"]) = self._create_tags(alert_info["sender"],alert_info["raw_body"],alert_info["subject"])
 
     def get_id(self):
         return self.alert_info["_id"]
@@ -91,7 +91,7 @@ class NewsAlert:
     def get_subject(self):
         return self.alert_info["subject"]
 
-    def __parse_subject(self,message):
+    def _parse_subject(self,message):
         subject, encoding = decode_header(message['subject'])[0]
         subject_str = str()
         if encoding==None:
@@ -106,7 +106,7 @@ class NewsAlert:
 
         return subject_str
 
-    def __find_sender_name(self,message):
+    def _find_sender_name(self,message):
         name_info = message['From'].split('"')
         name_str = str()
         if len(name_info) > 1:
@@ -124,18 +124,18 @@ class NewsAlert:
 
         return name
 
-    def __get_instance_id(self,message):
+    def _get_instance_id(self,message):
         instance_id = ""
         if message.has_key("X-InstanceId"):
             instance_id = message["X-InstanceId"]
 
         return instance_id
 
-    def __get_date(self,message):
+    def _get_date(self,message):
         date_string = message['Received'].split(';')[1].strip()
         return parser.parse(date_string)
 
-    def __get_body(self,message):
+    def _get_body(self,message):
         if message.is_multipart():
             html = None
             text = ""
@@ -161,7 +161,7 @@ class NewsAlert:
 
         return text.strip()
 
-    def __strip_unsub_links(self,body):
+    def _strip_unsub_links(self,body):
         body = body.replace(curr_email,'')
         body = body.replace('unsubscribe','')
         body = body.replace('Unsubscribe','')
@@ -175,7 +175,7 @@ class NewsAlert:
         body = body.replace('ts.go.com','')
         return body
 
-    def __visible_html_text(self,element):
+    def _visible_html_text(self,element):
         if element.parent.name.lower() in ['style','script','head','meta','title','doctype', '!doctype', 'v:shape','v:imagedata','!']:
             return False
         elif re.match('<!--.*-->', str(element)):
@@ -187,7 +187,7 @@ class NewsAlert:
         else:
             return element != '\n'
 
-    def __find_article_url(self,sender,body):
+    def _find_article_url(self,sender,body):
         url = str()
 
         # we can only access nyt @ www so dont try anyone else for now
@@ -219,14 +219,14 @@ class NewsAlert:
 
         return url
 
-    def __find_tagable_text(self,sender,body,subject = ''):
+    def _find_tagable_text(self,sender,body,subject = ''):
         tags = set()
         soup = BeautifulSoup(body,convertEntities=BeautifulStoneSoup.ALL_ENTITIES)
         texts = soup.findAll(text=True)
 
-        return filter(self.__visible_html_text,texts)
+        return filter(self._visible_html_text,texts)
 
-    def __is_news_line(self, line, sender):
+    def _is_news_line(self, line, sender):
 
         if len(line) == 0:
             return False
@@ -260,15 +260,17 @@ class NewsAlert:
 
         return not line.startswith("http")
 
-    def __create_tags(self,sender,body,subject = ''):
+    def _create_tags(self,sender,body,subject = ''):
 
-        tagable_text = self.__find_tagable_text(sender,body,subject)
+        tagable_text = self._find_tagable_text(sender,body,subject)
         valid_lines = [] 
         bad_line_count = 0
         for line in tagable_text:
             line = line.strip()
-            if self.__is_news_line(line, sender):                
+            if self._is_news_line(line, sender):                
                 bad_line_count = 0
+                if not line.endswith("."):
+                    line += "."
                 valid_lines.append(line)
             elif len(valid_lines) > 0 and line != "":
                 bad_line_count += 1
@@ -292,10 +294,33 @@ class NewsEvent:
 
     def __init__(self,news_alerts,start_time,end_time,tags):
         self.event_info = {}
+        tags = list(tags)
         self.event_info["news_alerts"] = news_alerts
         self.event_info["event_start"] = start_time
         self.event_info["event_end"] = end_time
-        self.event_info["tags"] = list(tags)
+        self.event_info["tags"] = tags
+        (self.event_info["top_sentence"], self.event_info["top_sender"]) = self._find_top_sentence(self.event_info["news_alerts"], tags)
+
+    def _find_top_sentence(self, alerts, event_tags):
+        top_sentence = ""
+        top_sender = ""
+        top_count = -1
+        
+        # for each alert
+        for alert in alerts:
+            # go through each sentence and count # of matching tags
+            for sent in alert["sentences"]:
+                sent_matches = 0
+                for phrase in sent["noun_phrases"]:
+                    if phrase in event_tags:
+                        sent_matches += 1
+
+                if sent_matches > top_count:
+                    top_count = sent_matches
+                    top_sentence = sent["sentence"]
+                    top_sender = alert["sender"]
+        
+        return (top_sentence, top_sender)
 
 
 class NewsAlertService:
@@ -307,9 +332,9 @@ class NewsAlertService:
         self.db.authenticate(db_user,db_pw)
         self.news_alerts = self.db["news_alerts"]
         self.news_events = self.db["news_events"]
-        self.__ensure_indices()
+        self._ensure_indices()
 
-    def __ensure_indices(self):
+    def _ensure_indices(self):
         self.news_alerts.ensure_index([("_id",pymongo.ASCENDING),("timestamp",pymongo.ASCENDING), ("tags",pymongo.ASCENDING)])
         self.news_alerts.ensure_index([("_id",pymongo.ASCENDING),("timestamp",pymongo.ASCENDING)])
         self.news_events.ensure_index("news_alerts.alert_id")
@@ -319,7 +344,7 @@ class NewsAlertService:
         alert.set_id(alert_id)
         return alert
 
-    def __find_all_alerts(self):
+    def _find_all_alerts(self):
         results = self.news_alerts.find()
         for alert in results:
             yield NewsAlert(None,alert)
@@ -329,12 +354,12 @@ class NewsAlertService:
             events_coll = self.news_events
     
         for alert in alerts:
-            self.__create_events(events_coll,alert)
+            self._create_events(events_coll,alert)
 
     def rebuild_events(self):
         all_alerts = []
         temp_events = self.db["news_events_tmp"]
-        for alert in self.__find_all_alerts():
+        for alert in self._find_all_alerts():
             obj_id = ObjectId(alert.alert_info["_id"])
             self.news_alerts.update({"_id":obj_id},
                         {"body":alert.alert_info["body"],
@@ -359,7 +384,7 @@ class NewsAlertService:
         temp_events.rename("news_events", dropTarget=True)
 
 
-    def __find_simple_like_alerts(self,alert):
+    def _find_simple_like_alerts(self,alert):
         '''
         Finds alerts that match any tag and fall within the time range.
         '''
@@ -378,7 +403,7 @@ class NewsAlertService:
 
         return like_alerts
 
-    def __tag_contains_tag(self, tag, existing_tag):
+    def _tag_contains_tag(self, tag, existing_tag):
         #simple check
         if tag == existing_tag:
             return True
@@ -395,7 +420,7 @@ class NewsAlertService:
 
         return False
 
-    def __find_event_tags(self,like_alerts,alert_tags):
+    def _find_event_tags(self,like_alerts,alert_tags):
         #BUILD TAG MAP FROM ALL ALERTS
         tag_map = defaultdict(int)
         for tag in alert_tags: tag_map[tag] += 1
@@ -405,7 +430,7 @@ class NewsAlertService:
                 tags_to_increment = set()
                 for existing_tag in tag_map:
                     # look for partial word or whole word matches
-                    if self.__tag_contains_tag(tag, existing_tag) or self.__tag_contains_tag(existing_tag, tag):
+                    if self._tag_contains_tag(tag, existing_tag) or self._tag_contains_tag(existing_tag, tag):
                         tags_to_increment.add(existing_tag)
                         tags_to_increment.add(tag)
                 for tag_to_increment in tags_to_increment:
@@ -419,10 +444,10 @@ class NewsAlertService:
         # log(tag_map)
         return set([tag for tag,count in filter(lambda (tag,count): count >=min_tag_count, tag_map.items())])
 
-    def __filter_alerts_by_event_tags(self,possible_like_alerts,alert):
+    def _filter_alerts_by_event_tags(self,possible_like_alerts,alert):
         event_alerts = []
 
-        event_tags = self.__find_event_tags(possible_like_alerts,alert.get_tags())
+        event_tags = self._find_event_tags(possible_like_alerts,alert.get_tags())
 
         if len(event_tags) >= 2:
             #FILTER OUT ALERTS THAT DONT HAVE ANY EVENT TAGS
@@ -433,19 +458,19 @@ class NewsAlertService:
 
             #FILTER OUT ALERTS THAT HAVE LESS THAN 3 EVENT TAGS
             for matched_alert in matched_alerts:
-                if self.__alert_belongs_in_event(matched_alert["tags"],event_tags):
+                if self._alert_belongs_in_event(matched_alert["tags"],event_tags):
                     event_alerts.append(matched_alert)
 
         return (event_alerts,event_tags)
 
-    def __minimum_sender_count(self,event_alerts):
+    def _minimum_sender_count(self,event_alerts):
         senders = set()
         for alert in event_alerts:
             senders.add(alert['sender'])
 
         return len(senders) >= 2
 
-    def __build_event_alert_data(self,alert_ids):
+    def _build_event_alert_data(self,alert_ids):
         ordered_alerts = self.news_alerts.find({ "_id" : { "$in" : list(alert_ids) }}).sort( "timestamp", 1 )
 
         first_time = 0
@@ -468,7 +493,7 @@ class NewsAlertService:
 
         return alert_data
 
-    def __find_date_range(self,first_time,last_time,alert):
+    def _find_date_range(self,first_time,last_time,alert):
         if first_time > alert["timestamp"]:
             first_time = alert["timestamp"]
         if last_time < alert["timestamp"]:
@@ -476,7 +501,7 @@ class NewsAlertService:
 
         return (first_time,last_time)
 
-    def __alert_belongs_in_event(self,alert_tags,event_tags):
+    def _alert_belongs_in_event(self,alert_tags,event_tags):
         '''
         MAKE SURE ORIGINAL ALERT HAS AT LEAST 3 OF THESE TAGS
         '''
@@ -488,14 +513,14 @@ class NewsAlertService:
         #include if it has a score of 3+ OR if ALL tags in alert match (2 if only 2 exist)
         return (original_tag_score >= 3) or  (original_tag_score == len(alert_tags))
 
-    def __find_like_events(self,event_coll,alert_ids):
+    def _find_like_events(self,event_coll,alert_ids):
         return event_coll.find({ "news_alerts.alert_id" : { "$in" : alert_ids } })
 
-    def __create_or_merge_event(self,event_coll,event_alerts,event_tags):
+    def _create_or_merge_event(self,event_coll,event_alerts,event_tags):
         matched_alert_ids = set([matched_alert["_id"] for matched_alert in event_alerts])
 
         #Abosrb and delete any like events
-        existing_events = self.__find_like_events(event_coll,list(matched_alert_ids))
+        existing_events = self._find_like_events(event_coll,list(matched_alert_ids))
         for existing_event in existing_events:
             event_tags = set(event_tags.union(existing_event["tags"]))
             matched_alert_ids = matched_alert_ids.union([alert["alert_id"] for alert in existing_event["news_alerts"]])
@@ -507,23 +532,23 @@ class NewsAlertService:
         first_time = datetime.combine(date(MAXYEAR, 1, 1),time())
         last_time = datetime.combine(date(MINYEAR, 1, 1),time())
         for alert in final_alert_set:
-            (first_time,last_time) = self.__find_date_range(first_time,last_time,alert)
+            (first_time,last_time) = self._find_date_range(first_time,last_time,alert)
 
         log("updating/creating event!:" + str(len(matched_alert_ids)))
         log(str(event_tags) + "\n\n")
 
-        new_event = NewsEvent(self.__build_event_alert_data(matched_alert_ids),first_time,last_time,list(event_tags))
+        new_event = NewsEvent(self._build_event_alert_data(matched_alert_ids),first_time,last_time,list(event_tags))
         event_coll.insert(new_event.event_info)         
 
-    def __create_events(self,event_coll,alert):
+    def _create_events(self,event_coll,alert):
         #FIND ALERTS THAT MATCH 'ANY' TAG IN TIME RANGE
-        like_alerts = self.__find_simple_like_alerts(alert)
+        like_alerts = self._find_simple_like_alerts(alert)
         if len(like_alerts) > 2:
-            (event_alerts,event_tags) = self.__filter_alerts_by_event_tags(like_alerts,alert)
+            (event_alerts,event_tags) = self._filter_alerts_by_event_tags(like_alerts,alert)
 
             #EVENTS MUST HAVE MORE THAN 1 NEWS SOURCE & AT LEAST 3 ALERTS
-            if self.__minimum_sender_count(event_alerts) and (len(event_alerts) > 2):
-                self.__create_or_merge_event(event_coll,event_alerts,event_tags)
+            if self._minimum_sender_count(event_alerts) and (len(event_alerts) > 2):
+                self._create_or_merge_event(event_coll,event_alerts,event_tags)
 
 curr_email = ""
 class EmailFetcher:
