@@ -32,14 +32,16 @@ type NewsEvent struct {
 // News Alert data. This struct has extra fields for determining the order
 // and time differences of the News Alerts within the News Event.
 type NewsEventAlert struct {
-	AlertId    bson.ObjectId `json:"alert_id"bson:"alert_id"`
-	InstanceID string        `json:"instance_id"bson:"instance_id"`
-	ArticleUrl string        `json:"article_url"bson:"article_url"`
-	Sender     string        `json:"sender"`
-	Tags       []string      `json:"tags"`
-	Subject    string        `json:"subject"`
-	Order      int64         `json:"order"`
-	TimeLapsed int64         `json:"time_lapsed"bson:"time_lapsed"`
+	AlertId     bson.ObjectId `json:"alert_id"bson:"alert_id"`
+	InstanceID  string        `json:"instance_id"bson:"instance_id"`
+	ArticleUrl  string        `json:"article_url"bson:"article_url"`
+	Sender      string        `json:"sender"`
+	Tags        []string      `json:"tags"`
+	Subject     string        `json:"subject"`
+	TopSentence string        `json:"top_sentence"bson:"top_sentence"`
+	Sentences   []Sentence    `json:"sentences"`
+	Order       int64         `json:"order"`
+	TimeLapsed  int64         `json:"time_lapsed"bson:"time_lapsed"`
 }
 
 // FindByDate accepts a start and end date and returns all the News Events that occured in that timeframe.
