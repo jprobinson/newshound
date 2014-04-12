@@ -190,6 +190,8 @@ angular.module('newshoundApp')
             };
 
             var displayAlertDialog = function(id) {
+                console.log("HEEEYYY");
+console.log(id);
                 var modalPromise = news.getAlert(id);
                 modalPromise.then(function(alert) {
                     addAlertLocation(id);
@@ -261,6 +263,7 @@ angular.module('newshoundApp')
                         controller: ['$scope', '$modalInstance', 'event', function($scope, $modalInstance, event) {
                             $scope.close = function(){ $modalInstance.close(); };
                             $scope.event = event;
+                            $scope.displayAlertDialog = displayAlertDialog;
 
                             var maxLapsed = 0.0;
                             var eventSenders = [];

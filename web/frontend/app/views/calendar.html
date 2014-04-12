@@ -70,7 +70,7 @@
 <script type="text/ng-template" id="eventModal.html">
 	<div class="modal-header">
         <button type="button" class="close" ng-click="close()" aria-hidden="true">&times;</button>
-		<h4>{{ event.event_start | date:'medium' }}</h4>
+		<h4 class="col-lg-10">{{ event.event_start | date:'medium' }}</h4>
 	</div>
 	<div class="modal-body">
 		<ul class="list-unstyled alert-dialog-info">
@@ -84,7 +84,8 @@
 					<b>KEY QUOTE:</b>
 				</p>
                 <blockquote>
-                    <p>{{ event.news_alerts[0].top_sentence }}</p>
+                    <p>{{ event.top_sentence }}</p>
+                    <small><cite title="{{ event.top_sender }}">{{ event.top_sender }}</cite></small>
                 </blockquote>
 			</li>
 		</ul>
