@@ -151,7 +151,10 @@ th .glyphicon {
 
 /* CUSTOM GOODIES */ 
 .modal-header {
-	min-height:45px;
+	min-height:55px;
+}
+.close {
+    padding:10px!important;
 }
 .xlarge-modal .modal-dialog {
 	width:800px;
