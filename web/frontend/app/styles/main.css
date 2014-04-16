@@ -157,11 +157,11 @@ th .glyphicon {
     padding:10px!important;
 }
 .xlarge-modal .modal-dialog {
-	width:800px;
+	width:1024px;
 }
 
 .modal-body {
-    padding:10px
+    padding:5px
 }
 
 .large-modal .modal-dialog {
