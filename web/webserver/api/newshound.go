@@ -13,14 +13,11 @@ import (
 	"labix.org/v2/mgo"
 )
 
-var DBErr = errors.New("problems accessing database")
+var ErrDB = errors.New("problems accessing database")
 
-// NewshoundAPI is a struct that keeps a handle on collections
-// to serve API data.
+// NewshoundAPI is a struct that keeps a handle on the mgo session
 type NewshoundAPI struct {
-	alerts  NewsAlerts
-	events  NewsEvents
-	reports NewsReports
+	session *mgo.Session
 }
 
 // NewNewshoundAPI creates a new NewshoundAPI struct to run the newshound API.
@@ -28,15 +25,16 @@ func NewNewshoundAPI(conn string, user string, pw string) *NewshoundAPI {
 	// make conn pass it to data
 	session, err := mgo.Dial(conn)
 	if err != nil {
-		panic(fmt.Errorf("Unable to connect to newshound db! - %s", err.Error()))
+		log.Fatalf("Unable to connect to newshound db! - %s", err.Error())
 	}
+
 	db := session.DB("newshound")
 	err = db.Login(user, pw)
 	if err != nil {
-		panic(fmt.Errorf("Unable to connect to newshound db! - %s", err.Error()))
+		log.Fatalf("Unable to connect to newshound db! - %s", err.Error())
 	}
 	session.SetMode(mgo.Eventual, true)
-	return &NewshoundAPI{NewNewsAlerts(db), NewNewsEvents(db), NewNewsReports(db)}
+	return &NewshoundAPI{session}
 }
 
 // UrlPrefix is a function meant to implement the PrefixHandler interface for paperboy-api.
@@ -74,10 +72,13 @@ func (n NewshoundAPI) findAlertsByDate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	alerts, err := n.alerts.FindByDate(startTime, endTime)
+	s, db := n.getDB()
+	defer s.Close()
+
+	alerts, err := FindAlertsByDate(db, startTime, endTime)
 	if err != nil {
 		log.Printf("Unable to access alerts by date! - %s", err.Error())
-		web.ErrorResponse(w, DBErr, http.StatusBadRequest)
+		web.ErrorResponse(w, ErrDB, http.StatusBadRequest)
 		return
 	}
 
@@ -89,12 +90,15 @@ func (n NewshoundAPI) findAlertsByDate(w http.ResponseWriter, r *http.Request) {
 func (n NewshoundAPI) findOrderedAlerts(w http.ResponseWriter, r *http.Request) {
 	setCommonHeaders(w, r, "")
 	vars := mux.Vars(r)
-	alert_ids := strings.Split(vars["alert_ids"], ",")
+	alertIDs := strings.Split(vars["alert_ids"], ",")
 
-	alerts, err := n.alerts.FindOrderedAlerts(alert_ids)
+	s, db := n.getDB()
+	defer s.Close()
+
+	alerts, err := FindOrderedAlerts(db, alertIDs)
 	if err != nil {
 		log.Printf("Unable to access alerts by multiple alert_id's! - %s", err.Error())
-		web.ErrorResponse(w, DBErr, http.StatusBadRequest)
+		web.ErrorResponse(w, ErrDB, http.StatusBadRequest)
 		return
 	}
 
@@ -106,12 +110,15 @@ func (n NewshoundAPI) findOrderedAlerts(w http.ResponseWriter, r *http.Request) 
 func (n NewshoundAPI) findAlert(w http.ResponseWriter, r *http.Request) {
 	setCommonHeaders(w, r, "")
 	vars := mux.Vars(r)
-	alert_id := vars["alert_id"]
+	alertID := vars["alert_id"]
 
-	alert, err := n.alerts.FindAlertByID(alert_id)
+	s, db := n.getDB()
+	defer s.Close()
+
+	alert, err := FindAlertByID(db, alertID)
 	if err != nil {
 		log.Printf("Unable to access alerts by alert_id! - %s", err.Error())
-		web.ErrorResponse(w, DBErr, http.StatusBadRequest)
+		web.ErrorResponse(w, ErrDB, http.StatusBadRequest)
 		return
 	}
 
@@ -123,16 +130,19 @@ func (n NewshoundAPI) findAlert(w http.ResponseWriter, r *http.Request) {
 func (n NewshoundAPI) findAlertHtml(w http.ResponseWriter, r *http.Request) {
 	setCommonHeaders(w, r, "text/html")
 	vars := mux.Vars(r)
-	alert_id := vars["alert_id"]
+	alertID := vars["alert_id"]
 
-	alert_html, err := n.alerts.FindAlertHtmlByID(alert_id)
+	s, db := n.getDB()
+	defer s.Close()
+
+	alertHtml, err := FindAlertHtmlByID(db, alertID)
 	if err != nil {
 		log.Printf("Unable to access alerts by alert_id! - %s", err.Error())
-		web.ErrorResponse(w, DBErr, http.StatusBadRequest)
+		web.ErrorResponse(w, ErrDB, http.StatusBadRequest)
 		return
 	}
 
-	fmt.Fprint(w, alert_html)
+	fmt.Fprint(w, alertHtml)
 }
 
 // findEventsByDate is an http.Handler that will expect a 'start' and 'end' date in the URL
@@ -146,10 +156,13 @@ func (n NewshoundAPI) findEventsByDate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	events, err := n.events.FindByDate(startTime, endTime)
+	s, db := n.getDB()
+	defer s.Close()
+
+	events, err := FindEventsByDate(db, startTime, endTime)
 	if err != nil {
 		log.Printf("Unable to access events by date! - %s", err.Error())
-		web.ErrorResponse(w, DBErr, http.StatusBadRequest)
+		web.ErrorResponse(w, ErrDB, http.StatusBadRequest)
 		return
 	}
 
@@ -163,10 +176,13 @@ func (n NewshoundAPI) findEvent(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	eventID := vars["event_id"]
 
-	event, err := n.events.FindEventByID(eventID)
+	s, db := n.getDB()
+	defer s.Close()
+
+	event, err := FindEventByID(db, eventID)
 	if err != nil {
 		log.Printf("Unable to access event by event_id! - %s", err.Error())
-		web.ErrorResponse(w, DBErr, http.StatusBadRequest)
+		web.ErrorResponse(w, ErrDB, http.StatusBadRequest)
 		return
 	}
 
@@ -177,11 +193,13 @@ func (n NewshoundAPI) findEvent(w http.ResponseWriter, r *http.Request) {
 // for the past week and for the past 3 months.
 func (n NewshoundAPI) getTotalReport(w http.ResponseWriter, r *http.Request) {
 	setCommonHeaders(w, r, "")
+	s, db := n.getDB()
+	defer s.Close()
 
-	totals, err := n.reports.GetTotalSummaryReport()
+	totals, err := GetTotalSummaryReport(db)
 	if err != nil {
 		log.Printf("Unable to retrieve total summary report! - %s", err.Error())
-		web.ErrorResponse(w, DBErr, http.StatusBadRequest)
+		web.ErrorResponse(w, ErrDB, http.StatusBadRequest)
 		return
 	}
 
@@ -192,11 +210,13 @@ func (n NewshoundAPI) getTotalReport(w http.ResponseWriter, r *http.Request) {
 // for each Sender Newshound tracks for the past week and for the past 3 months.
 func (n NewshoundAPI) getSenderReport(w http.ResponseWriter, r *http.Request) {
 	setCommonHeaders(w, r, "")
+	s, db := n.getDB()
+	defer s.Close()
 
-	sendersReport, err := n.reports.GetSenderSummaryReport()
+	sendersReport, err := GetSenderSummaryReport(db)
 	if err != nil {
 		log.Printf("Unable to retrieve sender summary report! - %s", err.Error())
-		web.ErrorResponse(w, DBErr, http.StatusBadRequest)
+		web.ErrorResponse(w, ErrDB, http.StatusBadRequest)
 		return
 	}
 
@@ -210,10 +230,13 @@ func (n NewshoundAPI) findSenderInfo(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	sender := vars["sender"]
 
-	senderInfo, err := n.reports.FindSenderInfo(sender)
+	s, db := n.getDB()
+	defer s.Close()
+
+	senderInfo, err := FindSenderInfo(db, sender)
 	if err != nil {
 		log.Printf("Unable to retrieve sender info report! - %s", err.Error())
-		web.ErrorResponse(w, DBErr, http.StatusBadRequest)
+		web.ErrorResponse(w, ErrDB, http.StatusBadRequest)
 		return
 	}
 
@@ -237,4 +260,9 @@ func setCommonHeaders(w http.ResponseWriter, r *http.Request, contentType string
 	} else {
 		w.Header().Set("Content-Type", contentType)
 	}
+}
+
+func (n NewshoundAPI) getDB() (*mgo.Session, *mgo.Database) {
+	s := n.session.Copy()
+	return s, s.DB("newshound")
 }

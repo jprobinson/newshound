@@ -7,17 +7,6 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-// NewsEvents is for accessing News Events information from
-// the newshound mongo database.
-type NewsEvents struct {
-	c *mgo.Collection
-}
-
-// NewNewsEvents returns a new NewsEvents for accessing News Events information.
-func NewNewsEvents(db *mgo.Database) NewsEvents {
-	return NewsEvents{db.C("news_events")}
-}
-
 // NewsEvent is a struct that contains all the information for
 // a particular News Event.
 type NewsEvent struct {
@@ -41,14 +30,14 @@ type NewsEventAlert struct {
 	Tags        []string      `json:"tags"`
 	Subject     string        `json:"subject"`
 	TopSentence string        `json:"top_sentence"bson:"top_sentence"`
-	//Sentences   []Sentence    `json:"sentences"`
 	Order       int64         `json:"order"`
 	TimeLapsed  int64         `json:"time_lapsed"bson:"time_lapsed"`
 }
 
 // FindByDate accepts a start and end date and returns all the News Events that occured in that timeframe.
-func (ne NewsEvents) FindByDate(start time.Time, end time.Time) (events []NewsEvent, err error) {
-	err = ne.c.Find(bson.M{"event_start": bson.M{"$gte": start, "$lte": end}}).All(&events)
+func FindEventsByDate(db *mgo.Database, start time.Time, end time.Time) (events []NewsEvent, err error) {
+	c := getNE(db)
+	err = c.Find(bson.M{"event_start": bson.M{"$gte": start, "$lte": end}}).All(&events)
 	if err != nil {
 		return
 	}
@@ -57,11 +46,16 @@ func (ne NewsEvents) FindByDate(start time.Time, end time.Time) (events []NewsEv
 }
 
 // FindEventByID accepts a News Event ID and returns the full information for that Event.
-func (ne NewsEvents) FindEventByID(eventID string) (event NewsEvent, err error) {
-	err = ne.c.Find(bson.M{"_id": bson.ObjectIdHex(eventID)}).One(&event)
+func FindEventByID(db *mgo.Database, eventID string) (event NewsEvent, err error) {
+	c := getNE(db)
+	err = c.Find(bson.M{"_id": bson.ObjectIdHex(eventID)}).One(&event)
 	if err != nil {
 		return
 	}
 
 	return
+}
+
+func getNE(db *mgo.Database) *mgo.Collection {
+	return db.C("news_events")
 }

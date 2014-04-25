@@ -8,27 +8,6 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-// NewsReports is for accessing aggregated reporting
-// data that has been collected by Newshound
-type NewsReports struct {
-	SenderReport        *mgo.Collection
-	AvgAlertsPerWeek    *mgo.Collection
-	SenderAlertsPerWeek *mgo.Collection
-	SenderEventsPerWeek *mgo.Collection
-	SenderAlertsPerHour *mgo.Collection
-}
-
-// NewNewsReports returns a new NewsReports for accessing Newshound
-// aggregated reporting data.
-func NewNewsReports(db *mgo.Database) NewsReports {
-	return NewsReports{
-		db.C("news_report_by_sender"),
-		db.C("avg_alerts_per_week_by_sender"),
-		db.C("alerts_per_week_by_sender"),
-		db.C("events_per_week_by_sender"),
-		db.C("sender_alerts_per_hour")}
-}
-
 // TotalSummaryReport is a struct to hold overall News Alert & News Event statistics
 // for the past week and for the past 3 months.
 type TotalSummaryReport struct {
@@ -119,8 +98,9 @@ type AlertsPerHourResult struct {
 
 // GetTotalSummaryReport returns the current Totals Report that summarizes all Alerts/Events in the past
 // week and the last 3 months.
-func (nr NewsReports) GetTotalSummaryReport() (totalReport TotalSummaryReport, err error) {
-	err = nr.SenderReport.Find(bson.M{"sender": "total"}).One(&totalReport)
+func GetTotalSummaryReport(db *mgo.Database) (totalReport TotalSummaryReport, err error) {
+	c := db.C("news_report_by_sender")
+	err = c.Find(bson.M{"sender": "total"}).One(&totalReport)
 	if err != nil {
 		return
 	}
@@ -130,8 +110,9 @@ func (nr NewsReports) GetTotalSummaryReport() (totalReport TotalSummaryReport, e
 
 // GetSenderSummaryReport returns the current Sender Report that summarizes all Alerts/Events in the past
 // week and the last 3 months for each Sender.
-func (nr NewsReports) GetSenderSummaryReport() (senderReports []SenderSummaryReport, err error) {
-	err = nr.SenderReport.Find(bson.M{"sender": bson.M{"$ne": "total"}}).Sort("avg_alerts_per_week").All(&senderReports)
+func GetSenderSummaryReport(db *mgo.Database) (senderReports []SenderSummaryReport, err error) {
+	c := db.C("news_report_by_sender")
+	err = c.Find(bson.M{"sender": bson.M{"$ne": "total"}}).Sort("avg_alerts_per_week").All(&senderReports)
 	if err != nil {
 		return
 	}
@@ -140,19 +121,21 @@ func (nr NewsReports) GetSenderSummaryReport() (senderReports []SenderSummaryRep
 }
 
 // FindSenderInfo returns the full Sender Info report for the given sender over the past 3 months.
-func (nr NewsReports) FindSenderInfo(sender string) (senderInfo SenderInfo, err error) {
+func FindSenderInfo(db *mgo.Database, sender string) (senderInfo SenderInfo, err error) {
 	query := bson.M{"_id.sender": sender}
 	sort := "_id.week_start"
 
 	var tagResult TagArrayResult
-	err = nr.AvgAlertsPerWeek.Find(query).One(&tagResult)
+	avgAlertsPerWeek := db.C("avg_alerts_per_week_by_sender")
+	err = avgAlertsPerWeek.Find(query).One(&tagResult)
 	if err != nil {
 		return
 	}
 	senderInfo.TagArray = tagResult.Value.TagArray
 
 	var perHourResult AlertsPerHourResult
-	err = nr.SenderAlertsPerHour.Find(query).One(&perHourResult)
+	alertsPerHour := db.C("sender_alerts_per_hour")
+	err = alertsPerHour.Find(query).One(&perHourResult)
 	if err != nil {
 		return
 	}
@@ -161,12 +144,14 @@ func (nr NewsReports) FindSenderInfo(sender string) (senderInfo SenderInfo, err 
 		senderInfo.AlertsPerHour = append(senderInfo.AlertsPerHour, perHourResult.Value.Hours[fmt.Sprintf("%d", hour)])
 	}
 
-	err = nr.SenderAlertsPerWeek.Find(query).Sort(sort).All(&senderInfo.AlertsPerWeek)
+	alertsPerWeek := db.C("alerts_per_week_by_sender")
+	err = alertsPerWeek.Find(query).Sort(sort).All(&senderInfo.AlertsPerWeek)
 	if err != nil {
 		return
 	}
 
-	err = nr.SenderEventsPerWeek.Find(query).Sort(sort).All(&senderInfo.EventsPerWeek)
+	eventsPerWeek := db.C("events_per_week_by_sender")
+	err = eventsPerWeek.Find(query).Sort(sort).All(&senderInfo.EventsPerWeek)
 	if err != nil {
 		return
 	}
