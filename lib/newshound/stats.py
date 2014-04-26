@@ -195,7 +195,7 @@ class NewsStats:
                                             total_rank = alert.order;
                                             total_time_lapsed = alert.time_lapsed;
                                             alert.tags.forEach(function(tag){
-                                                tag_map[tag] = 1;
+                                                tag_map[tag.replace(/\./g,'&#46;')] = 1;
                                             });
                                         }
                                     }
@@ -454,7 +454,10 @@ class NewsStats:
         # BUILD REPORT TOTALS
         #MESSAGE PER WEEK
         alerts_last_week = self.alerts_per_week.find_one({ "_id.week_start" : { "$gte" : self.last_week_start, "$lte" : self.last_week_end }})
-        total_alerts_last_week = alerts_last_week["value"]["alerts"]
+        if alerts_last_week is not None:
+            total_alerts_last_week = alerts_last_week["value"]["alerts"]
+        else:
+            total_alerts_last_week = 0
         total_weeks = 0
         total_alerts = 0
         alerts_last_6_mos = self.alerts_per_week.find()
@@ -464,7 +467,10 @@ class NewsStats:
 
         #EVENTS PER WEEK
         events_last_week = self.events_per_week.find_one({ "_id.week_start" : { "$gte" : self.last_week_start, "$lte" : self.last_week_end }})
-        total_events_last_week = events_last_week["value"]["events"]
+        if events_last_week is not None:
+            total_events_last_week = events_last_week["value"]["events"]
+        else:
+            total_events_last_week = 0
         total_events = 0
         events_last_6_mos = self.events_per_week.find()
         for week in events_last_6_mos:
