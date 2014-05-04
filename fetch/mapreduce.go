@@ -164,7 +164,6 @@ func generateAvgData(sess *mgo.Session, mapper, reducer, finalize, sourceCollect
 		log.Printf("Unable to find all distinct senders: %s", err.Error())
 		return err
 	}
-	log.Printf("all the senders: %v", senders)
 
 	for timekey, timeframe := range Timeframes {
 		log.Printf("calculating %s over '%s' thru '%s' as %s", resultCollection, timeframe[0], timeframe[1], timekey)
@@ -209,7 +208,6 @@ func generateAvgData(sess *mgo.Session, mapper, reducer, finalize, sourceCollect
 		// any senders that dont exist get a blank record for this timeframe.
 		for _, sender := range senders {
 			if _, found := resultSenders[sender]; !found {
-				log.Printf("inserting blank record for %s @ %s", sender, timekey)
 				// insert blank record
 				err = tempResult.Insert(bson.M{"_id": bson.M{"sender": sender, "timeframe": timekey}, "value": bson.M{}})
 				if err != nil {
@@ -241,7 +239,7 @@ func weeksBetween(from, to time.Time) float64 {
 
 func totalEvents(sess *mgo.Session, from, to time.Time) (int, error) {
 	newsEvents := sess.DB("newshound").C("news_events")
-	return newsEvents.Find(bson.M{"event_start": bson.M{"$gte": Timeframes[TwelveMonths][0]}}).Count()
+	return newsEvents.Find(bson.M{"event_start": bson.M{"$gte": from, "$lt": to}}).Count()
 }
 
 func renameCollection(sess *mgo.Session, from, to string) error {
