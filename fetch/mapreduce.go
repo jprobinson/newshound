@@ -45,6 +45,10 @@ func MapReduce(sess *mgo.Session) error {
 		return err
 	}
 
+	if err := generateAlertsPerHour(sess); err != nil {
+		return err
+	}
+
 	log.Printf("MapReduce complete in %s", time.Since(startTime))
 	return nil
 }
@@ -64,10 +68,10 @@ var indices = map[string][][]string{
 		[]string{"_id.week_start"}},
 
 	"avg_alerts_per_week_by_sender": [][]string{
-		[]string{"_id.sender"}},
+		[]string{"_id.sender", "_id.timeframe"}},
 
 	"avg_events_per_week_by_sender": [][]string{
-		[]string{"_id.sender"}},
+		[]string{"_id.sender", "_id.timeframe"}},
 
 	"alerts_per_week_by_sender": [][]string{
 		[]string{"_id.sender", "_id.week_start"}},
@@ -76,13 +80,10 @@ var indices = map[string][][]string{
 		[]string{"_id.sender", "_id.week_start"}},
 
 	"sender_event_attendance": [][]string{
-		[]string{"_id.sender"}},
-
-	"news_report_by_sender": [][]string{
-		[]string{"sender"}},
+		[]string{"_id.sender", "_id.timeframe"}},
 
 	"sender_alerts_per_hour": [][]string{
-		[]string{"sender"}},
+		[]string{"_id.sender"}},
 }
 
 func ensureIndices(sess *mgo.Session) error {
@@ -510,7 +511,7 @@ func generateAvgEventsPerWeekBySender(sess *mgo.Session) error {
 func generateSenderEventAttendance(sess *mgo.Session) error {
 	return generateAvgData(sess, `function() {
                             emit({sender:this._id.sender, timeframe:'%s'},
-                                {total_events:this.value.total_events,attendance:((this.value.total_events/%d)*100)});
+                                {total_events:this.value.total_events,attendance:((this.value.total_events/%d)*100.0)});
                     }`,
 		`function(key,values){
                                 var result = {total_events:0,attendance:0.0};
@@ -520,7 +521,7 @@ func generateSenderEventAttendance(sess *mgo.Session) error {
                                 });
 
                                 if(result.total_events != 0){
-                                    result.attendance = (result.total_events/%d)*100;
+                                    result.attendance = (result.total_events/%d)*100.0;
                                 }
 
                                 return result;
@@ -529,4 +530,31 @@ func generateSenderEventAttendance(sess *mgo.Session) error {
 		"events_per_week_by_sender",
 		"sender_event_attendance",
 		false)
+}
+
+func generateAlertsPerHour(sess *mgo.Session) error {
+	return generateData(sess, `function() {
+                            var hours = {0:0,1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0,11:0,12:0,
+                                            13:0,14:0,15:0,16:0,17:0,18:0,19:0,20:0,21:0,22:0,23:0};
+                            //adding 5 to deal with time zones
+                            var temp_hour = (this.timestamp.getHours() + 5) % 24;
+                            hours[temp_hour] = 1
+                            emit({sender:this.sender},
+                                {hours:hours});
+                    }`,
+		`function(key,values){
+							var result = {hours:{0:0,1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0,11:0,12:0,
+											13:0,14:0,15:0,16:0,17:0,18:0,19:0,20:0,21:0,22:0,23:0}};
+
+							values.forEach(function(value){
+								for(var hour in value.hours){
+									result.hours[hour] += value.hours[hour];
+								}
+							});
+							return result;
+                          }`,
+		"",
+		"news_alerts",
+		"sender_alerts_per_hour",
+		bson.M{})
 }
