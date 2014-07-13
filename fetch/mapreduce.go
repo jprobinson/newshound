@@ -273,7 +273,7 @@ func generateAlertsPerWeekBySender(sess *mgo.Session) error {
                             lastSunday.setDate(this.timestamp.getDate() - this.timestamp.getDay());
                             var tag_map = {};
                             this.tags.forEach(function(tag){
-                                tag_map[tag] = 1;
+                                tag_map[tag.replace(/\./g,'&#46;')] = 1;
                             });
 
                             emit({sender:this.sender,week_start:lastSunday},
