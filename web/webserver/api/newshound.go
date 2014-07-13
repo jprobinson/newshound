@@ -25,13 +25,13 @@ func NewNewshoundAPI(conn string, user string, pw string) *NewshoundAPI {
 	// make conn pass it to data
 	session, err := mgo.Dial(conn)
 	if err != nil {
-		log.Fatalf("Unable to connect to newshound db! - %s", err.Error())
+		log.Fatalf("Unable to connect to newshound db! - %s", err)
 	}
 
 	db := session.DB("newshound")
 	err = db.Login(user, pw)
 	if err != nil {
-		log.Fatalf("Unable to connect to newshound db! - %s", err.Error())
+		log.Fatalf("Unable to connect to newshound db! - %s", err)
 	}
 	session.SetMode(mgo.Eventual, true)
 	return &NewshoundAPI{session}

@@ -395,7 +395,7 @@ func generateEventsPerWeekBySender(sess *mgo.Session) error {
 										emit({sender:alert.sender,week_start:lastSunday},
                                     				{total_events:1,total_rank:total_rank,
                                                      avg_rank:total_rank,total_time_lapsed:total_time_lapsed,
-						                             tag_map:tag_map,avg_time_lapsed:total_time_lapsed});
+						                             tag_map:tag_map,avg_time_lapsed:total_time_lapsed/60});
  
 									}
                                 });
@@ -419,7 +419,7 @@ func generateEventsPerWeekBySender(sess *mgo.Session) error {
 
                                     if(result.total_events != 0){
                                         result.avg_rank = (result.total_rank/result.total_events);
-                                        result.avg_time_lapsed = (result.total_time_lapsed/result.total_events);
+                                        result.avg_time_lapsed = (result.total_time_lapsed/result.total_events)/60;
                                     }
 
                                     return result;
@@ -464,7 +464,7 @@ func generateAvgEventsPerWeekBySender(sess *mgo.Session) error {
                                     total_rank:this.value.total_rank,
                                     total_weeks:1,
                                     tag_map:this.value.tag_map,
-                                    avg_time_lapsed:this.value.total_time_lapsed,
+                                    avg_time_lapsed:this.value.total_time_lapsed/60,
                                     total_time_lapsed:this.value.total_time_lapsed});
                     }`,
 		`function(key,values){
@@ -497,7 +497,7 @@ func generateAvgEventsPerWeekBySender(sess *mgo.Session) error {
 
 							if(result.total_events != 0){
 								result.avg_rank = (result.total_rank/result.total_events);
-								result.avg_time_lapsed = (result.total_time_lapsed/result.total_events);
+								result.avg_time_lapsed = (result.total_time_lapsed/result.total_events)/60;
 							}
 
 							return result;

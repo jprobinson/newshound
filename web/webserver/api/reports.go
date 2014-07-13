@@ -19,8 +19,8 @@ type AvgAlertsPerWeek struct {
 }
 
 type AvgAlertsValue struct {
-	AvgAlerts   int `json:"avg_alerts"bson:"avg_alerts"`
-	TotalAlerts int `json:"total_alerts"bson:"total_alerts"`
+	AvgAlerts   float64 `json:"avg_alerts"bson:"avg_alerts"`
+	TotalAlerts int     `json:"total_alerts"bson:"total_alerts"`
 }
 
 type AvgAlertsReport struct {
@@ -34,7 +34,7 @@ type AvgEventsPerWeek struct {
 }
 
 type AvgEventsValue struct {
-	AvgEvents       int     `json:"avg_events"bson:"avg_events"`
+	AvgEvents       float64 `json:"avg_events"bson:"avg_events"`
 	TotalEvents     int64   `json:"total_events"bson:"total_events"`
 	TotalRank       int64   `json:"total_rank"bson:"total_rank"`
 	AvgRank         float64 `json:"avg_rank"bson:"avg_rank"`
@@ -206,12 +206,13 @@ func GetEventAttendance(db *mgo.Database) ([]EventAttendReport, error) {
 
 // FindSenderInfo returns the full Sender Info report for the given sender over the past 3 months.
 func FindSenderInfo(db *mgo.Database, sender string) (senderInfo SenderInfo, err error) {
+	tfquery := bson.M{"_id.sender": sender, "_id.timeframe": "12months"}
 	query := bson.M{"_id.sender": sender}
 	sort := "_id.week_start"
 
 	var tagResult TagArrayResult
 	avgAlertsPerWeek := db.C("avg_alerts_per_week_by_sender")
-	err = avgAlertsPerWeek.Find(query).One(&tagResult)
+	err = avgAlertsPerWeek.Find(tfquery).One(&tagResult)
 	if err != nil {
 		return
 	}
