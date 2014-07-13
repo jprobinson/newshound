@@ -35,7 +35,7 @@
 				<li ng-class="{active:isActive('/calendar')}" class="dropdown">
 					<a href="#calendar">Calendar</a>
 				</li>
-				<li ng-class="{active:isActive('/report')}"><a href="#/report">Sender Report</a></li>
+				<li ng-class="{active:isActive('/report')||isActive('/sender')}"><a href="#/report">Sender Report</a></li>
 			</ul>
 	      </div>
 		</div>
@@ -83,6 +83,7 @@
 	<script src="scripts/services/report.js"></script>
 	<script src="scripts/services/config.js"></script>
 	<script src="scripts/controllers/report.js"></script>
+	<script src="scripts/controllers/sender.js"></script>
 	<!-- endbuild -->
 	
 <script>

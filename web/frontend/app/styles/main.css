@@ -494,6 +494,11 @@ th .glyphicon {
 	height:400px;
 }
 
+.chart-container div {
+    margin:10px 0;
+    border-color:#666;
+}
+
 .chart-wrapper {
     position: relative;
     height:100%;

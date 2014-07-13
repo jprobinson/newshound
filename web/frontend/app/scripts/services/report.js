@@ -7,10 +7,25 @@ angular.module('newshoundApp')
 
 			// Public API here
 			return {
-				getSenderReport: function() {
+				getSenderReport: function(report_type) {
+                    console.log("WHAAA");
+                    var report_name = "";
+                    switch (report_type) {
+                        case "avg_events":
+                        case "avg_rank":
+                        case "avg_time_lapsed":
+                            report_name = "events_per_week";
+                            break;
+                        case "avg_alerts":
+                            report_name = "alerts_per_week";
+                            break;
+                        case "attendance":
+                            report_name = "event_attendance";
+                            break;
+                    }
 					var deferred = $q.defer();
 					$http({
-						url: config.apiHost() + "/sender_report",
+						url: config.apiHost() + "/report/" + report_name,
 						method: "GET",
 					}).success(function(data, status, headers, config) {
 						deferred.resolve(data);

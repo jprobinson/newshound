@@ -1,0 +1,24 @@
+<a href="#/report"><span class="glyphicon glyphicon-arrow-left">&nbsp;</span>Back to Report</a>
+<div style="margin:auto; max-width:950px; width:90%;">
+    <h1>{{ senderName }}</h1>
+    <div class="chart-container" ng-show="showCharts">
+        <div heading="Top 15 Phrases">
+            <highchart config="senderPhrasesChartConfig" style=""></highchart>
+        </div>
+        <div heading="Alerts Per Week">
+            <highchart config="senderAlertsChartConfig" style=""></highchart>
+        </div>
+        <div heading="Events Per Week">
+            <highchart config="senderEventsChartConfig" style=""></highchart>
+        </div>
+        <div heading="Avg Event Placement By Week">
+            <highchart config="senderPlacementChartConfig" style=""></highchart>
+        </div>
+        <div heading="Avg Event Arrival By Week">
+            <highchart config="senderArrivalChartConfig" style=""></highchart>
+        </div>
+        <div heading="Alerts Per Hour">
+            <highchart config="senderHoursChartConfig" style=""></highchart>
+        </div>
+    </div>
+</div>

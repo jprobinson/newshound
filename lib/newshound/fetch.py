@@ -46,11 +46,11 @@ class NewsAlert:
     EMAIL_FILLERS = ["===", "*", u"©", "this email", "click here", "go here", "for more", "share this", "view this", "to unsubscribe", 
                 "e-mail alerts", "view it online", "complete coverage", "paste the link", "paste this link", "is a developing story",
                 "for further developments", "for breaking news", "the moment it happens", "keep reading", "connect with diane",  
-                "on the go?", "more newsletters", "manage email", 'text "breaking', "read more", "(c)", "contact your cable", 
+                "on the go?", "more newsletters", "manage email", "manage subscriptions", 'text "breaking', "read more", "(c)", "contact your cable", 
                 "share this", "for the latest", "|", "to your address book", "unsubscribe", "and watch ", "if this message", 
                 "to view this email", "more on this", "more stories", "go to nbcnews", "to ensure", "privacy policy",
                 "manage portfolio", "forward this email", "subscribe to","view it in your browser","you are currently subscribed",
-                "to unsubscribe",
+                "to unsubscribe", "update preferences", "feedback", "manage portfolio",
                 "share on facebook", "video alerts", "on your cell phone", "more coverage"]
 
     def __init__(self,raw_message, alert_info={}):

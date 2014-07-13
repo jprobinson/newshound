@@ -1,52 +1,9 @@
 'use strict';
 
 angular.module('newshoundApp')
-    .controller('ReportCtrl', ['$scope', '$window', '$location', '$modal', '$filter', 'news', 'report',
-        function($scope, $window, $location, $modal, $filter, news, report) {
-            $scope.$on('$routeUpdate', function() {
-                var searchVals = $location.search();
-                var newSender = searchVals.sender;
-                if (newSender != $scope.senderName) {
-                    if (newSender) {
-                        $scope.senderName = newSender;
-                        displaySenderDialog();
-                    } else if ($scope.senderDialog) {
-                        $scope.senderDialog.close();
-                    }
-                }
-            });
-
-            $scope.curr_report = 'avg_alerts';
-            $scope.curr_report_name = 'Average Alerts Per Week';
-
-            $scope.update = function(curr_report) {
-                // build initial report rows
-                var senders = report.getSenderReport(curr_report);
-                senders.then(function(data) {
-                    $scope.senderReport = data;
-                }, function(reason) {
-                    alert(reason);
-                });
-            }
-
-            $scope.update($scope.curr_report);
-
-            // handle table sorting
-            $scope.sort = {
-                column: 'sender',
-                descending: false
-            };
-            $scope.changeSorting = function(column) {
-                var sort = $scope.sort;
-                if (sort.column == column) {
-                    $scope.sort.descending = !sort.descending;
-                    $scope.sort.column = column;
-                } else {
-                    $scope.sort.column = column;
-                    $scope.sort.descending = !sort.descending;
-                }
-            };
-
+    .controller('SenderCtrl', ['$scope', '$window', '$location', '$modal', '$filter', '$routeParams', 'news', 'report',
+        function($scope, $window, $location, $modal, $filter, $routeParams, news, report) {
+            $scope.showCharts = false;
             var createPhrasesChart = function(senderName, info) {
                 var frequencies = [];
                 var words = [];
@@ -70,7 +27,7 @@ angular.module('newshoundApp')
                             enabled: false
                         },
                         title: {
-                            text: 'Top 15 Key Phrases Over Last 3 Months'
+                            text: 'Top 15 Key Phrases Over Last 12 Months'
                         },
                         xAxis: {
                             categories: words,
@@ -131,12 +88,15 @@ angular.module('newshoundApp')
                             }
                         },
                         title: {
-                            text: 'Alerts Per Week Over Last 3 Months'
+                            text: 'Alerts Per Week Over Last 12 months'
                         },
                         xAxis: {
                             categories: weeks,
                             title: {
                                 text: 'Week'
+                            },
+                            labels: {
+                                step: 3
                             }
                         },
                         yAxis: {
@@ -192,12 +152,15 @@ angular.module('newshoundApp')
                             }
                         },
                         title: {
-                            text: 'Events Per Week Over Last 3 Months'
+                            text: 'Events Per Week Over Last 12 Months'
                         },
                         xAxis: {
                             categories: weeks,
                             title: {
                                 text: 'Week'
+                            },
+                            labels: {
+                                step: 3
                             }
                         },
                         yAxis: {
@@ -253,7 +216,7 @@ angular.module('newshoundApp')
                             }
                         },
                         title: {
-                            text: 'Avg Placement Per Week Over Last 3 Months'
+                            text: 'Avg Placement Per Week Over Last 12 Months'
                         },
                         tooltip: {
                             formatter: function() {
@@ -265,6 +228,9 @@ angular.module('newshoundApp')
                             categories: weeks,
                             title: {
                                 text: 'Week'
+                            },
+                            labels: {
+                                step: 3
                             }
                         },
                         yAxis: {
@@ -324,7 +290,7 @@ angular.module('newshoundApp')
                             }
                         },
                         title: {
-                            text: 'Avg Time Lapsed Per Week Over Last 3 Months'
+                            text: 'Avg Time Lapsed Per Week Over Last 12 Months'
                         },
                         tooltip: {
                             formatter: function() {
@@ -336,6 +302,9 @@ angular.module('newshoundApp')
                             categories: weeks,
                             title: {
                                 text: 'Week'
+                            },
+                            labels: {
+                                step: 2
                             }
                         },
                         yAxis: {
@@ -381,12 +350,15 @@ angular.module('newshoundApp')
                             }
                         },
                         title: {
-                            text: 'Alerts Per Hour Over Last 3 Months'
+                            text: 'Alerts Per Hour Over Last 12 Months'
                         },
                         xAxis: {
                             categories: hours,
                             title: {
                                 text: 'Hour'
+                            },
+                            labels: {
+                                step: 3
                             }
                         },
                         yAxis: {
@@ -405,61 +377,25 @@ angular.module('newshoundApp')
                 };
             };
 
-            var senderDialogCtrl = ['$scope', '$modalInstance', 'info', 'senderReport', 'senderName',
-                function($scope, $modalInstance, info, senderReport, senderName) {
-                    $scope.senderReport = senderReport;
-                    $scope.info = info;
-                    $scope.senderName = senderName;
-                    $scope.senderClass = news.getSenderClassName(senderName);
-                    $scope.filterBySender = function(sender) {
-                        return sender.sender == $scope.senderName;
-                    }
-                    $scope.senderPhrasesChartConfig = createPhrasesChart(senderName, info);
-                    $scope.senderAlertsChartConfig = createAlertsChart(senderName, info);
-                    $scope.senderEventsChartConfig = createEventsChart(senderName, info);
-                    $scope.senderPlacementChartConfig = createPlacementChart(senderName, info);
-                    $scope.senderArrivalChartConfig = createArrivalChart(senderName, info);
-                    $scope.senderHoursChartConfig = createHoursChart(senderName, info);
+            $scope.senderName = $routeParams.sender;
+            var senderPromise = report.getSenderInfo($scope.senderName);
+            senderPromise.then(function(info) {
+                $scope.showCharts = true;
+                $scope.info = info;
+                $scope.senderClass = news.getSenderClassName($scope.senderName);
+                $scope.filterBySender = function(sender) {
+                    return sender.sender == $scope.$scope.senderName;
                 }
-            ];
+                $scope.senderPhrasesChartConfig = createPhrasesChart($scope.senderName, info);
+                $scope.senderAlertsChartConfig = createAlertsChart($scope.senderName, info);
+                $scope.senderEventsChartConfig = createEventsChart($scope.senderName, info);
+                $scope.senderPlacementChartConfig = createPlacementChart($scope.senderName, info);
+                $scope.senderArrivalChartConfig = createArrivalChart($scope.senderName, info);
+                $scope.senderHoursChartConfig = createHoursChart($scope.senderName, info);
 
-            // handle sender dialog
-            var displaySenderDialog = function() {
-                var modalPromise = report.getSenderInfo($scope.senderName);
-                modalPromise.then(function(info) {
-                    addSenderLocation($scope.senderName);
-                    $scope.senderDialog = $modal.open({
-                        templateUrl: 'senderInfoModal.html',
-                        windowClass: 'xlarge-modal',
-                        controller: senderDialogCtrl,
-                        resolve: {
-                            info: function() {
-                                return info;
-                            },
-                            senderReport: function() {
-                                return $scope.senderReport;
-                            },
-                            senderName: function() {
-                                return $scope.senderName;
-                            }
-                        }
-                    });
-
-                    $scope.senderDialog.result.then(function(modal) {
-                        clearSenderLocation();
-                    }, function() {
-                        clearSenderLocation();
-                    });
-
-                }, function(reason) {
-                    alert('Failed getting sender info: ' + reason);
-                });
-            };
-
-            // on load
-            if (($location.search().sender) && !$scope.senderName) {
-                $scope.senderName = $location.search().sender;
-                displaySenderDialog();
-            }
+            }, function(data) {
+                console.log("OH NO! Sender data didnt looooad!");
+                console.log(data);
+            });
         }
     ]);
