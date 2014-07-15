@@ -11,7 +11,7 @@ angular.module('newshoundApp')
                     frequencies.push({
                         y: tag_info.frequency
                     });
-                    words.push(tag_info.tag);
+                    words.push(tag_info.tag.replace(/&#46;/g,"."));
                 });
                 var chart_data = [{
                     name: senderName,

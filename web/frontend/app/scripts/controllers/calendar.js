@@ -190,8 +190,6 @@ angular.module('newshoundApp')
             };
 
             var displayAlertDialog = function(id) {
-                console.log("HEEEYYY");
-console.log(id);
                 var modalPromise = news.getAlert(id);
                 modalPromise.then(function(alert) {
                     addAlertLocation(id);

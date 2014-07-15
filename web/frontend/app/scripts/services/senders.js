@@ -16,5 +16,7 @@ angular.module('newshoundApp')
 		usatodaycom: '#1877B6',
 		yahoo: '#7B0099',
 		ft: '#FFF1E0',
-		bbc: '#c00000'
+		bbc: '#c00000',
+        npr: '#5f82be',
+        bloombergcom: '#110c09'
 	}).value('senders', {});

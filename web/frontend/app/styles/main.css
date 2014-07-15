@@ -281,6 +281,17 @@ th .glyphicon {
     color:black;
 }
 
+.bloombergcom .fc-event-time, .bloombergcom-header, .bloombergcom .ui-dialog-titlebar  {
+    background-color:#110c09;
+    border-color:white;
+    color:white;
+}
+.bloombergcom, .bloombergcom div{
+    background-color:white;
+    border-color:black;
+    color:black;
+}
+
 .cbs .fc-event-time, .cbs-header, .cbs .ui-dialog-titlebar  {
     background:url('http://asset1.cbsistatic.com/cnwk.1d/i/cbs/generic/genericNavBg.jpg') repeat-x;
     border-color:white;
@@ -291,6 +302,18 @@ th .glyphicon {
     border-color:black;
     color:black;
 }
+
+.npr .fc-event-time, .npr-header, .npr .ui-dialog-titlebar  {
+    background-color:#5f82be;
+    border-color:white;
+    color:white;
+}
+.npr, .npr div{
+    background-color:white;
+    border-color:black;
+    color:black;
+}
+
 .usatodaycom, .usatodaycom div{
     background:white;
     border-color:#1877B6;
