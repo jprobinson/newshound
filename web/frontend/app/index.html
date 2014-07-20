@@ -32,10 +32,13 @@
 				<a class="navbar-brand newshound-logo" href="#"><img src="images/newshound_logo.png" height="50"></a>
 			</div>
 			<ul class="nav navbar-nav">
+                <li ng-class="{active:isActive('/', true)}" class="dropdown">
+					<a href="/">Event Feed</a>
+				</li>
 				<li ng-class="{active:isActive('/calendar')}" class="dropdown">
 					<a href="#calendar">Calendar</a>
 				</li>
-				<li ng-class="{active:isActive('/report')}"><a href="#/report">Sender Report</a></li>
+				<li ng-class="{active:isActive('/report')||isActive('/sender')}"><a href="#/report">Sender Report</a></li>
 			</ul>
 	      </div>
 		</div>
@@ -76,6 +79,7 @@
 	<script src="scripts/app.js"></script>
 	<script src="scripts/config.js"></script>
 	<script src="scripts/controllers/main.js"></script>
+	<script src="scripts/controllers/feed.js"></script>
 	<script src="scripts/controllers/calendar.js"></script>
 	<script src="scripts/controllers/navbar.js"></script>
 	<script src="scripts/services/news.js"></script>
@@ -83,6 +87,7 @@
 	<script src="scripts/services/report.js"></script>
 	<script src="scripts/services/config.js"></script>
 	<script src="scripts/controllers/report.js"></script>
+	<script src="scripts/controllers/sender.js"></script>
 	<!-- endbuild -->
 	
 <script>

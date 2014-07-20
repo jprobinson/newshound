@@ -8,32 +8,58 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-// TotalSummaryReport is a struct to hold overall News Alert & News Event statistics
-// for the past week and for the past 3 months.
-type TotalSummaryReport struct {
-	Sender           string  `json:"sender"`
-	AvgAlertsPerWeek float64 `json:"avg_alerts_per_week"bson:"avg_alerts_per_week"`
-	AlertsLastWeek   int64   `json:"alerts_last_week"bson:"alerts_last_week"`
-	AvgEventsPerWeek float64 `json:"avg_events_per_week"bson:"avg_events_per_week"`
-	EventsLastWeek   int64   `json:"events_last_week"bson:"events_last_week"`
+type TimeframeID struct {
+	Sender    string `json:"sender"bson:"sender"`
+	Timeframe string `json:"timeframe"bson:"timeframe"`
 }
 
-// SenderSummaryReport is a struct to hold News Alert & News Event statistics
-// for a specific Sender Newshound tracks for the past week and for the past 3 months.
-type SenderSummaryReport struct {
-	Sender                        string  `json:"sender"`
-	AvgAlertsPerWeek              float64 `json:"avg_alerts_per_week"bson:"avg_alerts_per_week"`
-	AlertsLastWeek                int64   `json:"alerts_last_week"bson:"alerts_last_week"`
-	AvgEventsPerWeek              float64 `json:"avg_events_per_week"bson:"avg_events_per_week"`
-	EventsLastWeek                int64   `json:"events_last_week"bson:"events_last_week"`
-	EventAttendance               float64 `json:"event_attendance"bson:"event_attendance"`
-	EventAttendanceRatingLastWeek float64 `json:"event_attendance_rating_last_week"bson:"event_attendance_rating_last_week"`
-	AvgEventRankLastWeek          float64 `json:"avg_event_rank_last_week"bson:"avg_event_rank_last_week"`
-	EventAttendanceRating         float64 `json:"event_attendance_rating"bson:"event_attendance_rating"`
-	EventAttendanceLast_Week      int64   `json:"event_attendance_last_week"bson:"event_attendance_last_week"`
-	AvgEventRank                  float64 `json:"avg_event_rank"bson:"avg_event_rank"`
-	AvgEventArrival               float64 `json:"avg_event_arrival"bson:"avg_event_arrival"`
-	AvgEventArrivalLastWeek       float64 `json:"avg_event_arrival_last_week"bson:"avg_event_arrival_last_week"`
+type AvgAlertsPerWeek struct {
+	ID    TimeframeID    `json:"id"bson:"_id"`
+	Value AvgAlertsValue `json:"value"bson:"value"`
+}
+
+type AvgAlertsValue struct {
+	AvgAlerts   float64 `json:"avg_alerts"bson:"avg_alerts"`
+	TotalAlerts int     `json:"total_alerts"bson:"total_alerts"`
+}
+
+type AvgAlertsReport struct {
+	Sender string                    `json:"sender"`
+	Values map[string]AvgAlertsValue `json:"values"`
+}
+
+type AvgEventsPerWeek struct {
+	ID    TimeframeID    `json:"id"bson:"_id"`
+	Value AvgEventsValue `json:"value"bson:"value"`
+}
+
+type AvgEventsValue struct {
+	AvgEvents       float64 `json:"avg_events"bson:"avg_events"`
+	TotalEvents     int64   `json:"total_events"bson:"total_events"`
+	TotalRank       int64   `json:"total_rank"bson:"total_rank"`
+	AvgRank         float64 `json:"avg_rank"bson:"avg_rank"`
+	TotalTimeLapsed int64   `json:"total_time_lapsed"bson:"total_time_lapsed"`
+	AvgTimeLapsed   float64 `json:"avg_time_lapsed"bson:"avg_time_lapsed"`
+}
+
+type AvgEventsReport struct {
+	Sender string                    `json:"sender"`
+	Values map[string]AvgEventsValue `json:"values"`
+}
+
+type EventAttendance struct {
+	ID    TimeframeID      `json:"id"bson:"_id"`
+	Value EventAttendValue `json:"value"bson:"value"`
+}
+
+type EventAttendValue struct {
+	Attendance float64 `json:"attendance"bson:"attendance"`
+	Events     int     `json:"total_events"bson:"total_events"`
+}
+
+type EventAttendReport struct {
+	Sender string                      `json:"sender"`
+	Values map[string]EventAttendValue `json:"values"`
 }
 
 // SenderInfo is a struct for containing the Sender Info report for the past 3 months.
@@ -57,13 +83,12 @@ type AlertWeekInfo struct {
 type EventWeekInfo struct {
 	Id    WeekInfoID `json:"_id" bson:"_id"`
 	Value struct {
-		TotalEvents     int64            `json:"total_events"bson:"total_events"`
-		TotalRank       int64            `json:"total_rank"bson:"total_rank"`
-		AvgRank         float64          `json:"avg_rank"bson:"avg_rank"`
-		TotalTimeLapsed int64            `json:"total_time_lapsed"bson:"total_time_lapsed"`
-		AvgTimeLapsed   float64          `json:"avg_time_lapsed"bson:"avg_time_lapsed"`
-		TagMap          map[string]int64 `json:"tag_map"bson:"tag_map"`
-	} `json:"value"`
+		TotalEvents     int64   `json:"total_events"bson:"total_events"`
+		TotalRank       int64   `json:"total_rank"bson:"total_rank"`
+		AvgRank         float64 `json:"avg_rank"bson:"avg_rank"`
+		TotalTimeLapsed int64   `json:"total_time_lapsed"bson:"total_time_lapsed"`
+		AvgTimeLapsed   float64 `json:"avg_time_lapsed"bson:"avg_time_lapsed"`
+	} `json:"value"bson:"value"`
 }
 
 // WeekInfoID is used as a helper to pull 'alerts per week' and
@@ -96,38 +121,98 @@ type AlertsPerHourResult struct {
 	}
 }
 
-// GetTotalSummaryReport returns the current Totals Report that summarizes all Alerts/Events in the past
-// week and the last 3 months.
-func GetTotalSummaryReport(db *mgo.Database) (totalReport TotalSummaryReport, err error) {
-	c := db.C("news_report_by_sender")
-	err = c.Find(bson.M{"sender": "total"}).One(&totalReport)
-	if err != nil {
-		return
+func GetAlertsPerWeek(db *mgo.Database) ([]AvgAlertsReport, error) {
+	coll := db.C("avg_alerts_per_week_by_sender")
+	iter := coll.Find(nil).Iter()
+
+	var results []AvgAlertsReport
+	resultMap := make(map[string]map[string]AvgAlertsValue)
+	var result AvgAlertsPerWeek
+	for iter.Next(&result) {
+		if _, exists := resultMap[result.ID.Sender]; exists {
+			resultMap[result.ID.Sender][result.ID.Timeframe] = result.Value
+		} else {
+			resultMap[result.ID.Sender] = map[string]AvgAlertsValue{result.ID.Timeframe: result.Value}
+		}
 	}
 
-	return
+	err := iter.Close()
+	if err != nil {
+		return results, err
+	}
+
+	for sender, values := range resultMap {
+		result := AvgAlertsReport{sender, values}
+		results = append(results, result)
+	}
+	return results, err
 }
 
-// GetSenderSummaryReport returns the current Sender Report that summarizes all Alerts/Events in the past
-// week and the last 3 months for each Sender.
-func GetSenderSummaryReport(db *mgo.Database) (senderReports []SenderSummaryReport, err error) {
-	c := db.C("news_report_by_sender")
-	err = c.Find(bson.M{"sender": bson.M{"$ne": "total"}}).Sort("avg_alerts_per_week").All(&senderReports)
-	if err != nil {
-		return
+func GetEventsPerWeek(db *mgo.Database) ([]AvgEventsReport, error) {
+	coll := db.C("avg_events_per_week_by_sender")
+	iter := coll.Find(nil).Iter()
+
+	var results []AvgEventsReport
+	resultMap := make(map[string]map[string]AvgEventsValue)
+	var result AvgEventsPerWeek
+	for iter.Next(&result) {
+		if _, exists := resultMap[result.ID.Sender]; exists {
+			resultMap[result.ID.Sender][result.ID.Timeframe] = result.Value
+		} else {
+			resultMap[result.ID.Sender] = map[string]AvgEventsValue{result.ID.Timeframe: result.Value}
+		}
 	}
 
-	return
+	err := iter.Close()
+	if err != nil {
+		return results, err
+	}
+
+	for sender, values := range resultMap {
+		result := AvgEventsReport{sender, values}
+		results = append(results, result)
+	}
+
+	return results, err
+}
+
+func GetEventAttendance(db *mgo.Database) ([]EventAttendReport, error) {
+	coll := db.C("sender_event_attendance")
+	iter := coll.Find(nil).Iter()
+
+	var results []EventAttendReport
+	resultMap := make(map[string]map[string]EventAttendValue)
+	var result EventAttendance
+	for iter.Next(&result) {
+		if _, exists := resultMap[result.ID.Sender]; exists {
+			resultMap[result.ID.Sender][result.ID.Timeframe] = result.Value
+		} else {
+			resultMap[result.ID.Sender] = map[string]EventAttendValue{result.ID.Timeframe: result.Value}
+		}
+	}
+
+	err := iter.Close()
+	if err != nil {
+		return results, err
+	}
+
+	for sender, values := range resultMap {
+		result := EventAttendReport{sender, values}
+		results = append(results, result)
+	}
+
+	return results, err
 }
 
 // FindSenderInfo returns the full Sender Info report for the given sender over the past 3 months.
 func FindSenderInfo(db *mgo.Database, sender string) (senderInfo SenderInfo, err error) {
+	tfquery := bson.M{"_id.sender": sender, "_id.timeframe": "12months"}
 	query := bson.M{"_id.sender": sender}
 	sort := "_id.week_start"
 
 	var tagResult TagArrayResult
 	avgAlertsPerWeek := db.C("avg_alerts_per_week_by_sender")
-	err = avgAlertsPerWeek.Find(query).One(&tagResult)
+	err = avgAlertsPerWeek.Find(tfquery).One(&tagResult)
 	if err != nil {
 		return
 	}

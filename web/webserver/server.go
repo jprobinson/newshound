@@ -1,9 +1,6 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -11,16 +8,8 @@ import (
 	"github.com/jprobinson/go-utils/utils"
 	"github.com/jprobinson/go-utils/web"
 
+	"github.com/jprobinson/newshound"
 	"github.com/jprobinson/newshound/web/webserver/api"
-)
-
-const (
-	configFile = "/opt/newshound/etc/config.json"
-
-	serverLog = "/var/log/newshound/server.log"
-	accessLog = "/var/log/newshound/access.log"
-
-	webDir = "/opt/newshound/www"
 )
 
 type config struct {
@@ -30,9 +19,9 @@ type config struct {
 }
 
 func main() {
-	config := NewConfig()
+	config := newshound.NewConfig()
 
-	logSetup := utils.NewDefaultLogSetup(serverLog)
+	logSetup := utils.NewDefaultLogSetup(newshound.ServerLog)
 	logSetup.SetupLogging()
 	go utils.ListenForLogSignal(logSetup)
 
@@ -43,25 +32,9 @@ func main() {
 	api.Handle(apiRouter)
 
 	staticRouter := router.PathPrefix("/").Subrouter()
-	staticRouter.PathPrefix("/").Handler(http.FileServer(http.Dir(webDir)))
+	staticRouter.PathPrefix("/").Handler(http.FileServer(http.Dir(newshound.WebDir)))
 
-	handler := web.AccessLogHandler(accessLog, router)
+	handler := web.AccessLogHandler(newshound.AccessLog, router)
 
 	log.Fatal(http.ListenAndServe(":8080", handler))
-}
-
-func NewConfig() *config {
-	config := config{}
-
-	readBytes, err := ioutil.ReadFile(configFile)
-	if err != nil {
-		panic(fmt.Sprintf("Cannot read config file: %s %s", config, err))
-	}
-
-	err = json.Unmarshal(readBytes, &config)
-	if err != nil {
-		panic(fmt.Sprintf("Cannot parse JSON in config file: %s %s", config, err))
-	}
-
-	return &config
 }

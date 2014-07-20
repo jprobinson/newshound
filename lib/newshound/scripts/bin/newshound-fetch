@@ -7,7 +7,7 @@ mkdir -p $LOGDIR
 
 RUNNING=`ps -ef | grep 'newshound-fetch.py' | grep -v grep | wc -l`
 if (($RUNNING == 0)); then
-	python -u /opt/newshound/bin/newshound-fetch.py -f -m >> $LOGFILE 2>&1
+	python -u /opt/newshound/bin/newshound-fetch.py -f >> $LOGFILE 2>&1
 else
     exit 0;
 fi

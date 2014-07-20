@@ -77,13 +77,16 @@ angular.module('newshoundApp')
 					return deferred.promise;
 				},
 
-				getEvents: function(start, end) {
+				getEvents: function(start, end, feed) {
 					var deferred = $q.defer();
-
+                    var uri = "/find_events/";
+                    if (feed) {
+                        uri = "/event_feed/";
+                    }
 					var startString = $filter('date')(start, "yyyy-MM-dd");
 					var endString = $filter('date')(end, "yyyy-MM-dd");
 					$http({
-						url: config.apiHost() + "/find_events/" + startString + "/" + endString,
+						url: config.apiHost() + uri + startString + "/" + endString,
 						method: "GET",
 					}).success(function(data, status, headers, config) {
 						var events = [];
@@ -91,13 +94,15 @@ angular.module('newshoundApp')
 							angular.forEach(data, function(event, index) {
 								var newsAlerts = event.news_alerts;
 								var senderClasses = [];
+                                var sizeClass = "";
 								if (newsAlerts.length <= 3) {
-									senderClasses.push('news_event_cal_small');
+                                    sizeClass = 'news_event_cal_small';
 								} else if (newsAlerts.length >= 10) {
-									senderClasses.push('news_event_cal_large');
+                                    sizeClass = 'news_event_cal_large';
 								} else {
-									senderClasses.push('news_event_cal_' + new String(newsAlerts.length));
+                                    sizeClass = 'news_event_cal_' + new String(newsAlerts.length);
 								}
+                                senderClasses.push(sizeClass);
 								senderClasses.push('news_event_cal');
 
 								angular.forEach(newsAlerts, function(alert, index) {
@@ -105,17 +110,25 @@ angular.module('newshoundApp')
 									senders[senderClass] = alert.sender;
 									senderClasses.push(senderClass);
 								});
-
+                                var senderList = [];
+                                for(var sender in senders) {
+                                    senderList.push(sender);
+                                }
+                                
 								events.push({
-									title: event.tags.join(),
+									title: event.top_sentence,
 									start: event.event_start,
 									obj_id: event.id,
 									event_start: event.event_start,
 									news_alerts: newsAlerts,
+                                    top_sentence: event.top_sentence,
+                                    top_sender: event.top_sender,
 									tags: event.tags,
 									end: event.event_end,
 									allDay: false,
-									className: senderClasses
+                                    size_class: sizeClass,
+									className: senderClasses,
+                                    senders:senderList 
 								});
 							});
 						}

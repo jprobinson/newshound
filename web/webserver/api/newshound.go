@@ -25,13 +25,13 @@ func NewNewshoundAPI(conn string, user string, pw string) *NewshoundAPI {
 	// make conn pass it to data
 	session, err := mgo.Dial(conn)
 	if err != nil {
-		log.Fatalf("Unable to connect to newshound db! - %s", err.Error())
+		log.Fatalf("Unable to connect to newshound db! - %s", err)
 	}
 
 	db := session.DB("newshound")
 	err = db.Login(user, pw)
 	if err != nil {
-		log.Fatalf("Unable to connect to newshound db! - %s", err.Error())
+		log.Fatalf("Unable to connect to newshound db! - %s", err)
 	}
 	session.SetMode(mgo.Eventual, true)
 	return &NewshoundAPI{session}
@@ -57,8 +57,9 @@ func (n NewshoundAPI) Handle(subRouter *mux.Router) {
 	subRouter.HandleFunc("/event/{event_id}", n.findEvent).Methods("GET")
 
 	// REPORTS
-	subRouter.HandleFunc("/total_report", n.getTotalReport).Methods("GET")
-	subRouter.HandleFunc("/sender_report", n.getSenderReport).Methods("GET")
+	subRouter.HandleFunc("/report/alerts_per_week", n.getAlertsPerWeek).Methods("GET")
+	subRouter.HandleFunc("/report/events_per_week", n.getEventsPerWeek).Methods("GET")
+	subRouter.HandleFunc("/report/event_attendance", n.getEventAttendance).Methods("GET")
 	subRouter.HandleFunc("/sender_info/{sender}", n.findSenderInfo).Methods("GET")
 }
 
@@ -213,34 +214,43 @@ func (n NewshoundAPI) findEvent(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprint(w, web.JsonResponseWrapper{Response: event})
 }
-
-// getTotalReport is an http.Handler that will return overall News Alert & News Event statistics
-// for the past week and for the past 3 months.
-func (n NewshoundAPI) getTotalReport(w http.ResponseWriter, r *http.Request) {
+func (n NewshoundAPI) getAlertsPerWeek(w http.ResponseWriter, r *http.Request) {
 	setCommonHeaders(w, r, "")
 	s, db := n.getDB()
 	defer s.Close()
 
-	totals, err := GetTotalSummaryReport(db)
+	sendersReport, err := GetAlertsPerWeek(db)
 	if err != nil {
-		log.Printf("Unable to retrieve total summary report! - %s", err.Error())
+		log.Printf("Unable to retrieve sender alerts per week! - %s", err.Error())
 		web.ErrorResponse(w, ErrDB, http.StatusBadRequest)
 		return
 	}
 
-	fmt.Fprint(w, web.JsonResponseWrapper{Response: totals})
+	fmt.Fprint(w, web.JsonResponseWrapper{Response: sendersReport})
 }
 
-// getTotalReport is an http.Handler that will return a list News Alert & News Event statistics
-// for each Sender Newshound tracks for the past week and for the past 3 months.
-func (n NewshoundAPI) getSenderReport(w http.ResponseWriter, r *http.Request) {
+func (n NewshoundAPI) getEventAttendance(w http.ResponseWriter, r *http.Request) {
 	setCommonHeaders(w, r, "")
 	s, db := n.getDB()
 	defer s.Close()
 
-	sendersReport, err := GetSenderSummaryReport(db)
+	sendersReport, err := GetEventAttendance(db)
 	if err != nil {
-		log.Printf("Unable to retrieve sender summary report! - %s", err.Error())
+		log.Printf("Unable to retrieve sender event attendance! - %s", err.Error())
+		web.ErrorResponse(w, ErrDB, http.StatusBadRequest)
+		return
+	}
+
+	fmt.Fprint(w, web.JsonResponseWrapper{Response: sendersReport})
+}
+func (n NewshoundAPI) getEventsPerWeek(w http.ResponseWriter, r *http.Request) {
+	setCommonHeaders(w, r, "")
+	s, db := n.getDB()
+	defer s.Close()
+
+	sendersReport, err := GetEventsPerWeek(db)
+	if err != nil {
+		log.Printf("Unable to retrieve sender events per week! - %s", err.Error())
 		web.ErrorResponse(w, ErrDB, http.StatusBadRequest)
 		return
 	}
