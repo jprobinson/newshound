@@ -53,6 +53,7 @@ func (n NewshoundAPI) Handle(subRouter *mux.Router) {
 
 	// EVENTS
 	subRouter.HandleFunc("/find_events/{start}/{end}", n.findEventsByDate).Methods("GET")
+	subRouter.HandleFunc("/event_feed/{start}/{end}", n.eventFeed).Methods("GET")
 	subRouter.HandleFunc("/event/{event_id}", n.findEvent).Methods("GET")
 
 	// REPORTS
@@ -143,6 +144,30 @@ func (n NewshoundAPI) findAlertHtml(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Fprint(w, alertHtml)
+}
+
+// eventFeed is an http.Handler that will expect a 'start' and 'end' date in the URL
+// and will return a list of News Events that occured in that timeframe order by time desc.
+func (n NewshoundAPI) eventFeed(w http.ResponseWriter, r *http.Request) {
+	setCommonHeaders(w, r, "")
+	vars := mux.Vars(r)
+	startTime, endTime, err := web.ParseDateRangeFullDay(vars)
+	if err != nil {
+		web.ErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
+
+	s, db := n.getDB()
+	defer s.Close()
+
+	events, err := FindEventsByDateReverse(db, startTime, endTime)
+	if err != nil {
+		log.Printf("Unable to access events by date! - %s", err.Error())
+		web.ErrorResponse(w, ErrDB, http.StatusBadRequest)
+		return
+	}
+
+	fmt.Fprint(w, web.JsonResponseWrapper{Response: events})
 }
 
 // findEventsByDate is an http.Handler that will expect a 'start' and 'end' date in the URL
