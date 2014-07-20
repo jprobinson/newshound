@@ -255,7 +255,7 @@ angular.module('newshoundApp')
                 angular.forEach(info.events_per_week, function(event_week, index) {
                     var time_lapsed = 0.0;
                     if (event_week.value.avg_time_lapsed != 0) {
-                        time_lapsed = event_week.value.avg_time_lapsed / 60;
+                        time_lapsed = event_week.value.avg_time_lapsed ;
                     }
 
                     events.push({

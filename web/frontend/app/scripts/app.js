@@ -13,9 +13,9 @@ angular.module('newshoundApp', [
         function($locationProvider, $routeProvider, $httpProvider, datepickerConfig, datepickerPopupConfig) {
             $routeProvider
                 .when('/', {
-                    // templateUrl: 'views/main.html',
-                    // controller: 'MainCtrl'
-                    redirectTo: '/calendar'
+                    templateUrl: 'views/feed.html',
+                    controller: 'FeedCtrl',
+                    reloadOnSearch: false
                 })
                 .when('/calendar', {
                     templateUrl: 'views/calendar.html',
