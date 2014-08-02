@@ -37,20 +37,21 @@ class NewsAlert:
             'NYTimes.com'           :    6,
             'The Washington Post'   :    3,
             'FoxNews.com'           :    0,
+            "NPR"                   :    3,
     }         
 
     SENDER_EXCLUDE_SUBJECT = ['ABC','CNN','POLITICO']
 
-    BREAKING_NEWS = ["breaking news", "breaking news alert", "news alert", "national news alert", "sports alert"]
+    BREAKING_NEWS = ["breaking news", u"breaking\xa0news", "breaking news alert", "news alert", "national news alert", "sports alert"]
 
     EMAIL_FILLERS = ["===", "*", u"©", "this email", "click here", "go here", "for more", "share this", "view this", "to unsubscribe", 
                 "e-mail alerts", "view it online", "complete coverage", "paste the link", "paste this link", "is a developing story",
                 "for further developments", "for breaking news", "the moment it happens", "keep reading", "connect with diane",  
                 "on the go?", "more newsletters", "manage email", "manage subscriptions", 'text "breaking', "read more", "(c)", "contact your cable", 
-                "share this", "for the latest", "|", "to your address book", "unsubscribe", "and watch ", "if this message", 
-                "to view this email", "more on this", "more stories", "go to nbcnews", "to ensure", "privacy policy",
+                "share this", "for the latest", "to your address book", "unsubscribe", "and watch ", "if this message", 
+                "to view this email", "more on this", "more stories", "go to nbcnews", "to ensure", "privacy policy", "read this story", 
                 "manage portfolio", "forward this email", "subscribe to","view it in your browser","you are currently subscribed",
-                "to unsubscribe", "update preferences", "feedback", "manage portfolio",
+                "to unsubscribe", "update preferences", "feedback", "manage portfolio", "bloomberg tv+", "bloomberg.com", "businessweek.com",
                 "share on facebook", "video alerts", "on your cell phone", "more coverage"]
 
     def __init__(self,raw_message, alert_info={}):
@@ -190,10 +191,6 @@ class NewsAlert:
     def _find_article_url(self,sender,body):
         url = str()
 
-        # we can only access nyt @ www so dont try anyone else for now
-        #if sender != "NYTimes.com":
-        #    return url 
-
         if sender in self.SENDER_STORY_URL:
             soup = BeautifulSoup(body)
             anchors = soup.findAll(href=True)
@@ -231,18 +228,25 @@ class NewsAlert:
         if len(line) == 0:
             return False
 
-        if line.lower() in self.BREAKING_NEWS:
+        lowerline = line.lower()
+        if lowerline in self.BREAKING_NEWS:
             return False
 
-        if curr_email in line.lower():
+        if curr_email in lowerline:
+            return False
+
+        if lowerline == "visit":
             return False
         
         for filler_phrase in self.EMAIL_FILLERS:
-            if filler_phrase in line.lower():
+            if filler_phrase in lowerline:
                 return False
 
         if line.endswith("-"):
             line = line[-1:]
+
+        if line == "|":
+            return False
 
         try:
             parser.parse(line)
@@ -254,7 +258,7 @@ class NewsAlert:
         if line.startswith("www."):
             return False
 
-        if sender.lower() in line.lower():
+        if sender.lower() in lowerline:
             if ("told" not in line.lower()) and ("tell" not in line.lower()):
                 return False
 
@@ -267,6 +271,7 @@ class NewsAlert:
         bad_line_count = 0
         for line in tagable_text:
             line = line.strip()
+
             if self._is_news_line(line, sender):                
                 bad_line_count = 0
                 if not line.endswith("."):
