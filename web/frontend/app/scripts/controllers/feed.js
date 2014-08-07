@@ -41,13 +41,10 @@ angular.module('newshoundApp')
 
             $scope.prevDate = new Date();
             $scope.loadMore = function() {
-                console.log('hi');
                 var today = $scope.prevDate;
                 var endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7);
-                console.log(today);
-                console.log(endDate);
                 getEvents(endDate, today);
-                $scope.prevDate = endDate;
+                $scope.prevDate = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate() - 1);
             }
             $scope.loadMore();
         }
