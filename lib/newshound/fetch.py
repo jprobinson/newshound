@@ -48,11 +48,12 @@ class NewsAlert:
                 "e-mail alerts", "view it online", "complete coverage", "paste the link", "paste this link", "is a developing story",
                 "for further developments", "for breaking news", "the moment it happens", "keep reading", "connect with diane",  
                 "on the go?", "more newsletters", "manage email", "manage subscriptions", 'text "breaking', "read more", "(c)", "contact your cable", 
-                "share this", "for the latest", "to your address book", "unsubscribe", "and watch ", "if this message", 
+                "share this", "for the latest", "to your address book", "unsubscribe", "and watch ", "if this message", u"bloomberg news\xa0on twitter",
                 "to view this email", "more on this", "more stories", "go to nbcnews", "to ensure", "privacy policy", "read this story", 
-                "manage portfolio", "forward this email", "subscribe to","view it in your browser","you are currently subscribed",
+                "manage portfolio", "forward this email", "subscribe to","view it in your browser","you are currently subscribed", "manage alerts",
+                "manage preferences", "update your profile", "send to a friend", "contact us", "731 lexington ave", 
                 "to unsubscribe", "update preferences", "feedback", "manage portfolio", "bloomberg tv+", "bloomberg.com", "businessweek.com",
-                "share on facebook", "video alerts", "on your cell phone", "more coverage"]
+                "share on facebook", "video alerts", "on your cell phone", "more coverage", "you received this message"]
 
     def __init__(self,raw_message, alert_info={}):
 
@@ -234,8 +235,15 @@ class NewsAlert:
 
         if curr_email in lowerline:
             return False
+        
+        if (lowerline.startswith("follow") or lowerline.startswith("like")) \
+                and (lowerline.endswith("twitter") or lowerline.endswith("facebook")):
+            return False
 
         if lowerline == "visit":
+            return False
+
+        if lowerline == "advertisement":
             return False
         
         for filler_phrase in self.EMAIL_FILLERS:
