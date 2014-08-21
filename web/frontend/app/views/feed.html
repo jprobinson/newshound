@@ -36,11 +36,18 @@
                             {{ alert.top_sentence }}
                         </p>
                     </div>
+                    <div class="text-right" ng-click="toggleEmail(alert.alert_id)">
+                        <a class="text-muted" ng-show="!collapseEmails[alert.alert_id]" >HIDE EMAIL</a>
+                        <a class="text-muted" ng-show="collapseEmails[alert.alert_id]" >VIEW EMAIL</a>
+                    </div>
+                    <div ng-hide="collapseEmails[alert.alert_id]" style="-webkit-overflow-scrolling:touch;height:600px;overflow:scroll;">
+                    <iframe id="alert-email-{{ alert.alert_id }}" ng-hide="collapseEmails[alert.alert_id]" style="height:100%;width:100%;overflow:scroll;"/>
+                    </div>
                 </li>
             </ol>
         </div>
     </article>
-    <div class="text-center" style="margin-top:25px">
+    <div class="text-center" style="margin-top:25px" ng-show="events.length > 0">
         <a class="btn btn-default" ng-click="loadMore()">MORE EVENTS</a>
     </div>
 </div>

@@ -11,27 +11,39 @@ angular.module('newshoundApp')
             };
 
             $scope.showDate = function(index) {
-                if(index == 0){
+                if (index == 0) {
                     return true;
                 }
 
-                var prevDate = new Date($scope.events[index-1].event_start);
+                var prevDate = new Date($scope.events[index - 1].event_start);
                 var currDate = new Date($scope.events[index].event_start);
                 return (prevDate.getDate() != currDate.getDate()) ||
-                        (prevDate.getFullYear() != currDate.getFullYear()) ||
-                        (prevDate.getMonth() != currDate.getMonth());
+                    (prevDate.getFullYear() != currDate.getFullYear()) ||
+                    (prevDate.getMonth() != currDate.getMonth());
             }
+
+            $scope.toggleEmail = function(alert_id) {
+                if ($scope.collapseEmails[alert_id]) {
+                    $('#alert-email-'+alert_id).attr('src',config.apiHost() + "/alert_html/" + alert_id);
+                    $scope.collapseEmails[alert_id] = false;
+                } else {
+                    $scope.collapseEmails[alert_id] = true;
+                    $('#alert-email-'+alert_id).attr('src','');
+                }
+            };
 
             $scope.senderClass = news.getSenderClassName;
             $scope.collapseAlerts = {};
+            $scope.collapseEmails = {};
             var getEvents = function(start, end) {
                 var promise = news.getEvents(start, end, true);
                 promise.then(function(events) {
-                    console.log(events);
                     angular.forEach(events, function(ev, idx) {
                         $scope.collapseAlerts[ev.obj_id] = true;
                         $scope.events.push(ev);
-                        console.log(events);
+                        angular.forEach(ev.news_alerts, function(al, idex) {
+                            $scope.collapseEmails[al.alert_id] = true;
+                        });
                     });
                 }, function(reason) {
                     console.log('Failed getting event data!: ' + reason);
