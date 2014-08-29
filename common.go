@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"log"
 
+	"github.com/jprobinson/eazye"
+
 	"labix.org/v2/mgo"
 )
 
@@ -22,6 +24,9 @@ type Config struct {
 	DBURL      string `json:"db-url"`
 	DBUser     string `json:"db-user"`
 	DBPassword string `json:"db-pw"`
+
+	MarkRead          bool `json:"mark_as_read"`
+	eazye.MailboxInfo `,inline`
 }
 
 func (c *Config) MgoSession() (*mgo.Session, error) {

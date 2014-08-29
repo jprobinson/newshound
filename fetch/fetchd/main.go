@@ -13,10 +13,12 @@ import (
 
 const logPath = "/var/log/newshound/fetchd.log"
 
+var (
+	logArg = flag.String("log", logPath, "log path")
+)
+
 func main() {
-	var (
-		logArg = flag.String("log", logPath, "log path")
-	)
+
 	flag.Parse()
 
 	if *logArg != "stderr" {
@@ -26,6 +28,8 @@ func main() {
 	}
 
 	config := newshound.NewConfig()
+
+	go fetchMail(config)
 
 	sess, err := config.MgoSession()
 	if err != nil {
@@ -46,4 +50,8 @@ func main() {
 
 		time.Sleep(1 * time.Hour)
 	}
+}
+
+func fetchMail(config *newshound.Config) {
+	fetch.GetMail(config)
 }
