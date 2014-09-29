@@ -41,13 +41,13 @@
                         <a class="text-muted" ng-show="collapseEmails[alert.alert_id]" >VIEW EMAIL</a>
                     </div>
                     <div ng-hide="collapseEmails[alert.alert_id]" style="-webkit-overflow-scrolling:touch;height:600px;overflow:scroll;">
-                    <iframe id="alert-email-{{ alert.alert_id }}" ng-hide="collapseEmails[alert.alert_id]" style="height:100%;width:100%;overflow:scroll;"/>
+                        <iframe id="alert-email-{{ alert.alert_id }}" ng-hide="collapseEmails[alert.alert_id]" style="height:100%;width:100%;overflow:scroll;"></iframe>
                     </div>
                 </li>
             </ol>
         </div>
     </article>
-    <div class="text-center" style="margin-top:25px" ng-show="events.length > 0">
+    <div class="text-center" style="margin-top:25px">
         <a class="btn btn-default" ng-click="loadMore()">MORE EVENTS</a>
     </div>
 </div>
