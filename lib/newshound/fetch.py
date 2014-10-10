@@ -16,6 +16,7 @@ import imaplib
 import chardet
 import pymongo
 import requests
+import HTMLParser
 from dateutil import parser
 from np_extractor.service import np_extract 
 from bson.objectid import ObjectId
@@ -49,7 +50,7 @@ class NewsAlert:
                 "for further developments", "for breaking news", "the moment it happens", "keep reading", "connect with diane", "sponsored by",
                 "on the go?", "more newsletters", "manage email", "manage subscriptions", 'text "breaking', "read more", "(c)", "contact your cable", 
                 "share this", "for the latest", "to your address book", "unsubscribe", "and watch ", "if this message", u"bloomberg news\xa0on twitter",
-                "to view this email", "more on this", "more stories", "go to nbcnews", "to ensure", "privacy policy", "read this story", 
+                "to view this email", "more on this", "more stories", "go to nbcnews", "to ensure", "privacy policy", "read this story", u"sponsored\xa0by",
                 "manage portfolio", "forward this email", "subscribe to","view it in your browser","you are currently subscribed", "manage alerts",
                 "manage preferences", "update your profile", "send to a friend", "contact us", "731 lexington ave", "view in your web browser",
                 "to unsubscribe", "update preferences", "feedback", "manage portfolio", "bloomberg tv+", "bloomberg.com", "businessweek.com",
@@ -241,19 +242,22 @@ class NewsAlert:
             return False
 
         if lowerline.startswith(u"national/global news alert  •"):
-            return false
+            return False
+
+        if lowerline.startswith(u"national") and (u"•" in lowerline):
+            return False
 
         if lowerline.startswith(u"technology news alert  •"):
-            return false
+            return False
 
         if lowerline.startswith(u"sports news alert  •"):
-            return false
+            return False
 
         if lowerline.startswith(u"economy/business news alert  •"):
-            return false
+            return False
 
         if lowerline.startswith(u"national politics news alert  •"):
-            return false
+            return False
 
         if lowerline == "visit":
             return False
@@ -311,7 +315,7 @@ class NewsAlert:
             # add a period on the end so it appears to be a sentence 
             valid_lines.append(subject.lower()+".")
 
-        article_text = " ".join(valid_lines)
+        article_text = HTMLParser.HTMLParser().unescape(" ".join(valid_lines))
         
         tag_results = np_extract(article_text.encode("utf-8"))
         tags = tag_results["noun_phrases"].keys()
