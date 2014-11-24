@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"log"
-	"time"
 
 	"github.com/jprobinson/go-utils/utils"
 
@@ -25,11 +24,11 @@ func main() {
 		logSetup := utils.NewDefaultLogSetup(*logArg)
 		logSetup.SetupLogging()
 		go utils.ListenForLogSignal(logSetup)
+	} else {
+		log.SetFlags(log.LstdFlags | log.Lshortfile)
 	}
 
 	config := newshound.NewConfig()
-
-	go fetchMail(config)
 
 	sess, err := config.MgoSession()
 	if err != nil {
@@ -37,19 +36,23 @@ func main() {
 	}
 	defer sess.Close()
 
-	errs := 0
-	for {
-		err = fetch.MapReduce(sess)
-		if err != nil {
-			if errs > 10 {
-				log.Fatal(err)
+	fetchMail(config)
+
+	/*
+		errs := 0
+		for {
+			err = fetch.MapReduce(sess)
+			if err != nil {
+				if errs > 10 {
+					log.Fatal(err)
+				}
+				log.Print(err)
+				continue
 			}
-			log.Print(err)
-			continue
-		}
 
 		time.Sleep(1 * time.Hour)
-	}
+		}
+	*/
 }
 
 func fetchMail(config *newshound.Config) {

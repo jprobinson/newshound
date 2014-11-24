@@ -3,8 +3,8 @@ package api
 import (
 	"time"
 
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 // NewsEvent is a struct that contains all the information for

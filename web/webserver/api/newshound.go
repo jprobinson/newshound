@@ -10,7 +10,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/jprobinson/go-utils/web"
-	"labix.org/v2/mgo"
+	"gopkg.in/mgo.v2"
 )
 
 var ErrDB = errors.New("problems accessing database")

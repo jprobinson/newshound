@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"time"
 
 	"github.com/jprobinson/eazye"
-
-	"labix.org/v2/mgo"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 const (
@@ -61,4 +62,32 @@ func NewConfig() *Config {
 	}
 
 	return &config
+}
+
+// NewsAlertLite is a struct that contains partial News Alert
+// data. This struct lacks a Body and Raw Body to reduce the size
+// when pulling large lists of Alerts. Mainly used for 'findByDate' scenarios.
+type NewsAlertLite struct {
+	ID          bson.ObjectId `json:"id" bson:"_id"`
+	InstanceID  string        `json:"instance_id"bson:"instance_id"`
+	ArticleUrl  string        `json:"article_url"bson:"article_url"`
+	Sender      string        `json:"sender"`
+	Timestamp   time.Time     `json:"timestamp"`
+	Tags        []string      `json:"tags"`
+	Subject     string        `json:"subject"`
+	TopSentence string        `json:"top_sentence"bson:"top_sentence"`
+}
+
+// NewsAlertFull is a struct that contains all News Alert
+// data. This struct is used for access to a single Alert's information.
+type NewsAlert struct {
+	NewsAlertLite `,inline`
+	RawBody       string     `json:"-"bson:"raw_body"`
+	Body          string     `json:"body"`
+	Sentences     []Sentence `json:"sentences"`
+}
+
+type Sentence struct {
+	Value   string   `json:"sentence"bson:"sentence"`
+	Phrases []string `json:"noun_phrases"bson:"noun_phrases"`
 }
