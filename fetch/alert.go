@@ -6,13 +6,16 @@ import (
 	"io"
 	"log"
 	"net/mail"
+	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/jasonmoo/toget"
 	"github.com/jprobinson/eazye"
 	"golang.org/x/net/html"
+	"gopkg.in/mgo.v2/bson"
 
 	"github.com/jprobinson/newshound"
 )
@@ -28,6 +31,7 @@ func NewNewsAlert(msg eazye.Email, address string) (newshound.NewsAlert, error) 
 
 	na := newshound.NewsAlert{
 		NewsAlertLite: newshound.NewsAlertLite{
+			ID:         bson.NewObjectId(),
 			Sender:     sender,
 			Subject:    parseSubject(msg.Subject),
 			Timestamp:  msg.InternalDate,
@@ -44,17 +48,54 @@ func NewNewsAlert(msg eazye.Email, address string) (newshound.NewsAlert, error) 
 		return na, err
 	}
 
-	news := findNews(text)
+	news := findNews(text, address)
+	if _, bad := badSubjects[sender]; !bad {
+		news = periodCheck(news)
+		news = append(news, blankSpace...)
+		news = append(news, []byte(na.Subject)...)
+	}
 	na.Tags, na.Sentences, na.TopSentence, err = callNP(news)
 	return na, err
 }
 
-func findNews(text [][]byte) []byte {
+var (
+	blankSpace      = []byte(" ")
+	period          = []byte(".")
+	periodWithSpace = []byte(". ")
+)
+
+func periodCheck(line []byte) []byte {
+	if len(line) > 0 && !bytes.HasSuffix(bytes.TrimSpace(line), period) {
+		line = append(line, periodWithSpace...)
+	}
+	return line
+}
+
+func findNews(text [][]byte, address string) []byte {
+	// prep the address for searching against text
+	addr := []byte(address)
+	addrStart := bytes.SplitN(addr, []byte("@"), 2)[0]
+	// so we can reuse similar addresses?
+	if len(addrStart) > 15 {
+		addrStart = addrStart[:15]
+	}
+
 	var news [][]byte
+	badLines := 0
 	for _, line := range text {
-		line := bytes.Trim(line, "-| ")
-		if isNews(line) {
+		line := bytes.Trim(line, "-| ?")
+		if isNews(line, addr, addrStart) {
+			badLines = 0
+			line = periodCheck(line)
 			news = append(news, line)
+
+		} else if (len(news) > 0) && (len(line) > 0) {
+			badLines++
+		}
+
+		// get at most 3 or quit if we have bad rows and at least 2
+		if (len(news) >= 3) || ((badLines > 0) && (len(news) >= 2)) {
+			break
 		}
 	}
 
@@ -70,14 +111,44 @@ var (
 		[]byte("sports news alert  •"),
 		[]byte("economy/business news alert  •"),
 		[]byte("national politics news alert  •"),
+		[]byte("to your address book"),
+		[]byte("to ensure delivery"),
+		[]byte("having difficulty"),
+		[]byte("having trouble"),
+		[]byte("to view this"),
+		[]byte("please add"),
+		[]byte("get complete coverage"),
+		[]byte("for more"),
+		[]byte("more on this"),
+		[]byte("watch live:"),
+		[]byte("you are currently subscribed"),
+		[]byte("for the latest"),
+		[]byte("view this"),
+		[]byte("and watch"),
+		[]byte(", cnn tv"),
+		[]byte("or on the"),
+		[]byte("you received this"),
+		[]byte("cnn is now live"),
+		[]byte("you can watch"),
+		[]byte("you have opt"),
+		[]byte("fox news never"),
+		[]byte("for further development"),
+		[]byte("this is a developing"),
+		[]byte("to unsubscribe"),
+		[]byte("privacy policy"),
+		[]byte("7950 jones branch drive"),
+		[]byte("\u00a0731 lexington avenue"),
 	}
 
 	// maps for lookups! hooray!
 	junkFillers = map[string]struct{}{
 		"this email":                   struct{}{},
 		"click here":                   struct{}{},
+		"all rights reserved":          struct{}{},
 		"go here":                      struct{}{},
+		"ft exclusive":                 struct{}{},
 		"advertisement":                struct{}{},
+		"advertise":                    struct{}{},
 		"for more":                     struct{}{},
 		"share this":                   struct{}{},
 		"view this":                    struct{}{},
@@ -121,6 +192,8 @@ var (
 		"view it in your browser":      struct{}{},
 		"you are currently subscribed": struct{}{},
 		"manage alerts":                struct{}{},
+		"alerts":                       struct{}{},
+		"alerts.":                      struct{}{},
 		"manage preferences":           struct{}{},
 		"update your profile":          struct{}{},
 		"send to a friend":             struct{}{},
@@ -131,18 +204,49 @@ var (
 		"feedback":                     struct{}{},
 		"bloomberg tv+":                struct{}{},
 		"bloomberg.com":                struct{}{},
+		"nytimes.com":                  struct{}{},
+		"usatoday.com":                 struct{}{},
+		"foxnews.com":                  struct{}{},
+		"home delivery":                struct{}{},
+		"the wall street journal":      struct{}{},
+		"go to":                        struct{}{},
+		"et":                           struct{}{},
+		"pt":                           struct{}{},
+		"nbcnews.com":                  struct{}{},
+		"@nbcnews":                     struct{}{},
+		"@nbcnews.":                    struct{}{},
+		"cnn.com":                      struct{}{},
+		"watch cnn":                    struct{}{},
 		"businessweek.com":             struct{}{},
+		"foxbusiness.com":              struct{}{},
+		"nytdirect@nytimes.com":        struct{}{},
 		"share on facebook":            struct{}{},
 		"video alerts":                 struct{}{},
 		"on your cell phone":           struct{}{},
 		"more coverage":                struct{}{},
 		"you received this message":    struct{}{},
+		"visit":                        struct{}{},
+	}
+
+	breakingNewsFiller = map[string]struct{}{
+		"breaking news":       struct{}{},
+		"breaking news.":      struct{}{},
+		"breaking\xa0news":    struct{}{},
+		"breaking\u00a0news":  struct{}{},
+		"breaking news alert": struct{}{},
+		"news alert":          struct{}{},
+		"national news alert": struct{}{},
+		"sports alert":        struct{}{},
 	}
 	nationalJunk = []byte("national")
 	dotJunk      = []byte("•")
+	likeJunk     = []byte("like")
+	followJunk   = []byte("follow")
+	twitter      = []byte("twitter")
+	facebook     = []byte("facebook")
 )
 
-func isNews(line []byte) bool {
+func isNews(line []byte, address []byte, addrStart []byte) bool {
 	// less than 5 chars? very likely crap
 	if len(line) < 5 {
 		return false
@@ -150,6 +254,11 @@ func isNews(line []byte) bool {
 
 	lower := bytes.ToLower(line)
 	if bytes.HasPrefix(lower, nationalJunk) && bytes.Contains(lower, dotJunk) {
+		return false
+	}
+
+	if (bytes.HasPrefix(lower, likeJunk) || bytes.HasPrefix(lower, followJunk)) &&
+		(bytes.HasSuffix(lower, facebook) || bytes.HasSuffix(lower, twitter)) {
 		return false
 	}
 
@@ -161,12 +270,129 @@ func isNews(line []byte) bool {
 
 	if len(lower) < 30 {
 		// string conversion..OUCH! at least its only on small strings...
-		if _, isJunk := junkFillers[string(lower)]; isJunk {
+		lowerStr := string(lower)
+		if _, isJunk := junkFillers[lowerStr]; isJunk {
+			return false
+		}
+		if _, isBreaking := breakingNewsFiller[lowerStr]; isBreaking {
 			return false
 		}
 	}
 
+	if bytes.HasPrefix(lower, []byte("www.")) {
+		return false
+	}
+
+	if bytes.HasPrefix(lower, []byte("http")) {
+		return false
+	}
+
+	if bytes.Contains(lower, []byte("|")) ||
+		bytes.Contains(lower, []byte("©")) ||
+		bytes.Contains(lower, []byte("=")) {
+		return false
+	}
+
+	// only run the date check on smaller strings
+	if len(line) < 50 {
+		if isDate(lower) {
+			return false
+		}
+	}
+
+	if bytes.Contains(line, addrStart) || bytes.Contains(line, address) {
+		return false
+	}
+
 	return true
+}
+
+var (
+	daysOfWeek = [][]byte{
+		[]byte("sunday"),
+		[]byte("monday"),
+		[]byte("tuesday"),
+		[]byte("wednesday"),
+		[]byte("thursday"),
+		[]byte("friday"),
+		[]byte("saturday"),
+	}
+	months = [][]byte{
+		[]byte("jan"), []byte("january"),
+		[]byte("feb"), []byte("february"),
+		[]byte("mar"), []byte("march"),
+		[]byte("apr"), []byte("april"),
+		[]byte("may"),
+		[]byte("jun"), []byte("june"),
+		[]byte("jul"), []byte("july"),
+		[]byte("aug"), []byte("august"),
+		[]byte("sep"), []byte("sept"), []byte("september"),
+		[]byte("oct"), []byte("october"),
+		[]byte("nov"), []byte("november"),
+		[]byte("dec"), []byte("december"),
+	}
+	timezones = [][]byte{
+		[]byte("est"), []byte("edt"), []byte("et"),
+		[]byte("pst"), []byte("pdt"), []byte("pt"),
+	}
+	amPM = [][]byte{[]byte("am"), []byte("pm")}
+)
+
+// isDate detects if we see one of the following formats:
+// August 12, 2014
+// Aug 10, 2014  1:02 PM EDT.
+// Sunday August 10 2014
+// Sunday, August 10, 2014 2:36 PM EDT
+// Monday, August 11, 2014 9:18:59 AM
+func isDate(line []byte) bool {
+	// check if it starts with a day or month
+	dateStart := false
+	for _, day := range daysOfWeek {
+		if bytes.HasPrefix(line, day) {
+			dateStart = true
+			break
+		}
+	}
+	if !dateStart {
+		for _, month := range months {
+			if bytes.HasPrefix(line, month) {
+				dateStart = true
+				break
+			}
+		}
+	}
+
+	if !dateStart {
+		return false
+	}
+
+	// check if it ends with a timezone/daytime/year
+	dateEnd := false
+	for _, ap := range amPM {
+		if bytes.HasSuffix(line, ap) {
+			dateEnd = true
+			break
+		}
+	}
+	if !dateEnd {
+		// newshound started in 2012. adjust if you want older data
+		for i := 2012; i <= time.Now().Year(); i++ {
+			if bytes.HasSuffix(line, []byte(strconv.Itoa(i))) {
+				dateEnd = true
+				break
+			}
+		}
+	}
+	if !dateEnd {
+		for _, zone := range timezones {
+			if bytes.HasSuffix(line, zone) {
+				dateEnd = true
+				break
+			}
+		}
+	}
+
+	return dateEnd
 }
 
 func parseSubject(subject string) string {
@@ -241,39 +467,57 @@ var (
 		"FoxNews.com":         0,
 		"NPR":                 3,
 	}
+	badSubjects = map[string]struct{}{
+		"ABC":      struct{}{},
+		"CNN":      struct{}{},
+		"POLITICO": struct{}{},
+	}
 )
 
 func findArticleUrl(sender string, body []byte) string {
-	var url string
+	var aUrl string
 	if index, ok := senderStoryURLs[sender]; ok {
 		hrefs := findHREFs(body)
 		// if we didnt find enough, give up
 		if len(hrefs) < (index + 1) {
 			log.Print("not enough urls: ", hrefs)
-			return url
+			return aUrl
 		}
 
-		url = hrefs[index]
+		aUrl = hrefs[index]
 
 		// ignore if it is a doubleclick link
-		if strings.Contains(url, "doubleclick") {
+		if strings.Contains(aUrl, "doubleclick") {
 			return ""
 		}
 
 		// hit url and try to grab the result url
-		resp, err := toget.Get(url, time.Second*20)
+		resp, err := toget.Get(aUrl, 10*time.Second)
 		if err != nil {
 			log.Print("unable to get URL: ", err)
-			return url
+			if resp != nil {
+				loc := resp.Header.Get("Location")
+				if len(loc) == 0 {
+					return aUrl
+				}
+				var rUrl *url.URL
+				if rUrl, err = url.Parse(loc); err != nil {
+					return aUrl
+				}
+				if aUrl = rUrl.Query().Get("URI"); len(aUrl) == 0 {
+					return aUrl
+				}
+			}
+		} else {
+			resp.Body.Close()
+			// grab url after all redirects
+			aUrl = resp.Request.URL.String()
 		}
-		resp.Body.Close()
-		// grab url after all redirects
-		url = resp.Request.URL.String()
 
 		// and cut off any parameters
-		url = strings.Split(url, "?")[0]
+		aUrl = strings.Split(aUrl, "?")[0]
 	}
-	return url
+	return aUrl
 }
 
 var (

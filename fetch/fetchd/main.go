@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/jprobinson/go-utils/utils"
+	"gopkg.in/mgo.v2"
 
 	"github.com/jprobinson/newshound"
 	"github.com/jprobinson/newshound/fetch"
@@ -36,7 +37,7 @@ func main() {
 	}
 	defer sess.Close()
 
-	fetchMail(config)
+	fetchMail(config, sess)
 
 	/*
 		errs := 0
@@ -55,6 +56,6 @@ func main() {
 	*/
 }
 
-func fetchMail(config *newshound.Config) {
-	fetch.GetMail(config)
+func fetchMail(config *newshound.Config, sess *mgo.Session) {
+	fetch.GetMail(config, sess)
 }

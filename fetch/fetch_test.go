@@ -1,6 +1,7 @@
 package fetch
 
 import (
+	"net/mail"
 	"reflect"
 	"testing"
 )
@@ -76,35 +77,36 @@ func TestScrubBody(t *testing.T) {
 
 func TestFindSender(t *testing.T) {
 	tests := []struct {
-		given string
+		given *mail.Address
 		want  string
 	}{
 		{
-			"USATODAY.com <newsletters@e.usatoday.com>",
+			&mail.Address{Name: "USATODAY.com"},
 			"USATODAY.com",
 		},
 		{
-			"FT Exclusive <FT@emailbriefings.ft.com>",
+			&mail.Address{Name: "FT Exclusive"},
 			"FT",
 		},
 		{
-			`"Los Angeles Times" <news@e.latimes.com>`,
+			&mail.Address{Name: "Los Angeles Times"},
 			"Los Angeles Times",
 		},
 		{
-			"LA Times",
+			&mail.Address{Name: "LA Times"},
 			"Los Angeles Times",
 		},
 		{
-			"\"NYTimes.com\"",
+			&mail.Address{Name: "NYTimes.com"},
 			"NYTimes.com",
 		},
 		{
-			"The Washington Post",
+
+			&mail.Address{Name: "The Washington Post"},
 			"The Washington Post",
 		},
 		{
-			"\"POLITICO Breaking News\" \u003cbreakingnews@politico.com\u003e",
+			&mail.Address{Name: "POLITICO Breaking News"},
 			"POLITICO",
 		},
 	}

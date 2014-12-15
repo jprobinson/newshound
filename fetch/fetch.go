@@ -6,14 +6,16 @@ import (
 	"time"
 
 	"github.com/jprobinson/eazye"
+	"gopkg.in/mgo.v2"
 
 	"github.com/jprobinson/newshound"
 )
 
-//var procs = runtime.NumCPU() * 2
+// https://github.com/golang/go/issues/3575 :(
+//var procs = runtime.NumCPU()
 var procs = 1
 
-func GetMail(cfg *newshound.Config) {
+func GetMail(cfg *newshound.Config, sess *mgo.Session) {
 	log.Print("getting mail")
 	start := time.Now()
 	var count int
@@ -30,15 +32,20 @@ func GetMail(cfg *newshound.Config) {
 
 	//	save the alerts and do event processing
 	go func() {
+		s := sess.Copy()
+		db := s.DB("newshound")
+		alertsC := db.C("news_alerts")
+
+		var err error
 		for alert := range alerts {
 			count++
-			log.Print("sender:", alert.Sender, ":subject: ", alert.Subject, "\n\n")
-			//log.Print("tags: ", alert.Tags)
-			for _, sent := range alert.Sentences {
-				log.Print("sentence: ", sent.Value)
-				log.Printf("phrases: %+v", sent.Phrases)
+			if err = alertsC.Insert(alert); err != nil {
+				log.Print("unable to save alert to db: ", err)
+				continue
 			}
-			log.Print("NEXT!\n\n")
+			if count%10 == 0 {
+				log.Printf("fetched %d messages", count)
+			}
 		}
 	}()
 
@@ -49,7 +56,7 @@ func GetMail(cfg *newshound.Config) {
 	log.Printf("fetched %d messages in %s", count, time.Since(start))
 }
 
-func parseMessages(user string, mail <-chan eazye.Response, alerts chan<- newshound.NewsAlert, wg *sync.WaitGroup) {
+func parseMessages(user string, mail chan eazye.Response, alerts chan<- newshound.NewsAlert, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	var (
@@ -58,7 +65,8 @@ func parseMessages(user string, mail <-chan eazye.Response, alerts chan<- newsho
 	)
 	for resp := range mail {
 		if resp.Err != nil {
-			log.Print("unable to fetch mail: ", err)
+			log.Print("unable to fetch mail: ", resp.Err)
+			close(mail)
 			return
 		}
 

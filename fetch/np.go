@@ -5,9 +5,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"time"
-
-	"github.com/jasonmoo/toget"
 
 	"github.com/jprobinson/newshound"
 )
@@ -20,7 +17,7 @@ type npResp struct {
 
 func callNP(body []byte) (tags []string, sentences []newshound.Sentence, topSentence string, err error) {
 	var resp *http.Response
-	resp, err = toget.Post("http://localhost:1029/", bytes.NewReader(body), time.Second*5)
+	resp, err = http.Post("http://localhost:1029/", "application/json", bytes.NewReader(body))
 	if err != nil {
 		log.Print("unable to hit np_extractor: ", err)
 		return
