@@ -12,6 +12,7 @@ import (
 
 func MapReduce(sess *mgo.Session) error {
 	startTime := time.Now()
+	updateTimeframes()
 
 	if err := ensureIndices(sess); err != nil {
 		return err
@@ -108,12 +109,16 @@ const (
 	TwelveMonths  = "12months"
 )
 
-var startDate = time.Now()
-var Timeframes = map[string][]time.Time{
-	LastSevenDays: []time.Time{startDate.AddDate(0, 0, -7), startDate},
-	ThreeMonths:   []time.Time{startDate.AddDate(0, -3, 0), startDate},
-	SixMonths:     []time.Time{startDate.AddDate(0, -6, 0), startDate},
-	TwelveMonths:  []time.Time{startDate.AddDate(0, -12, 0), startDate},
+var Timeframes map[string][]time.Time
+
+func updateTimeframes() {
+	var startDate = time.Now()
+	Timeframes = map[string][]time.Time{
+		LastSevenDays: []time.Time{startDate.AddDate(0, 0, -7), startDate},
+		ThreeMonths:   []time.Time{startDate.AddDate(0, -3, 0), startDate},
+		SixMonths:     []time.Time{startDate.AddDate(0, -6, 0), startDate},
+		TwelveMonths:  []time.Time{startDate.AddDate(0, -12, 0), startDate},
+	}
 }
 
 func generateData(sess *mgo.Session, mapper, reducer, finalize, sourceCollection, resultCollection string, query bson.M) error {
