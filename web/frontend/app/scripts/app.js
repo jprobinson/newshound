@@ -36,6 +36,10 @@ angular.module('newshoundApp', [
                     redirectTo: '/calendar'
                 });
 
+            if (window.navigator.standalone) {
+                //$("meta[name='apple-mobile-web-app-status-bar-style']").remove();
+                $('body').css("padding-top","5px");
+            }
             // global datepicker options
             datepickerConfig.showWeeks = false;
             datepickerPopupConfig.showButtonBar = false;
