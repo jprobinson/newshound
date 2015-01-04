@@ -130,7 +130,7 @@ func (n NewshoundAPI) findAlert(w http.ResponseWriter, r *http.Request) {
 // findAlertHtml is an http.Handler that expects a News Alert ID in the URL and if the
 // alert exists, it will return it's HTML with a 'text/html' content-type.
 func (n NewshoundAPI) findAlertHtml(w http.ResponseWriter, r *http.Request) {
-	setCommonHeaders(w, r, "text/html")
+	setCommonHeaders(w, r, "text/html; charset=UTF-8")
 	vars := mux.Vars(r)
 	alertID := vars["alert_id"]
 

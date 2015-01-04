@@ -2,6 +2,7 @@ package fetch
 
 import (
 	"log"
+	"runtime"
 	"sync"
 	"time"
 
@@ -12,8 +13,7 @@ import (
 )
 
 // https://github.com/golang/go/issues/3575 :(
-//var procs = runtime.NumCPU()
-var procs = 1
+var procs = runtime.NumCPU()
 
 func GetMail(cfg *newshound.Config, sess *mgo.Session) {
 	log.Print("getting mail")
@@ -34,7 +34,7 @@ func GetMail(cfg *newshound.Config, sess *mgo.Session) {
 	go func() {
 		s := sess.Copy()
 		db := s.DB("newshound")
-		alertsC := db.C("news_alerts")
+		alertsC := newsAlerts(db)
 
 		var err error
 		for alert := range alerts {
@@ -45,6 +45,10 @@ func GetMail(cfg *newshound.Config, sess *mgo.Session) {
 			}
 			if count%10 == 0 {
 				log.Printf("fetched %d messages", count)
+			}
+
+			if err = UpdateEvents(db, alert); err != nil {
+				log.Print("problems creating event: ", err)
 			}
 		}
 	}()
@@ -77,4 +81,12 @@ func parseMessages(user string, mail chan eazye.Response, alerts chan<- newshoun
 
 		alerts <- na
 	}
+}
+
+func newsAlerts(db *mgo.Database) *mgo.Collection {
+	return db.C("news_alerts")
+}
+
+func newsEvents(db *mgo.Database) *mgo.Collection {
+	return db.C("news_events")
 }

@@ -492,9 +492,8 @@ func findArticleUrl(sender string, body []byte) string {
 		}
 
 		// hit url and try to grab the result url
-		resp, err := toget.Get(aUrl, 10*time.Second)
+		resp, err := toget.Get(aUrl, 5*time.Second)
 		if err != nil {
-			log.Print("unable to get URL: ", err)
 			if resp != nil {
 				loc := resp.Header.Get("Location")
 				if len(loc) == 0 {
