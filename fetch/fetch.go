@@ -32,6 +32,7 @@ func GetMail(cfg *newshound.Config, sess *mgo.Session) {
 
 	//	save the alerts and do event processing
 	go func() {
+		timeframes := map[int64]struct{}{}
 		s := sess.Copy()
 		db := s.DB("newshound")
 		alertsC := newsAlerts(db)
@@ -47,8 +48,22 @@ func GetMail(cfg *newshound.Config, sess *mgo.Session) {
 				log.Printf("fetched %d messages", count)
 			}
 
-			if err = UpdateEvents(db, alert); err != nil {
-				log.Print("problems creating event: ", err)
+			// find timeframe bucket to prevent too many refreshes
+			aTime := alert.Timestamp.Truncate(10 * time.Minute)
+			timeframes[aTime.Unix()] = struct{}{}
+			if len(timeframes) > 5 {
+				for tf, _ := range timeframes {
+					if err = EventRefresh(db, time.Unix(tf, 0)); err != nil {
+						log.Print("problems refreshing event: ", err)
+					}
+				}
+				timeframes = map[int64]struct{}{}
+			}
+		}
+		// flush the timeframe buffer at the end
+		for tf, _ := range timeframes {
+			if err = EventRefresh(db, time.Unix(tf, 0)); err != nil {
+				log.Print("problems refreshing event: ", err)
 			}
 		}
 	}()
