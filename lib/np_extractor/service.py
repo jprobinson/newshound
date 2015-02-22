@@ -18,7 +18,7 @@ class NPService(BaseHTTPRequestHandler):
     def do_POST(self):
         content_len = int(self.headers.getheader('content-length'))
         raw_text = self.rfile.read(content_len)
-
+        raw_text = raw_text.decode("utf8")
         np_results = self.extract(raw_text)
 
         self.send_response(200)
