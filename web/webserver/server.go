@@ -12,12 +12,6 @@ import (
 	"github.com/jprobinson/newshound/web/webserver/api"
 )
 
-type config struct {
-	DBURL      string `json:"db-url"`
-	DBUser     string `json:"db-user"`
-	DBPassword string `json:"db-pw"`
-}
-
 func main() {
 	config := newshound.NewConfig()
 

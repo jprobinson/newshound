@@ -3,51 +3,19 @@ package api
 import (
 	"time"
 
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
+	"github.com/jprobinson/newshound"
+
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
-
-// NewsAlertLite is a struct that contains partial News Alert
-// data. This struct lacks a Body and Raw Body to reduce the size
-// when pulling large lists of Alerts. Mainly used for 'findByDate' scenarios.
-type NewsAlertLite struct {
-	ID          bson.ObjectId `json:"id" bson:"_id"`
-	InstanceID  string        `json:"instance_id"bson:"instance_id"`
-	ArticleUrl  string        `json:"article_url"bson:"article_url"`
-	Sender      string        `json:"sender"`
-	Timestamp   time.Time     `json:"timestamp"`
-	Tags        []string      `json:"tags"`
-	Subject     string        `json:"subject"`
-	TopSentence string        `json:"top_sentence"bson:"top_sentence"`
-}
-
-// NewsAlertFull is a struct that contains all News Alert
-// data. This struct is used for access to a single Alert's information.
-type NewsAlertFull struct {
-	ID          bson.ObjectId `json:"id" bson:"_id"`
-	InstanceID  string        `json:"instance_id"bson:"instance_id"`
-	Article_Url string        `json:"article_url"bson:"article_url"`
-	Sender      string        `json:"sender"`
-	Timestamp   time.Time     `json:"timestamp"`
-	Tags        []string      `json:"tags"`
-	Subject     string        `json:"subject"`
-	Body        string        `json:"body"`
-	TopSentence string        `json:"top_sentence"bson:"top_sentence"`
-	Sentences   []Sentence    `json:"sentences"`
-}
-
-type Sentence struct {
-	Value   string   `json:"sentence"bson:"sentence"`
-	Phrases []string `json:"noun_phrases"bson:"noun_phrases"`
-}
 
 // FindByDate will accept a date range and return any News Alerts that occured within it. News Alert information
 // returned will be of the 'lite' form without the raw and scrubbed bodies.
-func FindAlertsByDate(db *mgo.Database, start time.Time, end time.Time) (alerts []NewsAlertLite, err error) {
+func FindAlertsByDate(db *mgo.Database, start time.Time, end time.Time) ([]newshound.NewsAlertLite, error) {
 	c := getNA(db)
-	err = c.Find(bson.M{"timestamp": bson.M{"$gte": start, "$lte": end}}).All(&alerts)
-	if err != nil {
-		return []NewsAlertLite{}, err
+	var alerts []newshound.NewsAlertLite
+	if err := c.Find(bson.M{"timestamp": bson.M{"$gte": start, "$lte": end}}).All(&alerts); err != nil {
+		return alerts, err
 	}
 
 	return alerts, nil
@@ -55,41 +23,39 @@ func FindAlertsByDate(db *mgo.Database, start time.Time, end time.Time) (alerts 
 
 // FindByDate accepts a slice of News Alert IDs and returns a chronologically ordered list of
 // the 'lite' version of News Alerts.
-func FindOrderedAlerts(db *mgo.Database, alertIDs []string) (alerts []NewsAlertLite, err error) {
+func FindOrderedAlerts(db *mgo.Database, alertIDs []string) ([]newshound.NewsAlertLite, error) {
 	var alertObjectIDs []bson.ObjectId
+	var alerts []newshound.NewsAlertLite
 	for _, alertID := range alertIDs {
 		alertObjectIDs = append(alertObjectIDs, bson.ObjectIdHex(alertID))
 	}
 	c := getNA(db)
-	err = c.Find(bson.M{"_id": bson.M{"$in": alertObjectIDs}}).Sort("timestamp").All(&alerts)
-	if err != nil {
-		return
+	if err := c.Find(bson.M{"_id": bson.M{"$in": alertObjectIDs}}).Sort("timestamp").All(&alerts); err != nil {
+		return alerts, err
 	}
 
-	return
+	return alerts, nil
 }
 
 // FindAlertByID accepts a News Alert ID and returns the full version of that New Alert's information.
-func FindAlertByID(db *mgo.Database, alertID string) (alert NewsAlertFull, err error) {
+func FindAlertByID(db *mgo.Database, alertID string) (newshound.NewsAlert, error) {
 	c := getNA(db)
-	err = c.Find(bson.M{"_id": bson.ObjectIdHex(alertID)}).One(&alert)
-	if err != nil {
-		return
+	var alert newshound.NewsAlert
+	if err := c.Find(bson.M{"_id": bson.ObjectIdHex(alertID)}).One(&alert); err != nil {
+		return alert, err
 	}
 
-	return
+	return alert, nil
 }
 
 // FindAlertHtmlByID accepts a News Alert ID and just the body of the given News Alert.
-func FindAlertHtmlByID(db *mgo.Database, alertID string) (html string, err error) {
-	var alert NewsAlertFull
-	alert, err = FindAlertByID(db, alertID)
+func FindAlertHtmlByID(db *mgo.Database, alertID string) (string, error) {
+	alert, err := FindAlertByID(db, alertID)
 	if err != nil {
 		return "", err
 	}
-	html = alert.Body
 
-	return
+	return alert.Body, nil
 }
 
 func getNA(db *mgo.Database) *mgo.Collection {
