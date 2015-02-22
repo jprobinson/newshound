@@ -19,8 +19,9 @@ func GetMail(cfg *newshound.Config, sess *mgo.Session) {
 	log.Print("getting mail")
 	start := time.Now()
 	var count int
-	mail := make(chan eazye.Response, 10)
-	alerts := make(chan newshound.NewsAlert, 10)
+	// give it 1000 buffer so we can load whatever IMAP throws at us in memory
+	mail := make(chan eazye.Response, 1000)
+	alerts := make(chan newshound.NewsAlert, 100)
 	go eazye.GenerateUnread(cfg.MailboxInfo, cfg.MarkRead, false, mail)
 
 	var parsers sync.WaitGroup
@@ -31,7 +32,7 @@ func GetMail(cfg *newshound.Config, sess *mgo.Session) {
 	}
 
 	//	save the alerts and do event processing
-	go func() {
+	go func(sess *mgo.Session, alerts chan newshound.NewsAlert) {
 		timeframes := map[int64]struct{}{}
 		s := sess.Copy()
 		db := s.DB("newshound")
@@ -66,7 +67,7 @@ func GetMail(cfg *newshound.Config, sess *mgo.Session) {
 				log.Print("problems refreshing event: ", err)
 			}
 		}
-	}()
+	}(sess, alerts)
 
 	// wait for the parsers to complete and then close the alerts channel
 	parsers.Wait()

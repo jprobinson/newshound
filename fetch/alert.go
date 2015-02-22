@@ -2,7 +2,6 @@ package fetch
 
 import (
 	"bytes"
-	"encoding/base64"
 	"io"
 	"log"
 	"net/mail"
@@ -33,7 +32,7 @@ func NewNewsAlert(msg eazye.Email, address string) (newshound.NewsAlert, error) 
 		NewsAlertLite: newshound.NewsAlertLite{
 			ID:         bson.NewObjectId(),
 			Sender:     sender,
-			Subject:    parseSubject(msg.Subject),
+			Subject:    msg.Subject,
 			Timestamp:  msg.InternalDate,
 			ArticleUrl: findArticleUrl(sender, body),
 			InstanceID: msg.Message.Header.Get("X-InstanceId"),
@@ -93,8 +92,8 @@ func findNews(text [][]byte, address string) []byte {
 			badLines++
 		}
 
-		// get at most 3 or quit if we have bad rows and at least 2
-		if (len(news) >= 3) || ((badLines > 0) && (len(news) >= 2)) {
+		// get at most 3 or quit if we have bad rows and at least 2 or over 2 bads and 1 good
+		if (len(news) >= 3) || ((badLines > 0) && (len(news) >= 2)) || ((badLines >= 2) && (len(news) >= 1)) {
 			break
 		}
 	}
@@ -120,18 +119,22 @@ var (
 		[]byte("get complete coverage"),
 		[]byte("for more"),
 		[]byte("more on this"),
-		[]byte("watch live:"),
+		[]byte("for breaking news,"),
 		[]byte("you are currently subscribed"),
 		[]byte("for the latest"),
 		[]byte("view this"),
 		[]byte("and watch"),
+		[]byte("watch cnn live or on demand"),
+		[]byte("read more"),
 		[]byte(", cnn tv"),
 		[]byte("or on the"),
 		[]byte("you received this"),
 		[]byte("cnn is now live"),
 		[]byte("you can watch"),
+		[]byte("fox business never sends"),
 		[]byte("you have opt"),
 		[]byte("fox news never"),
+		[]byte("more top stories"),
 		[]byte("for further development"),
 		[]byte("this is a developing"),
 		[]byte("to unsubscribe"),
@@ -220,12 +223,14 @@ var (
 		"watch cnn":                    struct{}{},
 		"businessweek.com":             struct{}{},
 		"foxbusiness.com":              struct{}{},
+		"fox business never sends":     struct{}{},
 		"nytdirect@nytimes.com":        struct{}{},
 		"share on facebook":            struct{}{},
 		"video alerts":                 struct{}{},
 		"on your cell phone":           struct{}{},
 		"more coverage":                struct{}{},
 		"you received this message":    struct{}{},
+		"you received this email":      struct{}{},
 		"visit":                        struct{}{},
 	}
 
@@ -318,6 +323,16 @@ var (
 		[]byte("friday"),
 		[]byte("saturday"),
 	}
+	daysOfWeekShort = [][]byte{
+		[]byte("sun"),
+		[]byte("mon"),
+		[]byte("tue"),
+		[]byte("wed"),
+		[]byte("thu"),
+		[]byte("thur"),
+		[]byte("fri"),
+		[]byte("sat"),
+	}
 	months = [][]byte{
 		[]byte("jan"), []byte("january"),
 		[]byte("feb"), []byte("february"),
@@ -341,17 +356,28 @@ var (
 
 // isDate detects if we see one of the following formats:
 // August 12, 2014
-// Aug 10, 2014  1:02 PM EDT.
+// Aug 10, 2014  1:02 PM EDT
 // Sunday August 10 2014
 // Sunday, August 10, 2014 2:36 PM EDT
 // Monday, August 11, 2014 9:18:59 AM
+// Sat., Feb. 7, 2015 04:35 PM
 func isDate(line []byte) bool {
+	// Trim dots 'n periods
+	line = bytes.Trim(line, "• .\u00a0")
 	// check if it starts with a day or month
 	dateStart := false
 	for _, day := range daysOfWeek {
 		if bytes.HasPrefix(line, day) {
 			dateStart = true
 			break
+		}
+	}
+	if !dateStart {
+		for _, day := range daysOfWeekShort {
+			if bytes.HasPrefix(line, day) {
+				dateStart = true
+				break
+			}
 		}
 	}
 	if !dateStart {
@@ -394,23 +420,6 @@ func isDate(line []byte) bool {
 	}
 
 	return dateEnd
-}
-
-func parseSubject(subject string) string {
-	if strings.HasPrefix(subject, "=?UTF-8?") {
-		subs := strings.SplitN(subject, " ", -1)
-		var result string
-		for _, sub := range subs {
-			sub = strings.Replace(sub, "=?UTF-8?", "", -1)
-			sub = strings.Replace(sub, "?=", "", -1)
-			data, err := base64.StdEncoding.DecodeString(sub)
-			if err != nil {
-				return ""
-			}
-			result += string(data)
-		}
-	}
-	return subject
 }
 
 func findSender(from *mail.Address) string {

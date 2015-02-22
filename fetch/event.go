@@ -15,19 +15,19 @@ import (
 )
 
 var (
-	eventTimeframe = 2 * time.Hour
+	eventTimeframe = 1 * time.Hour
 
-	minOccurPerc = 0.5
+	minOccurPerc = 0.4
 
 	minSenders = 2
 
 	minAlerts = 3
 
-	minLikeTags = 3
+	minLikeTags = 2
 )
 
 func minOccurances(alertCount int) int {
-	return int(math.Ceil(float64(alertCount) * minOccurPerc))
+	return int(math.Max(math.Ceil(float64(alertCount)*minOccurPerc), 2.0))
 }
 
 func EventRefresh(db *mgo.Database, eventTime time.Time) error {
@@ -57,8 +57,8 @@ func UpdateEvents(db *mgo.Database, a newshound.NewsAlert) error {
 		return fmt.Errorf("unable to create possible alert cluster for event: %s", err)
 	}
 
-	// if we have no alerts beyond our original give up
-	if len(cluster) == 1 {
+	// at least 3 alerts for significance
+	if len(cluster) <= 2 {
 		return nil
 	}
 
@@ -69,7 +69,7 @@ func UpdateEvents(db *mgo.Database, a newshound.NewsAlert) error {
 	err = ne.Find(query).All(&existingEvents)
 
 	// merge any existing alerts into ours, reuse id if possible
-	eventID, alertIDs, eventTags := mergeEvents(cluster, tags, existingEvents)
+	eventID, alertIDs, eventTags, staleEventIDs := mergeEvents(cluster, tags, existingEvents)
 
 	// get the data of all the alerts
 	var nas []newshound.NewsAlert
@@ -79,21 +79,28 @@ func UpdateEvents(db *mgo.Database, a newshound.NewsAlert) error {
 	}
 	// we need at least 3 alerts total
 	if len(nas) <= 2 {
-		log.Printf("does not have enough alerts! %#v", eventTags)
+		//log.Printf("does not have enough alerts! %#v", eventTags)
 		return nil
 	}
 
 	// verify it has the min sender count
 	if !hasMinSenders(nas) {
-		log.Printf("does not have enough senders! %#v", eventTags)
+		//log.Printf("does not have enough senders! %#v", eventTags)
 		return nil
 	}
 
 	// create the event (all the metrics and sorting and whatnot and save it
 	event := NewNewsEvent(eventID, nas, eventTags)
-
 	log.Printf("event found with %d alerts and tags: %#v", len(event.NewsAlerts), event.Tags)
 	_, err = ne.UpsertId(event.ID, event)
+	if err != nil {
+		return err
+	}
+
+	// clean up stale events
+	if len(staleEventIDs) > 0 {
+		_, err = ne.RemoveAll(bson.M{"_id": bson.M{"$in": staleEventIDs}})
+	}
 	return err
 }
 
@@ -170,7 +177,7 @@ func (n naByTimestamp) Len() int           { return len(n) }
 func (n naByTimestamp) Swap(i, j int)      { n[i], n[j] = n[j], n[i] }
 func (n naByTimestamp) Less(i, j int) bool { return n[j].Timestamp.After(n[i].Timestamp) }
 
-func mergeEvents(alerts []bson.ObjectId, tags []string, events []newshound.NewsEvent) (eventID bson.ObjectId, eventAlerts []bson.ObjectId, eventTags []string) {
+func mergeEvents(alerts []bson.ObjectId, tags []string, events []newshound.NewsEvent) (eventID bson.ObjectId, eventAlerts []bson.ObjectId, eventTags []string, staleEventIDs []bson.ObjectId) {
 	// add IDs of new event cluster
 	idSet := map[string]struct{}{}
 	for _, alert := range alerts {
@@ -184,6 +191,8 @@ func mergeEvents(alerts []bson.ObjectId, tags []string, events []newshound.NewsE
 
 	// default to way in future to grab oldest date
 	oldest := time.Now().Add(10 * 24 * 365 * time.Hour)
+	// grab all event IDs so we can remove stale ones afterwards
+	var eventIDs []bson.ObjectId
 
 	// add all IDs and tags to sets
 	for _, event := range events {
@@ -198,13 +207,19 @@ func mergeEvents(alerts []bson.ObjectId, tags []string, events []newshound.NewsE
 			oldest = event.EventStart
 			eventID = event.ID
 		}
+		eventIDs = append(eventIDs, event.ID)
+	}
+
+	// remove the event we're going to keep
+	for _, eID := range eventIDs {
+		if eID.Hex() != eventID.Hex() {
+			staleEventIDs = append(staleEventIDs, eID)
+		}
 	}
 
 	// make the event ID if we dont have one
 	if len(eventID.Hex()) == 0 {
 		eventID = bson.NewObjectId()
-	} else {
-		log.Print("REUSING EVENT ID! ", eventID.Hex())
 	}
 
 	// convert all ids to objectids
@@ -217,7 +232,7 @@ func mergeEvents(alerts []bson.ObjectId, tags []string, events []newshound.NewsE
 		eventTags = append(eventTags, tag)
 	}
 
-	return eventID, eventAlerts, eventTags
+	return eventID, eventAlerts, eventTags, staleEventIDs
 }
 
 func findLikeAlertCluster(db *mgo.Database, a newshound.NewsAlert) (alerts []bson.ObjectId, tags []string, err error) {
@@ -236,9 +251,14 @@ func findLikeAlertCluster(db *mgo.Database, a newshound.NewsAlert) (alerts []bso
 
 	// filter out any tags that do not meet the limit
 	for tag, count := range tagCounts {
-		if count < minOccurs {
+		if count <= minOccurs {
 			delete(tagCounts, tag)
 		}
+	}
+
+	// we need at least 2 tags for an event
+	if len(tagCounts) < 2 {
+		return alerts, tags, nil
 	}
 
 	// make sure main alert goes the the same filtering
@@ -257,13 +277,20 @@ func findLikeAlertCluster(db *mgo.Database, a newshound.NewsAlert) (alerts []bso
 
 		if likeTags >= minLikeTags {
 			alerts = append(alerts, alert.ID)
+			continue
 		}
 
-		/*		if tagScore > len(possible) {
-					// log.Printf("made it on tag score? %d - %s - %s", tagScore, alert.Sender, alert.Subject)
-					alerts = append(alerts, alert.ID)
-				}
-		*/
+		if likeTags >= len(possible) {
+			//log.Printf("made it on tag count? %d - %d - %d - %d - %s - %s", len(possible), minLikeTags, likeTags, tagScore, alert.Sender, alert.Tags)
+			alerts = append(alerts, alert.ID)
+			continue
+		}
+
+		if float32(tagScore) >= float32(len(possible))*(1.2) {
+			//log.Printf("made it on tag score? %d - %d - %d - %d - %s - %s", len(possible), minLikeTags, likeTags, tagScore, alert.Sender, alert.Tags)
+			alerts = append(alerts, alert.ID)
+			continue
+		}
 	}
 
 	for tag, _ := range tagCounts {
@@ -277,7 +304,7 @@ func findPossibleLikeAlerts(db *mgo.Database, a newshound.NewsAlert) (possible [
 	// find any alerts within a 4hr timeframe
 	start := a.Timestamp.Add(-eventTimeframe)
 	end := a.Timestamp.Add(eventTimeframe)
-	query := bson.M{"timestamp": bson.M{"$gte": start, "$lte": end}, "_id": bson.M{"$ne": a.ID}}
+	query := bson.M{"timestamp": bson.M{"$gte": start, "$lte": end}, "_id": bson.M{"$ne": a.ID}, "tags": bson.M{"$in": a.Tags}}
 	err = newsAlerts(db).Find(query).All(&possible)
 	if err != nil {
 		return possible, err
@@ -347,7 +374,7 @@ func phrasesMatch(partial, whole string) bool {
 	partialWords := len(partials)
 	partial = strings.Join(partials, " ")
 	// check if partial matches any of whole's phrases
-	for i := 0; (i + partialWords) < len(words); i++ {
+	for i := 0; (i + partialWords) <= len(words); i++ {
 
 		slidingBit := strings.Join(words[i:(i+partialWords)], " ")
 
@@ -363,35 +390,4 @@ func phrasesMatch(partial, whole string) bool {
 	}
 
 	return false
-}
-
-func findLikeTags(a, b []string) []string {
-	tags := map[string]struct{}{}
-
-	for _, tagA := range a {
-		for _, tagB := range b {
-			if tagA == tagB {
-				tags[tagA] = struct{}{}
-				continue
-			}
-			if len(tagB) < 3 || len(tagA) < 3 {
-				continue
-			}
-			if strings.Contains(tagA, tagB) {
-				tags[tagB] = struct{}{}
-				continue
-			}
-			if strings.Contains(tagB, tagA) {
-				tags[tagA] = struct{}{}
-				continue
-			}
-		}
-	}
-
-	var output []string
-	for tag, _ := range tags {
-		output = append(output, tag)
-	}
-
-	return output
 }
