@@ -17,11 +17,12 @@ type npResp struct {
 
 func callNP(body []byte) (tags []string, sentences []newshound.Sentence, topSentence string, err error) {
 	var resp *http.Response
-	resp, err = http.Post("http://localhost:1029/", "application/json", bytes.NewReader(body))
+	resp, err = http.Post("http://127.0.0.1:1029/", "application/json", bytes.NewReader(body))
 	if err != nil {
 		log.Print("unable to hit np_extractor: ", err)
 		return
 	}
+	defer resp.Body.Close()
 
 	var npR npResp
 	if err = json.NewDecoder(resp.Body).Decode(&npR); err != nil {
