@@ -155,8 +155,9 @@ func reParseMessages(user string, alerts <-chan newshound.NewsAlert, reAlerts ch
 	)
 	for alert := range alerts {
 		if na, err = ReParseNewsAlert(alert, user); err != nil {
-			log.Print("unable parse email: ", err)
-			continue
+			// panic so that we stop the reparse and dont lose any data.
+			// we're good to die at this point bc temp collections ftw!
+			log.Fatal("unable to reparse email: ", err)
 		}
 
 		reAlerts <- na
@@ -178,7 +179,7 @@ func parseMessages(user string, mail chan eazye.Response, alerts chan<- newshoun
 		}
 
 		if na, err = NewNewsAlert(resp.Email, user); err != nil {
-			log.Print("unable parse email: ", err)
+			log.Print("unable to parse email: ", err)
 			continue
 		}
 

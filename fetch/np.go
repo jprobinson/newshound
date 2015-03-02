@@ -28,6 +28,7 @@ func callNP(body []byte) (tags []string, sentences []newshound.Sentence, topSent
 	if err = json.NewDecoder(resp.Body).Decode(&npR); err != nil {
 		return
 	}
+	resp.Body.Close()
 
 	for tag, _ := range npR.NounPhrases {
 		tags = append(tags, tag)
