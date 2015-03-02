@@ -15,7 +15,8 @@ import (
 const logPath = "/var/log/newshound/fetchd.log"
 
 var (
-	logArg = flag.String("log", logPath, "log path")
+	logArg  = flag.String("log", logPath, "log path")
+	reparse = flag.Bool("r", false, "reparse all alerts and events")
 )
 
 func main() {
@@ -38,6 +39,13 @@ func main() {
 	}
 	defer sess.Close()
 
+	if *reparse {
+		if err := fetch.ReParse(config, sess); err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
+
 	go fetchMail(config, sess)
 
 	mapReduce(sess)
@@ -59,7 +67,7 @@ func mapReduce(sess *mgo.Session) {
 
 func fetchMail(config *newshound.Config, sess *mgo.Session) {
 	for {
-		fetch.GetMail(config, sess)
+		fetch.FetchMail(config, sess)
 		time.Sleep(30 * time.Second)
 	}
 }

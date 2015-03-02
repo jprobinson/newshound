@@ -57,6 +57,26 @@ func NewNewsAlert(msg eazye.Email, address string) (newshound.NewsAlert, error) 
 	return na, err
 }
 
+func ReParseNewsAlert(na newshound.NewsAlert, address string) (newshound.NewsAlert, error) {
+	body := []byte(na.RawBody)
+	na.ArticleUrl = findArticleUrl(na.Sender, body)
+
+	text, err := eazye.VisibleText(body)
+	if err != nil {
+		log.Print("unable to get visible text: ", err)
+		return na, err
+	}
+
+	news := findNews(text, address)
+	if _, bad := badSubjects[na.Sender]; !bad {
+		news = periodCheck(news)
+		news = append(news, blankSpace...)
+		news = append(news, []byte(na.Subject)...)
+	}
+	na.Tags, na.Sentences, na.TopSentence, err = callNP(news)
+	return na, err
+}
+
 var (
 	blankSpace      = []byte(" ")
 	period          = []byte(".")

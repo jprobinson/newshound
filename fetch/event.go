@@ -30,19 +30,19 @@ func minOccurances(alertCount int) int {
 	return int(math.Max(math.Ceil(float64(alertCount)*minOccurPerc), 2.0))
 }
 
-func EventRefresh(db *mgo.Database, eventTime time.Time) error {
+func EventRefresh(na *mgo.Collection, ne *mgo.Collection, eventTime time.Time) error {
 	// find all alerts within a event timeframe of the given time and refresh the events
 	start := eventTime.Add(-eventTimeframe)
 	end := eventTime.Add(eventTimeframe)
 	query := bson.M{"timestamp": bson.M{"$gte": start, "$lte": end}}
 	var eligible []newshound.NewsAlert
-	err := newsAlerts(db).Find(query).All(&eligible)
+	err := na.Find(query).All(&eligible)
 	if err != nil {
 		return err
 	}
 
 	for _, alert := range eligible {
-		if err = UpdateEvents(db, alert); err != nil {
+		if err = UpdateEvents(na, ne, alert); err != nil {
 			return err
 		}
 	}
@@ -50,9 +50,9 @@ func EventRefresh(db *mgo.Database, eventTime time.Time) error {
 	return nil
 }
 
-func UpdateEvents(db *mgo.Database, a newshound.NewsAlert) error {
+func UpdateEvents(na *mgo.Collection, ne *mgo.Collection, a newshound.NewsAlert) error {
 
-	cluster, tags, err := findLikeAlertCluster(db, a)
+	cluster, tags, err := findLikeAlertCluster(na, a)
 	if err != nil {
 		return fmt.Errorf("unable to create possible alert cluster for event: %s", err)
 	}
@@ -64,7 +64,6 @@ func UpdateEvents(db *mgo.Database, a newshound.NewsAlert) error {
 
 	// grab any events related to the alerts we've got (where alertID in $alerts)
 	var existingEvents []newshound.NewsEvent
-	ne := newsEvents(db)
 	query := bson.M{"news_alerts.alert_id": bson.M{"$in": cluster}}
 	err = ne.Find(query).All(&existingEvents)
 
@@ -73,7 +72,7 @@ func UpdateEvents(db *mgo.Database, a newshound.NewsAlert) error {
 
 	// get the data of all the alerts
 	var nas []newshound.NewsAlert
-	err = newsAlerts(db).Find(bson.M{"_id": bson.M{"$in": alertIDs}}).All(&nas)
+	err = na.Find(bson.M{"_id": bson.M{"$in": alertIDs}}).All(&nas)
 	if err != nil {
 		return err
 	}
@@ -235,10 +234,10 @@ func mergeEvents(alerts []bson.ObjectId, tags []string, events []newshound.NewsE
 	return eventID, eventAlerts, eventTags, staleEventIDs
 }
 
-func findLikeAlertCluster(db *mgo.Database, a newshound.NewsAlert) (alerts []bson.ObjectId, tags []string, err error) {
+func findLikeAlertCluster(na *mgo.Collection, a newshound.NewsAlert) (alerts []bson.ObjectId, tags []string, err error) {
 	var possible []newshound.NewsAlert
-	// find any alerts in the timeframe
-	possible, err = findPossibleLikeAlerts(db, a)
+	// find any alerts in the eventTimeframe
+	possible, err = findPossibleLikeAlerts(na, a)
 	if err != nil {
 		return alerts, tags, err
 	}
@@ -300,12 +299,12 @@ func findLikeAlertCluster(db *mgo.Database, a newshound.NewsAlert) (alerts []bso
 	return alerts, tags, nil
 }
 
-func findPossibleLikeAlerts(db *mgo.Database, a newshound.NewsAlert) (possible []newshound.NewsAlert, err error) {
-	// find any alerts within a 4hr timeframe
+func findPossibleLikeAlerts(na *mgo.Collection, a newshound.NewsAlert) (possible []newshound.NewsAlert, err error) {
+	// find any alerts within a  timeframe
 	start := a.Timestamp.Add(-eventTimeframe)
 	end := a.Timestamp.Add(eventTimeframe)
 	query := bson.M{"timestamp": bson.M{"$gte": start, "$lte": end}, "_id": bson.M{"$ne": a.ID}, "tags": bson.M{"$in": a.Tags}}
-	err = newsAlerts(db).Find(query).All(&possible)
+	err = na.Find(query).All(&possible)
 	if err != nil {
 		return possible, err
 	}
