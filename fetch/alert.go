@@ -80,11 +80,14 @@ func ReParseNewsAlert(na newshound.NewsAlert, address string) (newshound.NewsAle
 var (
 	blankSpace      = []byte(" ")
 	period          = []byte(".")
+	comma           = []byte(",")
 	periodWithSpace = []byte(". ")
 )
 
 func periodCheck(line []byte) []byte {
-	if len(line) > 0 && !bytes.HasSuffix(bytes.TrimSpace(line), period) {
+	if len(line) > 0 &&
+		!bytes.HasSuffix(bytes.TrimSpace(line), period) &&
+		!bytes.HasSuffix(bytes.TrimSpace(line), comma) {
 		line = append(line, periodWithSpace...)
 	}
 	return line
