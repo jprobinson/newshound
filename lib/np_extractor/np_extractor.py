@@ -90,8 +90,9 @@ class NPExtractor(object):
 
     # Split the sentence into singlw words/tokens
     def tokenize_sentence(self, sentence):
-        tokens = nltk.word_tokenize(sentence)
-        return tokens
+        #tokens = nltk.word_tokenize(sentence)
+        #return tokens
+        return re.split(r'[ \t\n]+]', sentence)
 
     def __filter_tag(self,tag):
         return (tag.encode('utf-8').lower() not in STOP_WORDS) and ("=" not in tag) and (len(tag.strip()) > 0) and (not TIME_REGEX.match(tag)) 
