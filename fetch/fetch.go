@@ -196,7 +196,7 @@ func parseMessages(user string, mail chan eazye.Response, alerts chan<- newshoun
 	)
 	for resp := range mail {
 		if resp.Err != nil {
-			log.Print("unable to fetch mail: ", resp.Err)
+			log.Fatalf("unable to fetch mail: %s", resp.Err)
 			return
 		}
 
