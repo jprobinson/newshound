@@ -15,9 +15,8 @@ function launchDaemon() {
     if [ $id -eq 0 ]
     then
         touch $PID_FILE
-        mkdir -p $LOGDIR
         cd $BIN_PATH
-        python $SERVICE 2>&1 & echo \$! > $PID_FILE
+        $SERVICE & echo $! > $PID_FILE
         echo "fetchd started"
     else
         echo "fetchd is running already"

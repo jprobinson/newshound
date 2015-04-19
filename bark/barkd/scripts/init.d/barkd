@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # chkconfig: 3 99 05
-# description: Newshound's producers daemon service
+# description: Newshound's producer daemon service
 # processname: barkd 
 
 BIN_PATH=/opt/newshound/bin
@@ -15,9 +15,8 @@ function launchDaemon() {
     if [ $id -eq 0 ]
     then
         touch $PID_FILE
-        mkdir -p $LOGDIR
         cd $BIN_PATH
-        python $SERVICE 2>&1 & echo \$! > $PID_FILE
+        $SERVICE & echo $! > $PID_FILE
         echo "barkd started"
     else
         echo "barkd is running already"
