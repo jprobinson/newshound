@@ -19,6 +19,9 @@ const (
 	AccessLog = "/var/log/newshound/access.log"
 
 	WebDir = "/opt/newshound/www"
+
+	NewsAlertTopic = "news-alerts"
+	NewsEventTopic = "news-events"
 )
 
 type Config struct {
@@ -28,6 +31,20 @@ type Config struct {
 
 	MarkRead          bool `json:"mark_as_read"`
 	eazye.MailboxInfo `,inline`
+
+	NSQDAddr     string `json:"nsqd-addr"`
+	NSQLAddr     string `json:"nsqlookup-addr"`
+	BarkdChannel string `json:"barkd-channel"`
+
+	SlackAlerts []struct {
+		Key string `json:"key"`
+		Bot string `json:"bot"`
+	} `json:"slack-alerts"`
+
+	SlackEvents []struct {
+		Key string `json:"key"`
+		Bot string `json:"bot"`
+	} `json:"slack-events"`
 }
 
 func (c *Config) MgoSession() (*mgo.Session, error) {

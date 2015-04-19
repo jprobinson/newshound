@@ -1,6 +1,8 @@
 package fetch
 
 import (
+	"bytes"
+	"encoding/gob"
 	"fmt"
 	"log"
 	"runtime"
@@ -8,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/bitly/go-nsq"
 	"github.com/jprobinson/eazye"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -21,6 +24,12 @@ var procs = runtime.NumCPU()
 func FetchMail(cfg *newshound.Config, sess *mgo.Session) {
 	log.Print("getting mail")
 	start := time.Now()
+
+	// get a hold of NSQ to we can emit alerts
+	producer, err := nsq.NewProducer(cfg.NSQDAddr, nsq.NewConfig())
+	if err != nil {
+		log.Printf("unable to initiate NSQ producer at @ %s: %s", cfg.NSQDAddr, err)
+	}
 
 	// give it 1000 buffer so we can load whatever IMAP throws at us in memory
 	mail := make(chan eazye.Response, 1000)
@@ -41,7 +50,7 @@ func FetchMail(cfg *newshound.Config, sess *mgo.Session) {
 	ne := newsEvents(db)
 
 	completeCount := make(chan int, 1)
-	go saveAndRefresh(na, ne, alerts, completeCount)
+	go saveAndRefresh(na, ne, alerts, completeCount, producer)
 
 	// wait for the parsers to complete and then close the alerts channel
 	parsers.Wait()
@@ -86,7 +95,7 @@ func ReParse(cfg *newshound.Config, sess *mgo.Session) error {
 	}
 
 	completeCount := make(chan int, 1)
-	go saveAndRefresh(na, ne, reAlerts, completeCount)
+	go saveAndRefresh(na, ne, reAlerts, completeCount, nil)
 
 	// wait for the parsers to complete and then close the alerts channel
 	parsers.Wait()
@@ -110,7 +119,7 @@ func isNotFound(err error) bool {
 }
 
 // saveAndRefresh will insert all alerts passed through the channel and kick off all event refreshes
-func saveAndRefresh(na *mgo.Collection, ne *mgo.Collection, alerts <-chan newshound.NewsAlert, completeCount chan<- int) {
+func saveAndRefresh(na *mgo.Collection, ne *mgo.Collection, alerts <-chan newshound.NewsAlert, completeCount chan<- int, producer *nsq.Producer) {
 	var count int
 	timeframes := map[int64]struct{}{}
 
@@ -121,6 +130,20 @@ func saveAndRefresh(na *mgo.Collection, ne *mgo.Collection, alerts <-chan newsho
 			log.Print("unable to save alert to db: ", err)
 			continue
 		}
+
+		// emit alert notification
+		if producer != nil {
+			var buff bytes.Buffer
+			err = gob.NewEncoder(&buff).Encode(&alert.NewsAlertLite)
+			if err != nil {
+				log.Print("unable to gob alert: ", err)
+			} else {
+				if err = producer.Publish(newshound.NewsAlertTopic, buff.Bytes()); err != nil {
+					log.Print("unable to publish alert: ", err)
+				}
+			}
+		}
+
 		if count%10 == 0 {
 			log.Printf("fetched %d messages", count)
 		}
@@ -130,7 +153,7 @@ func saveAndRefresh(na *mgo.Collection, ne *mgo.Collection, alerts <-chan newsho
 		timeframes[aTime.Unix()] = struct{}{}
 		if len(timeframes) > 5 {
 			for tf, _ := range timeframes {
-				if err = EventRefresh(na, ne, time.Unix(tf, 0)); err != nil {
+				if err = EventRefresh(na, ne, time.Unix(tf, 0), producer); err != nil {
 					log.Print("problems refreshing event: ", err)
 				}
 			}
@@ -139,7 +162,7 @@ func saveAndRefresh(na *mgo.Collection, ne *mgo.Collection, alerts <-chan newsho
 	}
 	// flush the timeframe buffer at the end
 	for tf, _ := range timeframes {
-		if err = EventRefresh(na, ne, time.Unix(tf, 0)); err != nil {
+		if err = EventRefresh(na, ne, time.Unix(tf, 0), producer); err != nil {
 			log.Print("problems refreshing event: ", err)
 		}
 	}
