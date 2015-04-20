@@ -9,7 +9,7 @@
     "highcharts": "~3.0.7",
     "select2": "~3.4.5",
     "bootstrap": "~3.0.3",
-    "angular": "1.2.6",	
+    "angular": "1.2.6",
     "angular-resource": "1.2.6",
     "angular-bootstrap": "0.10.0",
     "angular-sanitize": "1.2.6",
@@ -23,6 +23,8 @@
     "angular-scenario": "1.2.6"
   },
   "resolutions": {
-    "jquery": "~2.x"
+    "jquery": "2.x",
+    "angular": "1.2.26",
+    "fullcalendar": "~1.x"
   }
 }
