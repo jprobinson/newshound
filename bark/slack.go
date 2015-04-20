@@ -47,7 +47,7 @@ type SlackEventBarker struct {
 
 func (s *SlackEventBarker) Bark(event newshound.NewsEvent) error {
 	title := fmt.Sprintf("New Event With %d Alerts!", len(event.NewsAlerts))
-	link := fmt.Sprintf("http://newshound.jprbnsn.com/#/calendar?start=%s&display=events&alert=%s",
+	link := fmt.Sprintf("http://newshound.jprbnsn.com/#/calendar?start=%s&display=events&event=%s",
 		event.EventStart.Format("2006-01-02"),
 		event.ID.Hex())
 	message := fmt.Sprintf("_key quote_\n%s\n_from_\n%s\n<%s|more info...>",
