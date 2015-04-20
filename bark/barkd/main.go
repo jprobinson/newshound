@@ -44,6 +44,11 @@ func main() {
 		bark.AddSlackEventBot(d, slackEvent.Key, slackEvent.Bot)
 	}
 
+	if config.WSPort != 0 {
+		log.Print("adding ws @ %d", config.WSPort)
+		bark.AddWebSocketBarker(d, config.WSPort, true, true)
+	}
+
 	quit := d.ListenAndBark()
 
 	// wait for kill

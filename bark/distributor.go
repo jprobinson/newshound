@@ -24,8 +24,20 @@ type AlertBarker interface {
 	Bark(alert newshound.NewsAlertLite) error
 }
 
+type AlertBarkerFunc func(alert newshound.NewsAlertLite) error
+
+func (a AlertBarkerFunc) Bark(alert newshound.NewsAlertLite) error {
+	return a(alert)
+}
+
 type EventBarker interface {
 	Bark(alert newshound.NewsEvent) error
+}
+
+type EventBarkerFunc func(event newshound.NewsEvent) error
+
+func (e EventBarkerFunc) Bark(event newshound.NewsEvent) error {
+	return e(event)
 }
 
 func NewDistributor(nsqdAddr, nsqlAddr, channel string) (d *Distributor, err error) {

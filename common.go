@@ -45,6 +45,8 @@ type Config struct {
 		Key string `json:"key"`
 		Bot string `json:"bot"`
 	} `json:"slack-events"`
+
+	WSPort int `json:"ws-port"`
 }
 
 func (c *Config) MgoSession() (*mgo.Session, error) {
