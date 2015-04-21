@@ -83,14 +83,14 @@ func (d *Distributor) alertHandler() nsq.HandlerFunc {
 		var alert newshound.NewsAlertLite
 		err := gob.NewDecoder(bytes.NewBuffer(m.Body)).Decode(&alert)
 		if err != nil {
-			log.Print("unable to read alert message:", err)
-			return err
+			log.Printf("unable to read alert message: %s\n%q", err, alert)
+			return nil
 		}
 
 		for _, barker := range d.alertsOut {
 			if err = barker.Bark(alert); err != nil {
 				log.Print("problems barking about alert: ", err)
-				return err
+				continue
 			}
 		}
 		return nil
@@ -102,14 +102,14 @@ func (d *Distributor) eventHandler() nsq.HandlerFunc {
 		var event newshound.NewsEvent
 		err := gob.NewDecoder(bytes.NewBuffer(m.Body)).Decode(&event)
 		if err != nil {
-			log.Print("unable to read event message:", err)
-			return err
+			log.Printf("unable to read event message: %s\n%q", err, event)
+			return nil
 		}
 
 		for _, barker := range d.eventsOut {
 			if err = barker.Bark(event); err != nil {
 				log.Print("problems barking about event: ", err)
-				return err
+				continue
 			}
 		}
 		return nil
@@ -121,14 +121,14 @@ func (d *Distributor) eventUpdateHandler() nsq.HandlerFunc {
 		var event newshound.NewsEvent
 		err := gob.NewDecoder(bytes.NewBuffer(m.Body)).Decode(&event)
 		if err != nil {
-			log.Print("unable to read event update message:", err)
-			return err
+			log.Printf("unable to read event update message: %s\n%q", err, event)
+			return nil
 		}
 
 		for _, barker := range d.eventUpdatesOut {
 			if err = barker.Bark(event); err != nil {
 				log.Print("problems barking about event update: ", err)
-				return err
+				continue
 			}
 		}
 		return nil
