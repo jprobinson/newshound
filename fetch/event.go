@@ -71,7 +71,7 @@ func UpdateEvents(na *mgo.Collection, ne *mgo.Collection, a newshound.NewsAlert,
 	err = ne.Find(query).All(&existingEvents)
 
 	// merge any existing alerts into ours, reuse id if possible
-	eventID, newID, alertIDs, eventTags, staleEventIDs := mergeEvents(cluster, tags, existingEvents)
+	eventID, newID, eventUpdate, alertIDs, eventTags, staleEventIDs := mergeEvents(cluster, tags, existingEvents)
 
 	// get the data of all the alerts
 	var nas []newshound.NewsAlert
@@ -100,14 +100,27 @@ func UpdateEvents(na *mgo.Collection, ne *mgo.Collection, a newshound.NewsAlert,
 	}
 
 	// emit event notification if new event
-	if producer != nil && newID {
-		var buff bytes.Buffer
-		err = gob.NewEncoder(&buff).Encode(&event)
-		if err != nil {
-			log.Print("unable to gob event: ", err)
-		} else {
-			if err = producer.Publish(newshound.NewsEventTopic, buff.Bytes()); err != nil {
-				log.Print("unable to publish event: ", err)
+	if producer != nil {
+		if newID {
+			var buff bytes.Buffer
+			err = gob.NewEncoder(&buff).Encode(&event)
+			if err != nil {
+				log.Print("unable to gob event: ", err)
+			} else {
+				if err = producer.Publish(newshound.NewsEventTopic, buff.Bytes()); err != nil {
+					log.Print("unable to publish event: ", err)
+				}
+			}
+		}
+		if !newID && eventUpdate {
+			var buff bytes.Buffer
+			err = gob.NewEncoder(&buff).Encode(&event)
+			if err != nil {
+				log.Print("unable to gob event: ", err)
+			} else {
+				if err = producer.Publish(newshound.NewsEventUpdatesTopic, buff.Bytes()); err != nil {
+					log.Print("unable to publish event update: ", err)
+				}
 			}
 		}
 	}
@@ -192,7 +205,8 @@ func (n naByTimestamp) Len() int           { return len(n) }
 func (n naByTimestamp) Swap(i, j int)      { n[i], n[j] = n[j], n[i] }
 func (n naByTimestamp) Less(i, j int) bool { return n[j].Timestamp.After(n[i].Timestamp) }
 
-func mergeEvents(alerts []bson.ObjectId, tags []string, events []newshound.NewsEvent) (eventID bson.ObjectId, newID bool, eventAlerts []bson.ObjectId, eventTags []string, staleEventIDs []bson.ObjectId) {
+func mergeEvents(alerts []bson.ObjectId, tags []string, events []newshound.NewsEvent) (eventID bson.ObjectId, newID bool, eventUpdated bool, eventAlerts []bson.ObjectId, eventTags []string, staleEventIDs []bson.ObjectId) {
+	originalEventSize := 0
 	// add IDs of new event cluster
 	idSet := map[string]struct{}{}
 	for _, alert := range alerts {
@@ -221,6 +235,7 @@ func mergeEvents(alerts []bson.ObjectId, tags []string, events []newshound.NewsE
 		if oldest.After(event.EventStart) {
 			oldest = event.EventStart
 			eventID = event.ID
+			originalEventSize = len(event.NewsAlerts)
 		}
 		eventIDs = append(eventIDs, event.ID)
 	}
@@ -248,7 +263,8 @@ func mergeEvents(alerts []bson.ObjectId, tags []string, events []newshound.NewsE
 		eventTags = append(eventTags, tag)
 	}
 
-	return eventID, newID, eventAlerts, eventTags, staleEventIDs
+	eventUpdated = len(eventAlerts) > originalEventSize
+	return eventID, newID, eventUpdated, eventAlerts, eventTags, staleEventIDs
 }
 
 func findLikeAlertCluster(na *mgo.Collection, a newshound.NewsAlert) (alerts []bson.ObjectId, tags []string, err error) {

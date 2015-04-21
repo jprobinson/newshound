@@ -37,6 +37,7 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// SLACK
 	for _, slackAlert := range config.SlackAlerts {
 		bark.AddSlackAlertBot(d, slackAlert.Key, slackAlert.Bot)
 	}
@@ -44,11 +45,20 @@ func main() {
 		bark.AddSlackEventBot(d, slackEvent.Key, slackEvent.Bot)
 	}
 
+	// TWITTER
+	for _, twitterCreds := range config.Twitter {
+		bark.AddTwitterAlertBot(d, twitterCreds.API, twitterCreds.Secret)
+		bark.AddTwitterEventBot(d, twitterCreds.API, twitterCreds.Secret)
+		bark.AddTwitterEventUpdateBot(d, twitterCreds.API, twitterCreds.Secret)
+	}
+
+	// WEBSOCKETS
 	if config.WSPort != 0 {
 		log.Print("adding ws @ %d", config.WSPort)
 		bark.AddWebSocketBarker(d, config.WSPort, true, true)
 	}
 
+	// WOOF
 	quit := d.ListenAndBark()
 
 	// wait for kill

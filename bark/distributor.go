@@ -18,6 +18,9 @@ type Distributor struct {
 
 	eventsIn  *nsq.Consumer
 	eventsOut []EventBarker
+
+	eventUpdatesIn  *nsq.Consumer
+	eventUpdatesOut []EventBarker
 }
 
 type AlertBarker interface {
@@ -54,6 +57,12 @@ func NewDistributor(nsqdAddr, nsqlAddr, channel string) (d *Distributor, err err
 	}
 	d.eventsIn.AddHandler(d.eventHandler())
 
+	d.eventUpdatesIn, err = nsq.NewConsumer(newshound.NewsEventUpdateTopic, channel, nsq.NewConfig())
+	if err != nil {
+		return d, err
+	}
+	d.eventUpdatesIn.AddHandler(d.eventUpdateHandler())
+
 	return d, nil
 }
 
@@ -63,6 +72,10 @@ func (d *Distributor) AddAlertBarker(b AlertBarker) {
 
 func (d *Distributor) AddEventBarker(b EventBarker) {
 	d.eventsOut = append(d.eventsOut, b)
+}
+
+func (d *Distributor) AddEventUpdateBarker(b EventBarker) {
+	d.eventUpdatesOut = append(d.eventUpdatesOut, b)
 }
 
 func (d *Distributor) alertHandler() nsq.HandlerFunc {
@@ -103,6 +116,25 @@ func (d *Distributor) eventHandler() nsq.HandlerFunc {
 	})
 }
 
+func (d *Distributor) eventUpdateHandler() nsq.HandlerFunc {
+	return nsq.HandlerFunc(func(m *nsq.Message) error {
+		var event newshound.NewsEvent
+		err := gob.NewDecoder(bytes.NewBuffer(m.Body)).Decode(&event)
+		if err != nil {
+			log.Print("unable to read event update message:", err)
+			return err
+		}
+
+		for _, barker := range d.eventUpdatesOut {
+			if err = barker.Bark(event); err != nil {
+				log.Print("problems barking about event update: ", err)
+				return err
+			}
+		}
+		return nil
+	})
+}
+
 // ListenAndBark will sit on alert feed and notify all hooks
 func (a *Distributor) ListenAndBark() chan chan error {
 	err := a.alertsIn.ConnectToNSQD(a.nsqdAddr)
@@ -136,6 +168,7 @@ func (a *Distributor) ListenAndBark() chan chan error {
 		q := <-quit
 		a.alertsIn.Stop()
 		a.eventsIn.Stop()
+		a.eventUpdatesIn.Stop()
 		q <- nil
 	}(quit)
 	return quit

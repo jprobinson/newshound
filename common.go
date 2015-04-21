@@ -20,8 +20,9 @@ const (
 
 	WebDir = "/opt/newshound/www"
 
-	NewsAlertTopic = "news-alerts"
-	NewsEventTopic = "news-events"
+	NewsAlertTopic        = "news-alerts"
+	NewsEventTopic        = "news-events"
+	NewsEventUpdateTopic = "new-event-updates"
 )
 
 type Config struct {
@@ -45,6 +46,11 @@ type Config struct {
 		Key string `json:"key"`
 		Bot string `json:"bot"`
 	} `json:"slack-events"`
+
+	Twitter []struct {
+		API     string `json:"key"`
+		Secret string `json:"secret"`
+	} `json:"twitter"`
 
 	WSPort int `json:"ws-port"`
 }
