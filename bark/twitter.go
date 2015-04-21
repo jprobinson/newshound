@@ -2,7 +2,9 @@ package bark
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/ChimeraCoder/anaconda"
 	"github.com/jprobinson/newshound"
@@ -12,16 +14,14 @@ type TwitterAlertBarker struct {
 	api *anaconda.TwitterApi
 }
 
-func AddTwitterAlertBot(d *Distributor, key, secret string) {
-	d.AddAlertBarker(&TwitterAlertBarker{anaconda.NewTwitterApi(key, secret)})
+func AddTwitterAlertBot(d *Distributor, token, secret string) {
+	d.AddAlertBarker(&TwitterAlertBarker{anaconda.NewTwitterApi(token, secret)})
 }
 
 func (s *TwitterAlertBarker) Bark(alert newshound.NewsAlertLite) error {
-	msg := twitterize(fmt.Sprintf("%s - %s", alert.Sender, alert.TopSentence))
-	msg = msg + fmt.Sprintf("http://newshound.jprbnsn.com/#/calendar?start=%s&display=alerts&alert=%s",
-		alert.Timestamp.Format("2006-01-02"),
-		alert.ID.Hex())
-	_, err := s.api.PostTweet(msg, nil)
+	msg := twitterize(fmt.Sprintf("%s - %s", strings.TrimSuffix(alert.Sender, ".com"), alert.TopSentence))
+	msg = msg + alertLink(alert)
+	_, err := s.api.PostTweet(msg, url.Values{})
 	return err
 }
 
@@ -29,17 +29,14 @@ type TwitterEventBarker struct {
 	api *anaconda.TwitterApi
 }
 
-func AddTwitterEventBot(d *Distributor, key, secret string) {
-	d.AddEventBarker(&TwitterEventBarker{anaconda.NewTwitterApi(key, secret)})
+func AddTwitterEventBot(d *Distributor, token, secret string) {
+	d.AddEventBarker(&TwitterEventBarker{anaconda.NewTwitterApi(token, secret)})
 }
 
 func (s *TwitterEventBarker) Bark(event newshound.NewsEvent) error {
 	msg := fmt.Sprintf("New News Event! %d alerts reporting on ", len(event.NewsAlerts))
 	msg = twitterize(msg + strings.TrimPrefix(fmt.Sprintf("%#v", event.Tags), "[]string"))
-	msg = msg + fmt.Sprintf("http://newshound.jprbnsn.com/#/calendar?start=%s&display=events&event=%s",
-		event.EventStart.Format("2006-01-02"),
-		event.ID.Hex())
-
+	msg = msg + eventLink(event)
 	_, err := s.api.PostTweet(msg, nil)
 	return err
 }
@@ -48,24 +45,26 @@ type TwitterEventUpdateBarker struct {
 	api *anaconda.TwitterApi
 }
 
-func AddTwitterEventUpdateBot(d *Distributor, key, secret string) {
-	d.AddEventUpdateBarker(&TwitterEventUpdateBarker{anaconda.NewTwitterApi(key, secret)})
+func AddTwitterEventUpdateBot(d *Distributor, token, secret string) {
+	d.AddEventUpdateBarker(&TwitterEventUpdateBarker{anaconda.NewTwitterApi(token, secret)})
 }
 
 func (s *TwitterEventUpdateBarker) Bark(event newshound.NewsEvent) error {
 	msg := fmt.Sprintf("News Event Update! Now %d alerts are reporting on ", len(event.NewsAlerts))
 	msg = twitterize(msg + strings.TrimPrefix(fmt.Sprintf("%#v", event.Tags), "[]string"))
-	msg = msg + fmt.Sprintf("http://newshound.jprbnsn.com/#/calendar?start=%s&display=events&event=%s",
-		event.EventStart.Format("2006-01-02"),
-		event.ID.Hex())
-
+	msg = msg + eventLink(event)
 	_, err := s.api.PostTweet(msg, nil)
 	return err
 }
 
 func twitterize(msg string) string {
-	if len(msg) > 114 {
-		msg = msg[:114] + "... "
+	msg = strings.Replace(msg, "\n", " ", -1)
+	msg = strings.Replace(msg, ".com", "", -1)
+	if utf8.RuneCountInString(msg) >= 113 {
+		msg = msg[:113] + "... "
+	} else if !strings.HasSuffix(msg, " ") {
+		msg = msg + " "
 	}
+
 	return msg
 }

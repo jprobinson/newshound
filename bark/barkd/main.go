@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/ChimeraCoder/anaconda"
 	"github.com/jprobinson/go-utils/utils"
 	"github.com/jprobinson/newshound"
 	"github.com/jprobinson/newshound/bark"
@@ -47,9 +48,11 @@ func main() {
 
 	// TWITTER
 	for _, twitterCreds := range config.Twitter {
-		bark.AddTwitterAlertBot(d, twitterCreds.API, twitterCreds.Secret)
-		bark.AddTwitterEventBot(d, twitterCreds.API, twitterCreds.Secret)
-		bark.AddTwitterEventUpdateBot(d, twitterCreds.API, twitterCreds.Secret)
+		anaconda.SetConsumerKey(twitterCreds.ConsumerKey)
+		anaconda.SetConsumerSecret(twitterCreds.ConsumerSecret)
+		bark.AddTwitterAlertBot(d, twitterCreds.AccessToken, twitterCreds.AccessTokenSecret)
+		bark.AddTwitterEventBot(d, twitterCreds.AccessToken, twitterCreds.AccessTokenSecret)
+		bark.AddTwitterEventUpdateBot(d, twitterCreds.AccessToken, twitterCreds.AccessTokenSecret)
 	}
 
 	// WEBSOCKETS

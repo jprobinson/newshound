@@ -118,7 +118,7 @@ func UpdateEvents(na *mgo.Collection, ne *mgo.Collection, a newshound.NewsAlert,
 			if err != nil {
 				log.Print("unable to gob event: ", err)
 			} else {
-				if err = producer.Publish(newshound.NewsEventUpdatesTopic, buff.Bytes()); err != nil {
+				if err = producer.Publish(newshound.NewsEventUpdateTopic, buff.Bytes()); err != nil {
 					log.Print("unable to publish event update: ", err)
 				}
 			}
