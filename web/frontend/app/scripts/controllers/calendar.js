@@ -54,7 +54,7 @@ angular.module('newshoundApp')
                 if (dateStr) {
                     var dateVals = dateStr.split('-');
                     if (dateVals.length != 3) {
-                        alert('invalid date!');
+                        console.log('invalid date!');
                     } else {
                         var startDate = new Date(dateVals[0], dateVals[1] - 1, dateVals[2]);
                         $scope.theCalendar.fullCalendar('gotoDate', startDate);
@@ -64,7 +64,7 @@ angular.module('newshoundApp')
                 }
             };
 
-            
+
 
             $scope.senders = senders;
             $scope.$watch('calDisplay', function() {
@@ -108,12 +108,12 @@ angular.module('newshoundApp')
             $scope.$watch('senderFilter', filterCalEvents);
 
             var dateChange = function(newDate, oldDate) {
-                if(newDate == oldDate){
+                if (newDate == oldDate) {
                     return;
                 }
                 var newDateStr = $filter('date')(newDate, "yyyy-MM-dd");
-                if(newDate && 
-                    ($scope.startDate >= newDateStr) || 
+                if (newDate &&
+                    ($scope.startDate >= newDateStr) ||
                     ($scope.endDate <= newDateStr)) {
                     $scope.theCalendar.fullCalendar('gotoDate', newDate);
                 }
@@ -121,7 +121,14 @@ angular.module('newshoundApp')
             $scope.$watch('startInput', dateChange);
 
             $scope.calEvents = [];
+
+            var fetchInProgress = false;
             var getCalEvents = function(start, end, callback) {
+                if (fetchInProgress) {
+                    // fogetaboutit
+                    callback();
+                }
+                fetchInProgress = true;
                 var promise;
                 var searchVals = $location.search();
 
@@ -135,11 +142,12 @@ angular.module('newshoundApp')
                     $scope.startInput = start;
                     $scope.endInput = end;
                     callback(events);
+                    fetchInProgress = false;
                 }, function(reason) {
-                    alert('Failed getting event data!: ' + reason);
+                    console.log('Failed getting event data!: ' + reason);
                     callback([]);
+                    fetchInProgress = false;
                 });
-
             };
 
             var viewRender = function(view, element) {
@@ -196,13 +204,17 @@ angular.module('newshoundApp')
                     $scope.alertDialog = $modal.open({
                         templateUrl: 'alertModal.html',
                         windowClass: 'large-modal',
-                        controller: ['$scope', '$modalInstance', 'alert', function($scope, $modalInstance, alert) {
-                            var htmlUrl = config.apiHost() + "/alert_html/" + alert.id;
-                            $scope.alertHtmlUrl = $sce.trustAsResourceUrl(htmlUrl);
-                            $scope.alert = alert;
-                            $scope.senderClass = news.getSenderClassName(alert.sender);
-                            $scope.close = function(){ $modalInstance.close(); };
-                        }],
+                        controller: ['$scope', '$modalInstance', 'alert',
+                            function($scope, $modalInstance, alert) {
+                                var htmlUrl = config.apiHost() + "/alert_html/" + alert.id;
+                                $scope.alertHtmlUrl = $sce.trustAsResourceUrl(htmlUrl);
+                                $scope.alert = alert;
+                                $scope.senderClass = news.getSenderClassName(alert.sender);
+                                $scope.close = function() {
+                                    $modalInstance.close();
+                                };
+                            }
+                        ],
                         resolve: {
                             alert: function() {
                                 return alert;
@@ -217,7 +229,7 @@ angular.module('newshoundApp')
                     });
 
                 }, function(reason) {
-                    alert('Failed getting alert: ' + reason);
+                    console.log('Failed getting alert: ' + reason);
                 });
             };
 
@@ -258,25 +270,29 @@ angular.module('newshoundApp')
                     $scope.eventDialog = $modal.open({
                         templateUrl: 'eventModal.html',
                         windowClass: 'large-modal',
-                        controller: ['$scope', '$modalInstance', 'event', function($scope, $modalInstance, event) {
-                            $scope.close = function(){ $modalInstance.close(); };
-                            $scope.event = event;
-                            $scope.displayAlertDialog = displayAlertDialog;
+                        controller: ['$scope', '$modalInstance', 'event',
+                            function($scope, $modalInstance, event) {
+                                $scope.close = function() {
+                                    $modalInstance.close();
+                                };
+                                $scope.event = event;
+                                $scope.displayAlertDialog = displayAlertDialog;
 
-                            var maxLapsed = 0.0;
-                            var eventSenders = [];
-                            $.each(event.news_alerts, function(index, alert) {
-                                var minDiff = alert.time_lapsed / 60;
-                                var secDiff = alert.time_lapsed % 60;
-                                event.news_alerts[index].timeDiff = Math.floor(minDiff) + " minute(s), " + secDiff + " seconds";
-                                event.news_alerts[index].senderClass = news.getSenderClassName(alert.sender);
-                                eventSenders.push(alert.sender);
-                                if (minDiff > maxLapsed) {
-                                    maxLapsed = minDiff;
-                                }
-                            });
+                                var maxLapsed = 0.0;
+                                var eventSenders = [];
+                                $.each(event.news_alerts, function(index, alert) {
+                                    var minDiff = alert.time_lapsed / 60;
+                                    var secDiff = alert.time_lapsed % 60;
+                                    event.news_alerts[index].timeDiff = Math.floor(minDiff) + " minute(s), " + secDiff + " seconds";
+                                    event.news_alerts[index].senderClass = news.getSenderClassName(alert.sender);
+                                    eventSenders.push(alert.sender);
+                                    if (minDiff > maxLapsed) {
+                                        maxLapsed = minDiff;
+                                    }
+                                });
 
-                        }],
+                            }
+                        ],
                         resolve: {
                             event: function() {
                                 return event;
@@ -291,19 +307,22 @@ angular.module('newshoundApp')
                     });
 
                 }, function(reason) {
-                    alert('Failed getting alert: ' + reason);
+                    console.log('Failed getting alert: ' + reason);
                 });
             };
 
-            var getCalViews = function(current){
+            var getCalViews = function(current) {
                 var views = "agendaWeek,agendaDay";
                 var view = current;
                 var width = $(document).width();
-                if(width < 800){
+                if (width < 800) {
                     views = "basicWeek,basicDay";
                     view = "basicDay";
                 }
-                return {view:view, views:views};
+                return {
+                    view: view,
+                    views: views
+                };
             };
 
             $scope.uiConfig = {
@@ -320,8 +339,8 @@ angular.module('newshoundApp')
                     },
                     windowResize: function(view) {
                         view.setHeight(Math.max($(document).height() - 250, 300));
-                        var views = getCalViews(view); 
-                        if(view != views.view){
+                        var views = getCalViews(view);
+                        if (view != views.view) {
                             view.changeView(views.view);
                         }
                     },
