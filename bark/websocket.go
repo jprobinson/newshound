@@ -1,6 +1,7 @@
 package bark
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"log"
@@ -43,13 +44,18 @@ type WebSocketBarker struct {
 	sockets   map[string]chan interface{}
 }
 
-func (w *WebSocketBarker) NewSocket() (alerts chan interface{}, quit chan struct{}) {
+var ErrTooManyConns = errors.New("too many concurrent connections. please try again later.")
+
+func (w *WebSocketBarker) NewSocket() (alerts chan interface{}, quit chan struct{}, err error) {
 	id, _ := uuid.V4()
 	key := id.String()
 	alerts = make(chan interface{}, 500)
 	quit = make(chan struct{}, 1)
 
 	w.muSockets.Lock()
+	if len(w.sockets) > 500 {
+		return alerts, quit, ErrTooManyConns
+	}
 	w.sockets[key] = alerts
 	log.Printf("added socket %s", key)
 	w.muSockets.Unlock()
@@ -61,7 +67,7 @@ func (w *WebSocketBarker) NewSocket() (alerts chan interface{}, quit chan struct
 		log.Printf("deleted socket %s", key)
 		w.muSockets.Unlock()
 	}()
-	return alerts, quit
+	return alerts, quit, nil
 }
 
 func (w *WebSocketBarker) BarkAlert(alert newshound.NewsAlertLite) error {
@@ -92,8 +98,16 @@ func (wb *WebSocketBarker) ServeWS(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	noopTicker := time.NewTicker(time.Second * 5)
-	alerts, quit := wb.NewSocket()
+	var (
+		alerts     chan interface{}
+		quit       chan struct{}
+		noopTicker = time.NewTicker(time.Second * 5)
+	)
+	alerts, quit, err = wb.NewSocket()
+	if err != nil {
+		http.Error(w, err.Error(), 503)
+		return
+	}
 	defer func() {
 		quit <- struct{}{}
 		ws.Close()

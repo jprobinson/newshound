@@ -88,10 +88,11 @@ func (d *Distributor) alertHandler() nsq.HandlerFunc {
 		}
 
 		for _, barker := range d.alertsOut {
-			if err = barker.Bark(alert); err != nil {
-				log.Print("problems barking about alert: ", err)
-				continue
-			}
+			go func(barker AlertBarker, alert newshound.NewsAlertLite) {
+				if err = barker.Bark(alert); err != nil {
+					log.Print("problems barking about alert: ", err)
+				}
+			}(barker, alert)
 		}
 		return nil
 	})
@@ -107,10 +108,11 @@ func (d *Distributor) eventHandler() nsq.HandlerFunc {
 		}
 
 		for _, barker := range d.eventsOut {
-			if err = barker.Bark(event); err != nil {
-				log.Print("problems barking about event: ", err)
-				continue
-			}
+			go func(barker EventBarker, event newshound.NewsEvent) {
+				if err = barker.Bark(event); err != nil {
+					log.Print("problems barking about event: ", err)
+				}
+			}(barker, event)
 		}
 		return nil
 	})
@@ -126,10 +128,11 @@ func (d *Distributor) eventUpdateHandler() nsq.HandlerFunc {
 		}
 
 		for _, barker := range d.eventUpdatesOut {
-			if err = barker.Bark(event); err != nil {
-				log.Print("problems barking about event update: ", err)
-				continue
-			}
+			go func(barker EventBarker, event newshound.NewsEvent) {
+				if err := barker.Bark(event); err != nil {
+					log.Print("problems barking about event update: ", err)
+				}
+			}(barker, event)
 		}
 		return nil
 	})

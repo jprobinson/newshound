@@ -57,7 +57,6 @@ func main() {
 
 	// WEBSOCKETS
 	if config.WSPort != 0 {
-		log.Print("adding ws @ %d", config.WSPort)
 		bark.AddWebSocketBarker(d, config.WSPort, true, true)
 	}
 
