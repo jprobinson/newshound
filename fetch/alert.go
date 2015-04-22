@@ -129,7 +129,6 @@ func findNews(text [][]byte, address string) []byte {
 		line := bytes.Trim(line, "-| ?")
 		if isNews(line, addr, addrStart) {
 			badLines = 0
-			line = periodCheck(line)
 			news = append(news, line)
 
 		} else if (len(news) > 0) && (len(line) > 0) {
@@ -395,7 +394,7 @@ var (
 		[]byte("est"), []byte("edt"), []byte("et"),
 		[]byte("pst"), []byte("pdt"), []byte("pt"),
 	}
-	amPM = [][]byte{[]byte("am"), []byte("pm")}
+	amPM = [][]byte{[]byte("a.m"), []byte("p.m"), []byte("am"), []byte("pm")}
 )
 
 // isDate detects if we see one of the following formats:
@@ -405,6 +404,7 @@ var (
 // Sunday, August 10, 2014 2:36 PM EDT
 // Monday, August 11, 2014 9:18:59 AM
 // Sat., Feb. 7, 2015 04:35 PM
+// Tue., Apr. 21, 2015 4:17 p.m.
 func isDate(line []byte) bool {
 	// Trim dots 'n periods
 	line = bytes.Trim(line, "• .\u00a0")
@@ -517,7 +517,7 @@ var (
 		"WSJ.com":             1,
 		"USATODAY.com":        6,
 		"NYTimes.com":         6,
-		"The Washington Post": 3,
+		"The Washington Post": 2,
 		"FoxNews.com":         0,
 		"NPR":                 3,
 	}
