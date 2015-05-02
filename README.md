@@ -5,7 +5,7 @@ Newshound: The Breaking News Email Aggregator
 
 Newshound is a tool to analyze, visualize and share breaking news email alerts.
 
-This repository contains a [service to pull and parse breaking news alerts from an email inbox](https://github.com/jprobinson/newshound/tree/master/fetch) and a [fast noun-phrase extracting 'microservice'](https://github.com/jprobinson/newshound/tree/master/lib/np_extractor) to extract important phrases and help [detect any News Events](https://github.com/jprobinson/newshound/tree/master/common.go#L124) that may have occurred. That News Event data is then used to [generate historic reports for each news source.](https://github.com/jprobinson/newshound/blob/master/fetch/mapreduce.go). 
+This repository contains a [service to pull and parse breaking news alerts from an email inbox](https://github.com/jprobinson/newshound/tree/master/fetch) and a [fast noun-phrase extracting 'microservice'](https://github.com/jprobinson/newshound/tree/master/lib/np_extractor) to extract important phrases and help [detect any News Events](https://github.com/jprobinson/newshound/tree/master/common.go#L124) that may have occurred. That News Event data is then used to [generate historic reports for each news source.](https://github.com/jprobinson/newshound/blob/master/fetch/mapreduce.go) 
 
 To emit alert notifications to Slack, Twitter or WebSocket connections, [fetchd](https://github.com/jprobinson/newshound/tree/master/fetch/fetchd) can pass information to [barkd](https://github.com/jprobinson/newshound/tree/master/bark/barkd) via [NSQ.](http://nsq.io/) 
 
