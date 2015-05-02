@@ -19,6 +19,27 @@ import (
 	"github.com/jprobinson/newshound"
 )
 
+var Senders = map[string]bool{
+	"cnn":                 true,
+	"foxnews.com":         true,
+	"foxbusiness.com":     true,
+	"nbcnews.com":         true,
+	"nytimes.com":         true,
+	"the washington post": true,
+	"wsj.com":             true,
+	"politico":            true,
+	"los angeles times":   true,
+	"cbs":                 true,
+	"abc":                 true,
+	"usatoday.com":        true,
+	"yahoo":               true,
+	"ft":                  true,
+	"bbc":                 true,
+	"npr":                 true,
+	"time":                true,
+	"bloomberg.com":       true,
+}
+
 func NewNewsAlert(msg eazye.Email, address string) (newshound.NewsAlert, error) {
 	sender := findSender(msg.From)
 

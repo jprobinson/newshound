@@ -205,7 +205,12 @@ func parseMessages(user string, mail chan eazye.Response, alerts chan<- newshoun
 			continue
 		}
 
-		alerts <- na
+		// only post approved senders
+		if Senders[strings.ToLower(na.Sender)] {
+			alerts <- na
+		} else {
+			log.Print("skipping email from: ", na.Sender)
+		}
 	}
 }
 
