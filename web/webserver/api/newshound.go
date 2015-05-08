@@ -10,7 +10,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/jprobinson/go-utils/web"
-	"github.com/yvasiyarov/gorelic"
 	"gopkg.in/mgo.v2"
 )
 
@@ -19,11 +18,10 @@ var ErrDB = errors.New("problems accessing database")
 // NewshoundAPI is a struct that keeps a handle on the mgo session
 type NewshoundAPI struct {
 	session *mgo.Session
-	agent   *gorelic.Agent
 }
 
 // NewNewshoundAPI creates a new NewshoundAPI struct to run the newshound API.
-func NewNewshoundAPI(conn string, user string, pw string, agent *gorelic.Agent) *NewshoundAPI {
+func NewNewshoundAPI(conn string, user string, pw string) *NewshoundAPI {
 	// make conn pass it to data
 	session, err := mgo.Dial(conn)
 	if err != nil {
@@ -36,7 +34,7 @@ func NewNewshoundAPI(conn string, user string, pw string, agent *gorelic.Agent) 
 		log.Fatalf("Unable to connect to newshound db! - %s", err)
 	}
 	session.SetMode(mgo.Eventual, true)
-	return &NewshoundAPI{session, agent}
+	return &NewshoundAPI{session}
 }
 
 // UrlPrefix is a function meant to implement the PrefixHandler interface for paperboy-api.
@@ -68,9 +66,6 @@ func (n NewshoundAPI) Handle(subRouter *mux.Router) {
 // findAlertsByDate is an http.Handler that will expect a 'start' and 'end' date in the URL
 // and will return a list of News Alerts that occured in that timeframe.
 func (n NewshoundAPI) findAlertsByDate(w http.ResponseWriter, r *http.Request) {
-	t := n.agent.Tracer.BeginTrace("newshoundAPI.findAlertsByDate")
-	defer t.EndTrace()
-
 	setCommonHeaders(w, r, "")
 	vars := mux.Vars(r)
 	startTime, endTime, err := web.ParseDateRangeFullDay(vars)
@@ -95,9 +90,6 @@ func (n NewshoundAPI) findAlertsByDate(w http.ResponseWriter, r *http.Request) {
 // findOrderedAlerts is an http.Handler that will expect a comma delmited list of News Alert IDs
 // in the URL and will return a chronologically ordered of those News Alerts' information.
 func (n NewshoundAPI) findOrderedAlerts(w http.ResponseWriter, r *http.Request) {
-	t := n.agent.Tracer.BeginTrace("newshoundAPI.findOrderedAlerts")
-	defer t.EndTrace()
-
 	setCommonHeaders(w, r, "")
 	vars := mux.Vars(r)
 	alertIDs := strings.Split(vars["alert_ids"], ",")
@@ -118,9 +110,6 @@ func (n NewshoundAPI) findOrderedAlerts(w http.ResponseWriter, r *http.Request) 
 // findAlert is an http.Handler that expects a News Alert ID in the URL and if the
 // alert exists, it will return it's information.
 func (n NewshoundAPI) findAlert(w http.ResponseWriter, r *http.Request) {
-	t := n.agent.Tracer.BeginTrace("newshoundAPI.findAlert")
-	defer t.EndTrace()
-
 	setCommonHeaders(w, r, "")
 	vars := mux.Vars(r)
 	alertID := vars["alert_id"]
@@ -141,9 +130,6 @@ func (n NewshoundAPI) findAlert(w http.ResponseWriter, r *http.Request) {
 // findAlertHtml is an http.Handler that expects a News Alert ID in the URL and if the
 // alert exists, it will return it's HTML with a 'text/html' content-type.
 func (n NewshoundAPI) findAlertHtml(w http.ResponseWriter, r *http.Request) {
-	t := n.agent.Tracer.BeginTrace("newshoundAPI.findAlertHtml")
-	defer t.EndTrace()
-
 	setCommonHeaders(w, r, "text/html; charset=UTF-8")
 	vars := mux.Vars(r)
 	alertID := vars["alert_id"]
@@ -164,9 +150,6 @@ func (n NewshoundAPI) findAlertHtml(w http.ResponseWriter, r *http.Request) {
 // eventFeed is an http.Handler that will expect a 'start' and 'end' date in the URL
 // and will return a list of News Events that occured in that timeframe order by time desc.
 func (n NewshoundAPI) eventFeed(w http.ResponseWriter, r *http.Request) {
-	t := n.agent.Tracer.BeginTrace("newshoundAPI.eventFeed")
-	defer t.EndTrace()
-
 	setCommonHeaders(w, r, "")
 	vars := mux.Vars(r)
 	startTime, endTime, err := web.ParseDateRangeFullDay(vars)
@@ -191,9 +174,6 @@ func (n NewshoundAPI) eventFeed(w http.ResponseWriter, r *http.Request) {
 // findEventsByDate is an http.Handler that will expect a 'start' and 'end' date in the URL
 // and will return a list of News Events that occured in that timeframe.
 func (n NewshoundAPI) findEventsByDate(w http.ResponseWriter, r *http.Request) {
-	t := n.agent.Tracer.BeginTrace("newshoundAPI.findEventsByDate")
-	defer t.EndTrace()
-
 	setCommonHeaders(w, r, "")
 	vars := mux.Vars(r)
 	startTime, endTime, err := web.ParseDateRangeFullDay(vars)
@@ -218,9 +198,6 @@ func (n NewshoundAPI) findEventsByDate(w http.ResponseWriter, r *http.Request) {
 // findEvent is an http.Handler that expects a News Event ID in the URL and if the
 // event exists, it will return it's information.
 func (n NewshoundAPI) findEvent(w http.ResponseWriter, r *http.Request) {
-	t := n.agent.Tracer.BeginTrace("newshoundAPI.findEvent")
-	defer t.EndTrace()
-
 	setCommonHeaders(w, r, "")
 	vars := mux.Vars(r)
 	eventID := vars["event_id"]
@@ -238,9 +215,6 @@ func (n NewshoundAPI) findEvent(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, web.JsonResponseWrapper{Response: event})
 }
 func (n NewshoundAPI) getAlertsPerWeek(w http.ResponseWriter, r *http.Request) {
-	t := n.agent.Tracer.BeginTrace("newshoundAPI.getAlertsPerWeek")
-	defer t.EndTrace()
-
 	setCommonHeaders(w, r, "")
 	s, db := n.getDB()
 	defer s.Close()
@@ -256,8 +230,6 @@ func (n NewshoundAPI) getAlertsPerWeek(w http.ResponseWriter, r *http.Request) {
 }
 
 func (n NewshoundAPI) getEventAttendance(w http.ResponseWriter, r *http.Request) {
-	t := n.agent.Tracer.BeginTrace("newshoundAPI.getEventAttendance")
-	defer t.EndTrace()
 	setCommonHeaders(w, r, "")
 	s, db := n.getDB()
 	defer s.Close()
@@ -272,9 +244,6 @@ func (n NewshoundAPI) getEventAttendance(w http.ResponseWriter, r *http.Request)
 	fmt.Fprint(w, web.JsonResponseWrapper{Response: sendersReport})
 }
 func (n NewshoundAPI) getEventsPerWeek(w http.ResponseWriter, r *http.Request) {
-	t := n.agent.Tracer.BeginTrace("newshoundAPI.getEventsPerWeek")
-	defer t.EndTrace()
-
 	setCommonHeaders(w, r, "")
 	s, db := n.getDB()
 	defer s.Close()
@@ -292,9 +261,6 @@ func (n NewshoundAPI) getEventsPerWeek(w http.ResponseWriter, r *http.Request) {
 // findSenderInfo is an http.Handler that will expect a Sender name in the URL and if
 // the sender exists, it will return the Sender Info report for the past 3 months.
 func (n NewshoundAPI) findSenderInfo(w http.ResponseWriter, r *http.Request) {
-	t := n.agent.Tracer.BeginTrace("newshoundAPI.findSenderInfo")
-	defer t.EndTrace()
-
 	setCommonHeaders(w, r, "")
 	vars := mux.Vars(r)
 	sender := vars["sender"]
