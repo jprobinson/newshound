@@ -13,7 +13,7 @@ func TestTwitterize(t *testing.T) {
 		},
 		{
 			"FoxNews - Chicago defeats the Tampa Bay Lightning, 2-0, in Game 6 of the Stanley Cup Final to win the franchise\u2019s third NHL title in six seasons.",
-			"FoxNews - Chicago defeats the Tampa Bay Lightning, 2-0, in Game 6 of the Stanley Cup Final to win the franchise’s...",
+			"FoxNews - Chicago defeats the Tampa Bay Lightning, 2-0, in Game 6 of the Stanley Cup Final to win the franchise’s... ",
 		},
 	}
 
