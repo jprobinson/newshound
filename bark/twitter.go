@@ -8,6 +8,7 @@ import (
 
 	"github.com/ChimeraCoder/anaconda"
 	"github.com/jprobinson/newshound"
+	"golang.org/x/exp/utf8string"
 )
 
 type TwitterAlertBarker struct {
@@ -61,7 +62,7 @@ func twitterize(msg string) string {
 	msg = strings.Replace(msg, "\n", " ", -1)
 	msg = strings.Replace(msg, ".com", "", -1)
 	if utf8.RuneCountInString(msg) >= 113 {
-		msg = msg[:113] + "... "
+		msg = utf8string.NewString(msg).Slice(0, 113)
 	} else if !strings.HasSuffix(msg, " ") {
 		msg = msg + " "
 	}
