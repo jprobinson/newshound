@@ -516,7 +516,7 @@ var (
 		"FT":                  2,
 		"WSJ.com":             1,
 		"USATODAY.com":        6,
-		"NYTimes.com":         6,
+		"NYTimes.com":         3,
 		"The Washington Post": 2,
 		"FoxNews.com":         0,
 		"NPR":                 3,
