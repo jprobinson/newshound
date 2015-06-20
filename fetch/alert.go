@@ -68,7 +68,7 @@ func NewNewsAlert(msg eazye.Email, address string) (newshound.NewsAlert, error) 
 		return na, err
 	}
 
-	news := findNews(text, address)
+	news := findNews(text, address, sender)
 	if _, bad := badSubjects[sender]; !bad {
 		news = periodCheck(news)
 		news = append(news, blankSpace...)
@@ -88,7 +88,7 @@ func ReParseNewsAlert(na newshound.NewsAlert, address string) (newshound.NewsAle
 		return na, err
 	}
 
-	news := findNews(text, address)
+	news := findNews(text, address, na.Sender)
 	if _, bad := badSubjects[na.Sender]; !bad {
 		news = periodCheck(news)
 		news = append(news, blankSpace...)
@@ -114,7 +114,7 @@ func periodCheck(line []byte) []byte {
 	return line
 }
 
-func findNews(text [][]byte, address string) []byte {
+func findNews(text [][]byte, address, sender string) []byte {
 	// prep the address for searching against text
 	addr := []byte(address)
 	addrStart := bytes.SplitN(addr, []byte("@"), 2)[0]
@@ -125,9 +125,10 @@ func findNews(text [][]byte, address string) []byte {
 
 	var news [][]byte
 	badLines := 0
+	senderBytes := bytes.ToLower([]byte(sender))
 	for _, line := range text {
 		line := bytes.Trim(line, "-| ?")
-		if isNews(line, addr, addrStart) {
+		if isNews(line, addr, addrStart, senderBytes) {
 			badLines = 0
 			news = append(news, line)
 
@@ -295,7 +296,7 @@ var (
 	facebook     = []byte("facebook")
 )
 
-func isNews(line []byte, address []byte, addrStart []byte) bool {
+func isNews(line []byte, address []byte, addrStart, sender []byte) bool {
 	// less than 5 chars? very likely crap
 	if len(line) < 5 {
 		return false
@@ -303,6 +304,11 @@ func isNews(line []byte, address []byte, addrStart []byte) bool {
 
 	lower := bytes.ToLower(line)
 	if bytes.HasPrefix(lower, nationalJunk) && bytes.Contains(lower, dotJunk) {
+		return false
+	}
+
+	// if it's just the sender and little else, likely crap
+	if len(bytes.Replace(lower, sender, []byte{}, -1)) < 5 {
 		return false
 	}
 
