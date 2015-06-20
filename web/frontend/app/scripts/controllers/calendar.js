@@ -127,6 +127,7 @@ angular.module('newshoundApp')
                 if (fetchInProgress) {
                     // fogetaboutit
                     callback();
+                    return;
                 }
                 fetchInProgress = true;
                 var promise;
