@@ -492,6 +492,7 @@ func findSender(from *mail.Address) string {
 var (
 	unsubText = [][]byte{
 		[]byte("unsubscribe"),
+		[]byte("UNSUBSCRIBE"),
 		[]byte("Unsubscribe"),
 		[]byte("dyn.politico.com"),
 		[]byte("email.foxnews.com"),
