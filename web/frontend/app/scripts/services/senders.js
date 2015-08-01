@@ -18,5 +18,6 @@ angular.module('newshoundApp')
 		ft: '#FFF1E0',
 		bbc: '#c00000',
         npr: '#5f82be',
-        bloombergcom: '#110c09'
+        bloombergcom: '#110c09',
+        time: '#e90606'
 	}).value('senders', {});

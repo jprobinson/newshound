@@ -163,6 +163,20 @@ th .glyphicon {
 .ui-dialog .ui-widget-content {
     background: white;
 }
+.time,
+.time div {
+    background: white;
+    border-color: #e90606;
+    color: #e90606;
+}
+.time .fc-event-time,
+.time-header,
+.time-header .close,
+.time .ui-dialog-titlebar {
+    background: #e90606;
+    border-color: white;
+    color: white;
+}
 .cnn,
 .cnn div {
     background: white;

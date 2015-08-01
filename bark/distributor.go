@@ -196,4 +196,5 @@ var SenderColors = map[string]string{
 	"npr":                 "#5f82be",
 	"time":                "#e90606",
 	"bloomberg.com":       "#110c09",
+	"time":                "#e90606",
 }
