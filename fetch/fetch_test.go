@@ -6,6 +6,61 @@ import (
 	"testing"
 )
 
+func TestReplaceHREFs(t *testing.T) {
+	tests := []struct {
+		given string
+		want  string
+	}{
+		{
+			`<html>
+				<body>
+					<div>
+					random text
+					</div>
+					<div>
+						<a class="dummy" href="http://newshound.test.link.com">a link to http://something.com/123!</a>
+					</div>
+					<ol>
+						<li>
+						<a style="display:none; font-family:'some font families'; color:red;" href="http://newshound.test.link.com/123">another link!</a>
+						</li>
+					</ol>
+				</body>
+			</html>`,
+			`<html>
+				<body>
+					<div>
+					random text
+					</div>
+					<div>
+						<a href="#" style="" class="dummy">a link to </a>
+					</div>
+					<ol>
+						<li>
+						<a href="#" style="display:none; font-family:'some font families'; color:red;" class="">another link!</a>
+						</li>
+					</ol>
+				</body>
+			</html>`,
+		},
+		{
+			`A plain text email with a simple link <a href="http://newshound.test.link.com">a link!</a>`,
+			`A plain text email with a simple link <a href="#" style="" class="">a link!</a>`,
+		},
+		{
+			`A plain text email with a simple url http://newshound.test.link.com`,
+			`A plain text email with a simple url `,
+		},
+	}
+
+	for _, test := range tests {
+		got := replaceHREFs([]byte(test.given))
+		if string(got) != test.want {
+			t.Errorf("replaceHREFs() got:\n%s\nwant:\n%s", got, test.want)
+		}
+	}
+}
+
 func TestFindHREFs(t *testing.T) {
 	tests := []struct {
 		given string

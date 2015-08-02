@@ -2,6 +2,7 @@ package fetch
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"log"
 	"net/mail"
@@ -81,6 +82,7 @@ func NewNewsAlert(msg eazye.Email, address string) (newshound.NewsAlert, error) 
 func ReParseNewsAlert(na newshound.NewsAlert, address string) (newshound.NewsAlert, error) {
 	body := []byte(na.RawBody)
 	na.ArticleUrl = findArticleUrl(na.Sender, body)
+	na.Body = scrubBody(body, address)
 
 	text, err := eazye.VisibleText(body)
 	if err != nil {
@@ -513,6 +515,7 @@ func scrubBody(body []byte, address string) string {
 	body = bytes.Replace(body, []byte(address), emptyString, -1)
 	name := []byte(strings.Split(address, "@")[0])
 	body = bytes.Replace(body, name, emptyString, -1)
+	body = replaceHREFs(body)
 	return string(body)
 }
 
@@ -584,11 +587,60 @@ func findArticleUrl(sender string, body []byte) string {
 var (
 	anchorTag  = []byte("a")
 	hrefAttr   = []byte("href")
+	classAttr  = []byte("class")
+	styleAttr  = []byte("style")
 	httpPrefix = []byte("http")
+	blank      = []byte("")
 
 	urlRegex = regexp.MustCompile(`http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+`)
 )
 
+func replaceHREFs(body []byte) []byte {
+	z := html.NewTokenizer(bytes.NewReader(body))
+	var out bytes.Buffer
+loop:
+	for {
+		tt := z.Next()
+		switch tt {
+		case html.ErrorToken:
+			if err := z.Err(); err != nil && err != io.EOF {
+				log.Print("unexpected error parsing html: ", err)
+			}
+			break loop
+		case html.TextToken:
+			// replace all URLs in the text
+			out.Write(urlRegex.ReplaceAll(z.Raw(), blank))
+		case html.StartTagToken:
+			tn, hasAttr := z.TagName()
+			if bytes.Equal(tn, anchorTag) && hasAttr {
+				// keep the styling, drop everything else
+				var class string
+				var style string
+				for {
+					key, val, more := z.TagAttr()
+					if bytes.Equal(classAttr, key) {
+						class = string(val)
+					}
+					if bytes.Equal(styleAttr, key) {
+						style = string(val)
+					}
+					if !more {
+						break
+					}
+				}
+				// write our fake anchor tag
+				fmt.Fprintf(&out, `<a href="#" style="%s" class="%s">`, style, class)
+				continue
+			}
+			// just write what we got if not an anchor
+			out.Write(z.Raw())
+		default:
+			out.Write(z.Raw())
+		}
+	}
+
+	return out.Bytes()
+}
 func findHREFs(body []byte) []string {
 	var hrefs []string
 
