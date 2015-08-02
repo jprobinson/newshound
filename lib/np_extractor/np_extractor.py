@@ -15,7 +15,7 @@ STOP_WORDS = stopwords.words('english') + [ u'—', u'»', u'000', u'8211',
         u'aug', u'august', u'bbc', u'begin', u'believe', u'break', u'breaking',
         u'breaking news', u'bloomberg.com', u'case', u'cbs', u'cbsnews', u'cbsnewscom',
         u'[cbsnews] u', u'cbss', u'cdt', u'charged', u'charges', u'cite', u'coverage',
-        u'cites', u'citing', u'cliff', u'cnn', u'cnncom', u'cnn mobile',
+        u'cites', u'citing', u'cliff', u'cnn', u'cnncom', u'cnn mobile', u'cnn tv',
         u'come', u'congress', u'control', u'counts', u'cst', u'ct', u'cut',
         u'day', u'days', u'deal', u'dealbook','dealbook alert', u'dec',
         u'december', u'democrat', u'earn', u'east', u'edt', u'emailfoxnews',
@@ -45,7 +45,7 @@ STOP_WORDS = stopwords.words('english') + [ u'—', u'»', u'000', u'8211',
         u'trading', u'tue', u'tues', u'tuesday', u'two', u'wsj newalert', 
         u'wsj news', u'\'s',u"'s", u'undisclosed', u'unsubscribe', u'unveil',
         u'usatoday', u'usatoday.com', u'washington', u'washington post',
-        u'washingtonpost', u'watch', u'watch live', u'way', u'wed',
+        u'washingtonpost', u'watch', u'watch cnngo', u'watch live', u'way', u'wed',
         u'wednesday', u'week', u'west', u'without', u'wnbc', u'wsj', 
         u'wsj news alert', u'year', u'years', u'pm edt']
 
@@ -95,7 +95,7 @@ class NPExtractor(object):
         return re.split(r'[ \t\n]+', sentence)
 
     def __filter_tag(self,tag):
-        return (tag.encode('utf-8').lower() not in STOP_WORDS) and ("=" not in tag) and (len(tag.strip()) > 0) and (not TIME_REGEX.match(tag)) 
+        return (tag.encode('utf-8').lower() not in STOP_WORDS) and ("=" not in tag) and (len(tag.strip()) > 0) and (not TIME_REGEX.match(tag))
 
     def __clean_tag(self,tag):
         clean_tag = tag.strip()
@@ -115,6 +115,11 @@ class NPExtractor(object):
 
         if clean_tag.endswith("'") or clean_tag.endswith('"') or clean_tag.endswith(u'”') or clean_tag.endswith(u'’'):
             clean_tag = clean_tag[:-1]
+
+        # if it only has 1 period and it's at the end, remove it
+        if clean_tag.endswith(".") and clean_tag.count(".") == 1:
+            clean_tag = clean_tag[:-1]
+
 
         return clean_tag
 
