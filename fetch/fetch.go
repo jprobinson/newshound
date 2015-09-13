@@ -32,9 +32,11 @@ func FetchMail(cfg *newshound.Config, sess *mgo.Session) {
 	}
 
 	// give it 1000 buffer so we can load whatever IMAP throws at us in memory
-	mail := make(chan eazye.Response, 1000)
 	alerts := make(chan newshound.NewsAlert, 100)
-	go eazye.GenerateUnread(cfg.MailboxInfo, cfg.MarkRead, false, mail)
+	mail, err := eazye.GenerateUnread(cfg.MailboxInfo, cfg.MarkRead, false)
+	if err != nil {
+		log.Fatal("unable to get mail: ", err)
+	}
 
 	var parsers sync.WaitGroup
 	for i := 0; i < procs; i++ {
