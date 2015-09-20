@@ -614,15 +614,15 @@ loop:
 			tn, hasAttr := z.TagName()
 			if bytes.Equal(tn, anchorTag) && hasAttr {
 				// keep the styling, drop everything else
-				var class string
-				var style string
+				var class []byte
+				var style []byte
 				for {
 					key, val, more := z.TagAttr()
 					if bytes.Equal(classAttr, key) {
-						class = string(val)
+						class = val
 					}
 					if bytes.Equal(styleAttr, key) {
-						style = string(val)
+						style = val
 					}
 					if !more {
 						break
