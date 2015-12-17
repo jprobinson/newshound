@@ -84,7 +84,7 @@ func ReParseNewsAlert(na newshound.NewsAlert, address string) (newshound.NewsAle
 	na.ArticleUrl = findArticleUrl(na.Sender, body)
 	na.Body = scrubBody(body, address)
 
-	text, err := eazye.VisibleText(body)
+	text, err := eazye.VisibleText(bytes.NewReader(body))
 	if err != nil {
 		log.Print("unable to get visible text: ", err)
 		return na, err
