@@ -2,6 +2,7 @@
 Newshound: The Breaking News Email Aggregator
 =========
 [![GoDoc](https://godoc.org/github.com/jprobinson/newshound?status.svg)](https://godoc.org/github.com/jprobinson/newshound)
+[![Build Status](https://travis-ci.org/jprobinson/newshound.svg?branch=master)](https://travis-ci.org/jprobinson/newshound)
 
 Newshound is a tool to analyze, visualize and share breaking news email alerts.
 
