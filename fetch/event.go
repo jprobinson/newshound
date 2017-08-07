@@ -2,6 +2,7 @@ package fetch
 
 import (
 	"bytes"
+	"context"
 	"encoding/gob"
 	"fmt"
 	"log"
@@ -12,9 +13,6 @@ import (
 
 	"github.com/bitly/go-nsq"
 	"github.com/jprobinson/newshound"
-
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
 )
 
 var (
@@ -26,26 +24,24 @@ var (
 
 	minAlerts = 3
 
-	minLikeTags = 2
+	minLikePhrases = 2
 )
 
 func minOccurances(alertCount int) int {
 	return int(math.Max(math.Ceil(float64(alertCount)*minOccurPerc), 2.0))
 }
 
-func EventRefresh(na *mgo.Collection, ne *mgo.Collection, eventTime time.Time, producer *nsq.Producer) error {
+func EventRefresh(ctx context.Context, db DB, eventTime time.Time, producer *nsq.Producer) error {
 	// find all alerts within a event timeframe of the given time and refresh the events
 	start := eventTime.Add(-eventTimeframe)
 	end := eventTime.Add(eventTimeframe)
-	query := bson.M{"timestamp": bson.M{"$gte": start, "$lte": end}}
-	var eligible []newshound.NewsAlert
-	err := na.Find(query).All(&eligible)
+	eligible, err := db.FindAlertsByTimeframe(ctx, start, end)
 	if err != nil {
 		return err
 	}
 
 	for _, alert := range eligible {
-		if err = UpdateEvents(na, ne, alert, producer); err != nil {
+		if err = UpdateEvents(ctx, db, alert, producer); err != nil {
 			return err
 		}
 	}
@@ -53,9 +49,8 @@ func EventRefresh(na *mgo.Collection, ne *mgo.Collection, eventTime time.Time, p
 	return nil
 }
 
-func UpdateEvents(na *mgo.Collection, ne *mgo.Collection, a newshound.NewsAlert, producer *nsq.Producer) error {
-
-	cluster, tags, err := findLikeAlertCluster(na, a)
+func UpdateEvents(ctx context.Context, db DB, a *newshound.NewsAlert, producer *nsq.Producer) error {
+	cluster, tags, err := findLikeAlertCluster(ctx, db, a)
 	if err != nil {
 		return fmt.Errorf("unable to create possible alert cluster for event: %s", err)
 	}
@@ -66,35 +61,37 @@ func UpdateEvents(na *mgo.Collection, ne *mgo.Collection, a newshound.NewsAlert,
 	}
 
 	// grab any events related to the alerts we've got (where alertID in $alerts)
-	var existingEvents []newshound.NewsEvent
-	query := bson.M{"news_alerts.alert_id": bson.M{"$in": cluster}}
-	err = ne.Find(query).All(&existingEvents)
-
-	// merge any existing alerts into ours, reuse id if possible
-	eventID, newID, eventUpdate, alertIDs, eventTags, staleEventIDs := mergeEvents(cluster, tags, existingEvents)
-
-	// get the data of all the alerts
-	var nas []newshound.NewsAlert
-	err = na.Find(bson.M{"_id": bson.M{"$in": alertIDs}}).All(&nas)
+	existingEvents, err := db.FindEventsByAlertIDs(ctx, cluster)
 	if err != nil {
 		return err
 	}
+
+	// merge any existing alerts into ours, reuse id if possible
+	eventID, newID, eventUpdate, alertIDs, eventPhrases, staleEventIDs := mergeEvents(cluster, tags, existingEvents)
+
+	// get the data of all the alerts
+	nas, err := db.GetAlertsByID(ctx, alertIDs)
+	if err != nil {
+		return err
+	}
+
 	// we need at least 3 alerts total
 	if len(nas) <= 2 {
-		//log.Printf("does not have enough alerts! %#v", eventTags)
+		//log.Printf("does not have enough alerts! %#v", eventPhrases)
 		return nil
 	}
 
 	// verify it has the min sender count
 	if !hasMinSenders(nas) {
-		//log.Printf("does not have enough senders! %#v", eventTags)
+		//log.Printf("does not have enough senders! %#v", eventPhrases)
 		return nil
 	}
 
 	// create the event (all the metrics and sorting and whatnot and save it
-	event := NewNewsEvent(eventID, nas, eventTags)
-	log.Printf("event found with %d alerts and tags: %#v", len(event.NewsAlerts), event.Tags)
-	_, err = ne.UpsertId(event.ID, event)
+	event := NewNewsEvent(eventID, nas, eventPhrases)
+	log.Printf("event found with %d alerts and tags: %#v", len(event.NewsAlerts), event.TopPhrases)
+
+	err = db.UpsertEvent(ctx, event)
 	if err != nil {
 		return err
 	}
@@ -127,12 +124,12 @@ func UpdateEvents(na *mgo.Collection, ne *mgo.Collection, a newshound.NewsAlert,
 
 	// clean up stale events
 	if len(staleEventIDs) > 0 {
-		_, err = ne.RemoveAll(bson.M{"_id": bson.M{"$in": staleEventIDs}})
+		err = db.DeleteEvents(ctx, staleEventIDs)
 	}
 	return err
 }
 
-func hasMinSenders(alerts []newshound.NewsAlert) bool {
+func hasMinSenders(alerts []*newshound.NewsAlert) bool {
 	senders := map[string]struct{}{}
 	for _, alert := range alerts {
 		senders[alert.Sender] = struct{}{}
@@ -141,7 +138,7 @@ func hasMinSenders(alerts []newshound.NewsAlert) bool {
 	return len(senders) >= minSenders
 }
 
-func NewNewsEvent(id bson.ObjectId, alerts []newshound.NewsAlert, eventTags []string) newshound.NewsEvent {
+func NewNewsEvent(id int64, alerts []*newshound.NewsAlert, eventPhrases []string) *newshound.NewsEvent {
 	// sort by timestamp
 	sort.Sort(naByTimestamp(alerts))
 
@@ -157,29 +154,28 @@ func NewNewsEvent(id bson.ObjectId, alerts []newshound.NewsAlert, eventTags []st
 	var eas []newshound.NewsEventAlert
 	for order, a := range alerts {
 		for _, s := range a.Sentences {
-			alertTagCount := 0
+			alertPhraseCount := 0
 			for _, phrase := range s.Phrases {
-				for _, tag := range eventTags {
+				for _, tag := range eventPhrases {
 					// increment the score for any tag/phrase intersection
 					if strings.EqualFold(tag, phrase) {
-						alertTagCount++
+						alertPhraseCount++
 					}
 				}
 			}
 
-			if alertTagCount > topCount {
+			if alertPhraseCount > topCount {
 				topSender = a.Sender
 				topSentence = s.Value
-				topCount = alertTagCount
+				topCount = alertPhraseCount
 			}
 		}
 
 		ea := newshound.NewsEventAlert{
 			AlertID:     a.ID,
-			InstanceID:  a.InstanceID,
 			ArticleUrl:  a.ArticleUrl,
 			Sender:      a.Sender,
-			Tags:        a.Tags,
+			TopPhrases:  a.TopPhrases,
 			Subject:     a.Subject,
 			TopSentence: a.TopSentence,
 			TimeLapsed:  int64(a.Timestamp.Sub(start).Seconds()),
@@ -187,10 +183,10 @@ func NewNewsEvent(id bson.ObjectId, alerts []newshound.NewsAlert, eventTags []st
 		}
 		eas = append(eas, ea)
 	}
-	sort.Strings(eventTags)
-	return newshound.NewsEvent{
+	sort.Strings(eventPhrases)
+	return &newshound.NewsEvent{
 		ID:          id,
-		Tags:        eventTags,
+		TopPhrases:  eventPhrases,
 		EventStart:  start,
 		EventEnd:    end,
 		NewsAlerts:  eas,
@@ -199,37 +195,37 @@ func NewNewsEvent(id bson.ObjectId, alerts []newshound.NewsAlert, eventTags []st
 	}
 }
 
-type naByTimestamp []newshound.NewsAlert
+type naByTimestamp []*newshound.NewsAlert
 
 func (n naByTimestamp) Len() int           { return len(n) }
 func (n naByTimestamp) Swap(i, j int)      { n[i], n[j] = n[j], n[i] }
 func (n naByTimestamp) Less(i, j int) bool { return n[j].Timestamp.After(n[i].Timestamp) }
 
-func mergeEvents(alerts []bson.ObjectId, tags []string, events []newshound.NewsEvent) (eventID bson.ObjectId, newID bool, eventUpdated bool, eventAlerts []bson.ObjectId, eventTags []string, staleEventIDs []bson.ObjectId) {
+func mergeEvents(alerts []int64, phrases []string, events []*newshound.NewsEvent) (eventID int64, newID bool, eventUpdated bool, eventAlerts []int64, eventPhrases []string, staleEventIDs []int64) {
 	originalEventSize := 0
 	// add IDs of new event cluster
-	idSet := map[string]struct{}{}
+	idSet := map[int64]struct{}{}
 	for _, alert := range alerts {
-		idSet[alert.Hex()] = struct{}{}
+		idSet[alert] = struct{}{}
 	}
-	// add tags to event set
-	tagSet := map[string]struct{}{}
-	for _, tag := range tags {
-		tagSet[tag] = struct{}{}
+	// add phrases to event set
+	phraseSet := map[string]struct{}{}
+	for _, phrase := range phrases {
+		phraseSet[phrase] = struct{}{}
 	}
 
 	// default to way in future to grab oldest date
 	oldest := time.Now().Add(10 * 24 * 365 * time.Hour)
 	// grab all event IDs so we can remove stale ones afterwards
-	var eventIDs []bson.ObjectId
+	var eventIDs []int64
 
-	// add all IDs and tags to sets
+	// add all IDs and phrases to sets
 	for _, event := range events {
 		for _, alert := range event.NewsAlerts {
-			idSet[alert.AlertID.Hex()] = struct{}{}
+			idSet[alert.AlertID] = struct{}{}
 		}
-		for _, tag := range event.Tags {
-			tagSet[tag] = struct{}{}
+		for _, phrase := range event.TopPhrases {
+			phraseSet[phrase] = struct{}{}
 		}
 		// grab the id of the oldest event
 		if oldest.After(event.EventStart) {
@@ -242,143 +238,126 @@ func mergeEvents(alerts []bson.ObjectId, tags []string, events []newshound.NewsE
 
 	// remove the event we're going to keep
 	for _, eID := range eventIDs {
-		if eID.Hex() != eventID.Hex() {
+		if eID != eventID {
 			staleEventIDs = append(staleEventIDs, eID)
 		}
 	}
 
 	// make the event ID if we dont have one
-	if len(eventID.Hex()) == 0 {
+	if eventID == 0 {
 		newID = true
-		eventID = bson.NewObjectId()
 	}
 
 	// convert all ids to objectids
 	for id, _ := range idSet {
-		eventAlerts = append(eventAlerts, bson.ObjectIdHex(id))
+		eventAlerts = append(eventAlerts, id)
 	}
 
 	// generate tag output list
-	for tag, _ := range tagSet {
-		eventTags = append(eventTags, tag)
+	for phrase, _ := range phraseSet {
+		eventPhrases = append(eventPhrases, phrase)
 	}
 
 	eventUpdated = len(eventAlerts) > originalEventSize
-	return eventID, newID, eventUpdated, eventAlerts, eventTags, staleEventIDs
+	return eventID, newID, eventUpdated, eventAlerts, eventPhrases, staleEventIDs
 }
 
-func findLikeAlertCluster(na *mgo.Collection, a newshound.NewsAlert) (alerts []bson.ObjectId, tags []string, err error) {
-	var possible []newshound.NewsAlert
+func findLikeAlertCluster(ctx context.Context, db DB, a *newshound.NewsAlert) (alerts []int64, phrases []string, err error) {
 	// find any alerts in the eventTimeframe
-	possible, err = findPossibleLikeAlerts(na, a)
+	possible, err := db.FindPossibleLikeAlerts(ctx, a)
 	if err != nil {
-		return alerts, tags, err
+		return alerts, phrases, err
 	}
 
 	// build tag map around main alert's tags
-	tagCounts := buildTagCounts(a.Tags, possible)
+	phraseCounts := buildPhraseCounts(a.TopPhrases, possible)
 
 	// calc min tag limit
 	minOccurs := minOccurances(len(possible))
 
 	// filter out any tags that do not meet the limit
-	for tag, count := range tagCounts {
+	for phrase, count := range phraseCounts {
 		if count <= minOccurs {
-			delete(tagCounts, tag)
+			delete(phraseCounts, phrase)
 		}
 	}
 
 	// we need at least 2 tags for an event
-	if len(tagCounts) < 2 {
-		return alerts, tags, nil
+	if len(phraseCounts) < 2 {
+		return alerts, phrases, nil
 	}
 
 	// make sure main alert goes the the same filtering
 	possible = append(possible, a)
 
-	// filter out any alerts that do not have minLikeTags
+	// filter out any alerts that do not have minLikePhrases
 	for _, alert := range possible {
-		likeTags := 0
-		tagScore := 0
-		for _, tag := range alert.Tags {
-			if count, ok := tagCounts[tag]; ok {
-				likeTags++
-				tagScore += count
+		likePhrases := 0
+		phraseScore := 0
+		for _, phrase := range alert.TopPhrases {
+			if count, ok := phraseCounts[phrase]; ok {
+				likePhrases++
+				phraseScore += count
 			}
 		}
 
-		if likeTags >= minLikeTags {
+		if likePhrases >= minLikePhrases {
 			alerts = append(alerts, alert.ID)
 			continue
 		}
 
-		if likeTags >= len(possible) {
-			//log.Printf("made it on tag count? %d - %d - %d - %d - %s - %s", len(possible), minLikeTags, likeTags, tagScore, alert.Sender, alert.Tags)
+		if likePhrases >= len(possible) {
 			alerts = append(alerts, alert.ID)
 			continue
 		}
 
-		if float32(tagScore) >= float32(len(possible))*(1.2) {
-			//log.Printf("made it on tag score? %d - %d - %d - %d - %s - %s", len(possible), minLikeTags, likeTags, tagScore, alert.Sender, alert.Tags)
+		if float32(phraseScore) >= float32(len(possible))*(1.2) {
 			alerts = append(alerts, alert.ID)
 			continue
 		}
 	}
 
-	for tag, _ := range tagCounts {
-		tags = append(tags, tag)
+	for phrase, _ := range phraseCounts {
+		phrases = append(phrases, phrase)
 	}
 
-	return alerts, tags, nil
+	return alerts, phrases, nil
 }
 
-func findPossibleLikeAlerts(na *mgo.Collection, a newshound.NewsAlert) (possible []newshound.NewsAlert, err error) {
-	// find any alerts within a  timeframe
-	start := a.Timestamp.Add(-eventTimeframe)
-	end := a.Timestamp.Add(eventTimeframe)
-	query := bson.M{"timestamp": bson.M{"$gte": start, "$lte": end}, "_id": bson.M{"$ne": a.ID}, "tags": bson.M{"$in": a.Tags}}
-	err = na.Find(query).All(&possible)
-	if err != nil {
-		return possible, err
-	}
-
-	return possible, err
-}
-
-func buildTagCounts(mainTags []string, alerts []newshound.NewsAlert) (tagCounts map[string]int) {
-	tagCounts = map[string]int{}
-	// seed the map with the main alert's tags
-	for _, tag := range mainTags {
-		tagCounts[tag] = 1
+func buildPhraseCounts(mainPhrases []string, alerts []*newshound.NewsAlert) (phraseCounts map[string]int) {
+	phraseCounts = map[string]int{}
+	// seed the map with the main alert's phrases
+	for _, phrase := range mainPhrases {
+		phraseCounts[phrase] = 1
 	}
 	// increment the map for any matches and add any new partial matches
 	// N^2 ...better way?
 	for _, alert := range alerts {
-		for _, tag := range alert.Tags {
-			// check if each tag matches any of our seeds
+		for _, phrase := range alert.TopPhrases {
+			// check if each phrase matches any of our seeds
 			toIncrement := map[string]struct{}{}
-			for existing, _ := range tagCounts {
+			for existing, _ := range phraseCounts {
 				// exact equality check
-				if strings.EqualFold(existing, tag) {
+				if strings.EqualFold(existing, phrase) {
 					toIncrement[existing] = struct{}{}
 					break
 				}
 
 				// partial match check
-				if partialMatch(existing, tag) {
+				if partialMatch(existing, phrase) {
 					toIncrement[existing] = struct{}{}
-					toIncrement[tag] = struct{}{}
+					toIncrement[phrase] = struct{}{}
 				}
 			}
 
-			// increment all elgibile tags
+			// increment all elgibile phrases
 			for toInc, _ := range toIncrement {
-				tagCounts[toInc]++
+				phraseCounts[toInc]++
 			}
 		}
 	}
 
-	return tagCounts
+	return phraseCounts
 }
 
 func partialMatch(a, b string) bool {

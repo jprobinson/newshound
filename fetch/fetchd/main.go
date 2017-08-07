@@ -1,15 +1,18 @@
 package main
 
 import (
+	"context"
+	"database/sql"
 	"flag"
 	"log"
 	"time"
 
 	"github.com/jprobinson/go-utils/utils"
-	"gopkg.in/mgo.v2"
 
 	"github.com/jprobinson/newshound"
 	"github.com/jprobinson/newshound/fetch"
+
+	_ "github.com/lib/pq"
 )
 
 const logPath = "/var/log/newshound/fetchd.log"
@@ -23,6 +26,8 @@ func main() {
 
 	flag.Parse()
 
+	ctx := context.Background()
+
 	if *logArg != "stderr" {
 		logSetup := utils.NewDefaultLogSetup(*logArg)
 		logSetup.SetupLogging()
@@ -33,24 +38,24 @@ func main() {
 
 	config := newshound.NewConfig()
 
-	sess, err := config.MgoSession()
+	db, err := config.DB()
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer sess.Close()
+	defer db.Close()
 
 	if *reparse {
-		if err := fetch.ReParse(config, sess); err != nil {
+		if err := fetch.ReParse(ctx, config, fetch.NewDB(db)); err != nil {
 			log.Fatal(err)
 		}
 		return
 	}
 
-	go fetchMail(config, sess)
+	go fetchMail(ctx, config, db)
 
-	mapReduce(sess)
 }
 
+/*
 func mapReduce(sess *mgo.Session) {
 	for {
 		err := fetch.MapReduce(sess)
@@ -64,10 +69,11 @@ func mapReduce(sess *mgo.Session) {
 		time.Sleep(1 * time.Hour)
 	}
 }
+*/
 
-func fetchMail(config *newshound.Config, sess *mgo.Session) {
+func fetchMail(ctx context.Context, config *newshound.Config, db *sql.DB) {
 	for {
-		fetch.FetchMail(config, sess)
+		fetch.FetchMail(ctx, config, fetch.NewDB(db))
 		time.Sleep(30 * time.Second)
 	}
 }
