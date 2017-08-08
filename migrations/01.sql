@@ -554,3 +554,24 @@ ALTER TABLE ONLY event
 -- PostgreSQL database dump complete
 --
 
+INSERT INTO sender
+    (name, url_index, color)
+    VALUES
+    ('cnn', -1, 'B60002'),
+    ('foxnews.com', 0, '234E6C'),
+    ('foxbusiness.com', -1, '343434'),
+    ('nbcnews.com', -1, '343434'),
+    ('nytimes.com', 3, '1A1A1A'),
+    ('the washington post', 2, '222'),
+    ('wsj.com', 1, '444242'),
+    ('politico', -1, '256396'),
+    ('los angeles times', -1, '000'),
+    ('cbs', 2,  '313943'),
+    ('abc', -1, '1b6295'),
+    ('usatoday.com', 6, '1877B6'),
+    ('yahoo', -1, '7B0099'),
+    ('ft', 2, 'FFF1E0'),
+    ('bbc', 4, 'c00000'),
+    ('npr', 3,  '5f82be'),
+    ('time', -1,  'e90606'),
+    ('bloomberg.com', -1, '110c09');

@@ -29,6 +29,7 @@ const (
 type Config struct {
 	DBHost     string `json:"db-host"`
 	DBUser     string `json:"db-user"`
+	DBName     string `json:"db-name"`
 	DBPassword string `json:"db-pw"`
 
 	MarkRead          bool `json:"mark_as_read"`
@@ -59,8 +60,8 @@ type Config struct {
 }
 
 func (c *Config) DB() (*sql.DB, error) {
-	db, err := sql.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s/newshound",
-		c.DBUser, c.DBPassword, c.DBHost))
+	db, err := sql.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable",
+		c.DBUser, c.DBPassword, c.DBHost, c.DBName))
 	return db, errors.Wrap(err, "unable to connect to DB")
 }
 

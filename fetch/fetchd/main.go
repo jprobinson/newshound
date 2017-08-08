@@ -51,8 +51,7 @@ func main() {
 		return
 	}
 
-	go fetchMail(ctx, config, db)
-
+	fetchMail(ctx, config, db)
 }
 
 /*
