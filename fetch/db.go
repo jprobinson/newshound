@@ -31,6 +31,7 @@ func NewDB(db sqliface.Execer) DB {
 
 func (p *pq) PutAlert(ctx context.Context, a *newshound.NewsAlert) error {
 	// start transaction ?
+
 	// save alert, get ID from result
 	const ins = `INSERT INTO newshound.alert
 	(sender_id, url, "timestamp", top_phrases, subject, raw_body, body)
@@ -97,6 +98,18 @@ func (p *pq) FindPossibleLikeAlerts(context.Context, *newshound.NewsAlert) ([]*n
 	//	start := a.Timestamp.Add(-eventTimeframe)
 	//	end := a.Timestamp.Add(eventTimeframe)
 	//	query := bson.M{"timestamp": bson.M{"$gte": start, "$lte": end}, "_id": bson.M{"$ne": a.ID}, "tags": bson.M{"$in": a.Tags}}
+	/*
+		const q = `SELECT
+					a.id, a.sender_id, a.url, a.timestamp, a.top_phrases, a.subject, a.raw_body, a.body
+				FROM newshound.alert
+				WHERE a.timestamp between $1 and $2
+				AND a.id != $3
+				AND a.top_phrases @> $4`
+		err := p.db.QueryRow(q,
+			,
+			pql.StringArray(s.Phrases),
+			aid).Scan(&id)
+	*/
 	return nil, nil
 }
 
