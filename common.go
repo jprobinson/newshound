@@ -60,8 +60,10 @@ type Config struct {
 }
 
 func (c *Config) DB() (*sql.DB, error) {
-	db, err := sql.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable",
-		c.DBUser, c.DBPassword, c.DBHost, c.DBName))
+	log.Printf("user=%s password=%s dbname=%s /cloudsql/%s",
+		c.DBUser, c.DBPassword, c.DBName, c.DBHost)
+	db, err := sql.Open("postgres", fmt.Sprintf("user=%s password=%s dbname=%s host=/cloudsql/%s",
+		c.DBUser, c.DBPassword, c.DBName, c.DBHost))
 	return db, errors.Wrap(err, "unable to connect to DB")
 }
 
