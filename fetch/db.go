@@ -93,39 +93,58 @@ func (p *pq) putSentence(ctx context.Context, s *newshound.Sentence, aid int64) 
 
 func (p *pq) FindAlertsByTimeframe(ctx context.Context, start time.Time, end time.Time) ([]*newshound.NewsAlert, error) {
 	const qry = `SELECT
-				sender_id, url, "timestamp", top_phrases, subject, raw_body, body
+				id, sender_id, url, "timestamp", top_phrases, subject, raw_body, body
 				FROM
 				newshound.alert
 				WHERE
-				"timestamp" BETWEEN ? AND ?`
-	err := p.db.QueryContext(ctx, qry, start, end)
+				"timestamp" BETWEEN to_timestamp($1) AND to_timestamp($2)`
+	rows, err := p.db.QueryContext(ctx, qry, start.Unix(), end.Unix())
+	return scanAlerts(rows, err)
+}
 
-	return nil, nil
+func scanAlerts(rows sqliface.Rows, err error) ([]*newshound.NewsAlert, error) {
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to run query")
+	}
+	var alerts []*newshound.NewsAlert
+	for rows.Next() {
+		var a newshound.NewsAlert
+		var phrases pql.StringArray
+		err = rows.Scan(
+			&a.ID,
+			&a.Sender,
+			&a.ArticleUrl,
+			&a.Timestamp,
+			&phrases,
+			&a.Subject,
+			&a.RawBody,
+			&a.Body,
+		)
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to scan alert")
+		}
+		a.TopPhrases = phrases
+
+		alerts = append(alerts, &a)
+	}
+	return alerts, nil
 }
 
 func (p *pq) getSentencesByAlertID(ctx context.Context, alertID int64) ([]*newshound.Sentence, error) {
 	return nil, nil
 }
 
-func (p *pq) FindPossibleLikeAlerts(context.Context, *newshound.NewsAlert) ([]*newshound.NewsAlert, error) {
-	//	start := a.Timestamp.Add(-eventTimeframe)
-	//	end := a.Timestamp.Add(eventTimeframe)
-	//	query := bson.M{"timestamp": bson.M{"$gte": start, "$lte": end},
-	// "_id": bson.M{"$ne": a.ID}, "tags": bson.M{"$in": a.Tags}}
-	/*
-		const q = `SELECT
-					a.id, a.sender_id, a.url, a.timestamp,
-					a.top_phrases, a.subject, a.raw_body, a.body
+func (p *pq) FindPossibleLikeAlerts(ctx context.Context, a *newshound.NewsAlert) ([]*newshound.NewsAlert, error) {
+	const qry = `SELECT
+					id, sender_id, url, "timestamp", top_phrases, subject, raw_body, body
 				FROM newshound.alert
 				WHERE a.timestamp between $1 and $2
 				AND a.id != $3
 				AND a.top_phrases @> $4`
-		err := p.db.QueryRow(q,
-			,
-			pql.StringArray(s.Phrases),
-			aid).Scan(&id)
-	*/
-	return nil, nil
+	start := a.Timestamp.Add(-eventTimeframe)
+	end := a.Timestamp.Add(eventTimeframe)
+	rows, err := p.db.QueryContext(ctx, qry, start, end, a.ID, a.Tags)
+	return scanAlerts(rows, err)
 }
 
 func (p *pq) FindEventsByAlertIDs(context.Context, []int64) ([]*newshound.NewsEvent, error) {
