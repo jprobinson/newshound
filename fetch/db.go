@@ -35,9 +35,12 @@ func (p *pq) PutAlert(ctx context.Context, a *newshound.NewsAlert) error {
 	// save alert, get ID from result
 	const ins = `INSERT INTO newshound.alert
 	(sender_id, url, "timestamp", top_phrases, subject, raw_body, body)
-	VALUES ((SELECT ID FROM newshound.sender WHERE name = lower($1)), $2, NOW() at time zone 'utc', $3, $4, $5, $6)
+	VALUES 
+		((SELECT ID FROM newshound.sender WHERE name = lower($1)), $2, 
+		NOW() at time zone 'utc', $3, $4, $5, $6)
 	RETURNING id`
 	var aid int64
+	// pq forces us to query on insert to get the new ID
 	err := p.db.QueryRow(ins,
 		a.Sender,
 		a.ArticleUrl,
@@ -75,14 +78,12 @@ func (p *pq) PutAlert(ctx context.Context, a *newshound.NewsAlert) error {
 
 func (p *pq) putSentence(ctx context.Context, s *newshound.Sentence, aid int64) (int64, error) {
 	const ins = `INSERT INTO newshound.sentence
-	(text, phrases, alert_id)
-	VALUES ($1, $2, $3)
-	RETURNING id`
+				(text, phrases, alert_id)
+				VALUES ($1, $2, $3)
+				RETURNING id`
 	var id int64
-	err := p.db.QueryRow(ins,
-		s.Value,
-		pql.StringArray(s.Phrases),
-		aid).Scan(&id)
+	err := p.db.QueryRowContext(ctx, ins, s.Value, pql.StringArray(s.Phrases), aid).
+		Scan(&id)
 	if err != nil {
 		return 0, errors.Wrap(err, "unable to insert sentence")
 	}
@@ -90,17 +91,31 @@ func (p *pq) putSentence(ctx context.Context, s *newshound.Sentence, aid int64) 
 	return id, err
 }
 
-func (p *pq) FindAlertsByTimeframe(context.Context, time.Time, time.Time) ([]*newshound.NewsAlert, error) {
+func (p *pq) FindAlertsByTimeframe(ctx context.Context, start time.Time, end time.Time) ([]*newshound.NewsAlert, error) {
+	const qry = `SELECT
+				sender_id, url, "timestamp", top_phrases, subject, raw_body, body
+				FROM
+				newshound.alert
+				WHERE
+				"timestamp" BETWEEN ? AND ?`
+	err := p.db.QueryContext(ctx, qry, start, end)
+
+	return nil, nil
+}
+
+func (p *pq) getSentencesByAlertID(ctx context.Context, alertID int64) ([]*newshound.Sentence, error) {
 	return nil, nil
 }
 
 func (p *pq) FindPossibleLikeAlerts(context.Context, *newshound.NewsAlert) ([]*newshound.NewsAlert, error) {
 	//	start := a.Timestamp.Add(-eventTimeframe)
 	//	end := a.Timestamp.Add(eventTimeframe)
-	//	query := bson.M{"timestamp": bson.M{"$gte": start, "$lte": end}, "_id": bson.M{"$ne": a.ID}, "tags": bson.M{"$in": a.Tags}}
+	//	query := bson.M{"timestamp": bson.M{"$gte": start, "$lte": end},
+	// "_id": bson.M{"$ne": a.ID}, "tags": bson.M{"$in": a.Tags}}
 	/*
 		const q = `SELECT
-					a.id, a.sender_id, a.url, a.timestamp, a.top_phrases, a.subject, a.raw_body, a.body
+					a.id, a.sender_id, a.url, a.timestamp,
+					a.top_phrases, a.subject, a.raw_body, a.body
 				FROM newshound.alert
 				WHERE a.timestamp between $1 and $2
 				AND a.id != $3

@@ -1,577 +1,193 @@
---
--- PostgreSQL database dump
---
+-- Database: newshound
+
+-- DROP DATABASE newshound;
 
 CREATE DATABASE newshound
     WITH 
-    OWNER = newshound
+    OWNER = cloudsqlsuperuser
     ENCODING = 'UTF8'
-    LC_COLLATE = 'en_US.UTF-8'
-    LC_CTYPE = 'en_US.UTF-8'
+    LC_COLLATE = 'en_US.UTF8'
+    LC_CTYPE = 'en_US.UTF8'
     TABLESPACE = pg_default
     CONNECTION LIMIT = -1;
 
--- Dumped from database version 9.6.3
--- Dumped by pg_dump version 9.6.3
+-- SCHEMA: newshound
 
-SET statement_timeout = 0;
-SET lock_timeout = 0;
-SET idle_in_transaction_session_timeout = 0;
-SET client_encoding = 'UTF8';
-SET standard_conforming_strings = on;
-SET check_function_bodies = false;
-SET client_min_messages = warning;
-SET row_security = off;
+-- DROP SCHEMA newshound ;
 
---
--- Name: newshound; Type: SCHEMA; Schema: -; Owner: newshound
---
+CREATE SCHEMA newshound
+    AUTHORIZATION newshound;
 
-CREATE SCHEMA newshound;
-
-
-ALTER SCHEMA newshound OWNER TO postgres;
-
---
--- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
---
-
-CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
-
-
---
--- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
---
-
-COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
-
-
-SET search_path = newshound, pg_catalog;
-
-SET default_tablespace = '';
-
-SET default_with_oids = false;
-
---
--- Name: alert; Type: TABLE; Schema: newshound; Owner: newshound
---
-
-CREATE TABLE alert (
-    id bigint NOT NULL,
-    sender_id integer NOT NULL,
-    url text,
-    "timestamp" timestamp with time zone NOT NULL,
-    top_phrases text[],
-    top_sentence integer NOT NULL,
-    subject text,
-    raw_body text,
-    body text
-);
-
-
-ALTER TABLE alert OWNER TO postgres;
-
---
--- Name: alert_id_seq; Type: SEQUENCE; Schema: newshound; Owner: newshound
---
-
-CREATE SEQUENCE alert_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
+CREATE SEQUENCE newshound.sender_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 93333333333333333
     CACHE 1;
 
+ALTER SEQUENCE newshound.sender_id_seq
+    OWNER TO newshound;
 
-ALTER TABLE alert_id_seq OWNER TO postgres;
-
---
--- Name: alert_id_seq; Type: SEQUENCE OWNED BY; Schema: newshound; Owner: newshound
---
-
-ALTER SEQUENCE alert_id_seq OWNED BY alert.id;
-
-
---
--- Name: alert_sender_id_seq; Type: SEQUENCE; Schema: newshound; Owner: newshound
---
-
-CREATE SEQUENCE alert_sender_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
+CREATE SEQUENCE newshound.sentence_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 93333333333333333
     CACHE 1;
 
+ALTER SEQUENCE newshound.sentence_id_seq
+    OWNER TO newshound;
 
-ALTER TABLE alert_sender_id_seq OWNER TO postgres;
-
---
--- Name: alert_sender_id_seq; Type: SEQUENCE OWNED BY; Schema: newshound; Owner: newshound
---
-
-ALTER SEQUENCE alert_sender_id_seq OWNED BY alert.sender_id;
-
-
---
--- Name: alert_top_sentence_seq; Type: SEQUENCE; Schema: newshound; Owner: newshound
---
-
-CREATE SEQUENCE alert_top_sentence_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
+CREATE SEQUENCE newshound.event_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 93333333333333333
     CACHE 1;
 
+ALTER SEQUENCE newshound.event_id_seq
+    OWNER TO newshound;
 
-ALTER TABLE alert_top_sentence_seq OWNER TO postgres;
-
---
--- Name: alert_top_sentence_seq; Type: SEQUENCE OWNED BY; Schema: newshound; Owner: newshound
---
-
-ALTER SEQUENCE alert_top_sentence_seq OWNED BY alert.top_sentence;
-
-
---
--- Name: event; Type: TABLE; Schema: newshound; Owner: newshound
---
-
-CREATE TABLE event (
-    id bigint NOT NULL,
-    top_phrases text[],
-    start timestamp with time zone NOT NULL,
-    "end" timestamp with time zone NOT NULL,
-    top_sentence bigint NOT NULL,
-    top_sender integer NOT NULL
-);
-
-
-ALTER TABLE event OWNER TO postgres;
-
---
--- Name: event_alert; Type: TABLE; Schema: newshound; Owner: newshound
---
-
-CREATE TABLE event_alert (
-    alert_id bigint NOT NULL,
-    event_id bigint NOT NULL
-);
-
-
-ALTER TABLE event_alert OWNER TO postgres;
-
---
--- Name: event_alert_alert_id_seq; Type: SEQUENCE; Schema: newshound; Owner: newshound
---
-
-CREATE SEQUENCE event_alert_alert_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
+CREATE SEQUENCE newshound.alert_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 93333333333333333
     CACHE 1;
 
-
-ALTER TABLE event_alert_alert_id_seq OWNER TO postgres;
-
---
--- Name: event_alert_alert_id_seq; Type: SEQUENCE OWNED BY; Schema: newshound; Owner: newshound
---
-
-ALTER SEQUENCE event_alert_alert_id_seq OWNED BY event_alert.alert_id;
+ALTER SEQUENCE newshound.alert_id_seq
+    OWNER TO newshound;
 
 
---
--- Name: event_alert_event_id_seq; Type: SEQUENCE; Schema: newshound; Owner: newshound
---
+-- Table: newshound.sender
 
-CREATE SEQUENCE event_alert_event_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
+-- DROP TABLE newshound.sender;
 
-
-ALTER TABLE event_alert_event_id_seq OWNER TO postgres;
-
---
--- Name: event_alert_event_id_seq; Type: SEQUENCE OWNED BY; Schema: newshound; Owner: newshound
---
-
-ALTER SEQUENCE event_alert_event_id_seq OWNED BY event_alert.event_id;
-
-
---
--- Name: event_id_seq; Type: SEQUENCE; Schema: newshound; Owner: newshound
---
-
-CREATE SEQUENCE event_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE event_id_seq OWNER TO postgres;
-
---
--- Name: event_id_seq; Type: SEQUENCE OWNED BY; Schema: newshound; Owner: newshound
---
-
-ALTER SEQUENCE event_id_seq OWNED BY event.id;
-
-
---
--- Name: event_top_sender_seq; Type: SEQUENCE; Schema: newshound; Owner: newshound
---
-
-CREATE SEQUENCE event_top_sender_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE event_top_sender_seq OWNER TO postgres;
-
---
--- Name: event_top_sender_seq; Type: SEQUENCE OWNED BY; Schema: newshound; Owner: newshound
---
-
-ALTER SEQUENCE event_top_sender_seq OWNED BY event.top_sender;
-
-
---
--- Name: event_top_sentence_seq; Type: SEQUENCE; Schema: newshound; Owner: newshound
---
-
-CREATE SEQUENCE event_top_sentence_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE event_top_sentence_seq OWNER TO postgres;
-
---
--- Name: event_top_sentence_seq; Type: SEQUENCE OWNED BY; Schema: newshound; Owner: newshound
---
-
-ALTER SEQUENCE event_top_sentence_seq OWNED BY event.top_sentence;
-
-
---
--- Name: sender; Type: TABLE; Schema: newshound; Owner: newshound
---
-
-CREATE TABLE sender (
-    id integer NOT NULL,
-    name text,
+CREATE TABLE newshound.sender
+(
+    id integer NOT NULL DEFAULT nextval('sender_id_seq'::regclass),
+    name text COLLATE pg_catalog."default",
     url_index integer,
-    color character varying(6)
-);
+    color character varying(6) COLLATE pg_catalog."default",
+    CONSTRAINT sender_pkey PRIMARY KEY (id)
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
+
+ALTER TABLE newshound.sender
+    OWNER to newshound;
 
 
-ALTER TABLE sender OWNER TO postgres;
+-- Table: newshound.alert
 
---
--- Name: sender_id_seq; Type: SEQUENCE; Schema: newshound; Owner: newshound
---
+-- DROP TABLE newshound.alert;
 
-CREATE SEQUENCE sender_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
+CREATE TABLE newshound.alert
+(
+    id integer NOT NULL DEFAULT nextval('alert_id_seq'::regclass),
+    sender_id integer NOT NULL,
+    url text COLLATE pg_catalog."default",
+    "timestamp" timestamp without time zone NOT NULL,
+    top_phrases text[] COLLATE pg_catalog."default",
+    top_sentence integer,
+    subject text COLLATE pg_catalog."default",
+    raw_body text COLLATE pg_catalog."default",
+    body text COLLATE pg_catalog."default",
+    CONSTRAINT alert_pkey PRIMARY KEY (id),
+    CONSTRAINT fk_alert_sender FOREIGN KEY (sender_id)
+        REFERENCES newshound.sender (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT fk_alert_top_sentence FOREIGN KEY (top_sentence)
+        REFERENCES newshound.sentence (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
 
+ALTER TABLE newshound.alert
+    OWNER to newshound;
 
-ALTER TABLE sender_id_seq OWNER TO postgres;
+-- Table: newshound.sentence
 
---
--- Name: sender_id_seq; Type: SEQUENCE OWNED BY; Schema: newshound; Owner: newshound
---
+-- DROP TABLE newshound.sentence;
 
-ALTER SEQUENCE sender_id_seq OWNED BY sender.id;
-
-
---
--- Name: sentence; Type: TABLE; Schema: newshound; Owner: newshound
---
-
-CREATE TABLE sentence (
-    text text,
-    phrases text[],
+CREATE TABLE newshound.sentence
+(
+    text text COLLATE pg_catalog."default",
+    phrases text[] COLLATE pg_catalog."default",
     alert_id bigint NOT NULL,
-    id bigint NOT NULL
-);
-
-
-ALTER TABLE sentence OWNER TO postgres;
-
---
--- Name: sentence_alert_id_seq; Type: SEQUENCE; Schema: newshound; Owner: newshound
---
-
-CREATE SEQUENCE sentence_alert_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE sentence_alert_id_seq OWNER TO postgres;
-
---
--- Name: sentence_alert_id_seq; Type: SEQUENCE OWNED BY; Schema: newshound; Owner: newshound
---
-
-ALTER SEQUENCE sentence_alert_id_seq OWNED BY sentence.alert_id;
-
-
---
--- Name: sentence_id_seq; Type: SEQUENCE; Schema: newshound; Owner: newshound
---
-
-CREATE SEQUENCE sentence_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE sentence_id_seq OWNER TO postgres;
-
---
--- Name: sentence_id_seq; Type: SEQUENCE OWNED BY; Schema: newshound; Owner: newshound
---
-
-ALTER SEQUENCE sentence_id_seq OWNED BY sentence.id;
-
-
---
--- Name: alert id; Type: DEFAULT; Schema: newshound; Owner: newshound
---
-
-ALTER TABLE ONLY alert ALTER COLUMN id SET DEFAULT nextval('alert_id_seq'::regclass);
-
-
---
--- Name: alert sender_id; Type: DEFAULT; Schema: newshound; Owner: newshound
---
-
-ALTER TABLE ONLY alert ALTER COLUMN sender_id SET DEFAULT nextval('alert_sender_id_seq'::regclass);
-
-
---
--- Name: alert top_sentence; Type: DEFAULT; Schema: newshound; Owner: newshound
---
-
-ALTER TABLE ONLY alert ALTER COLUMN top_sentence SET DEFAULT nextval('alert_top_sentence_seq'::regclass);
-
-
---
--- Name: event id; Type: DEFAULT; Schema: newshound; Owner: newshound
---
-
-ALTER TABLE ONLY event ALTER COLUMN id SET DEFAULT nextval('event_id_seq'::regclass);
-
-
---
--- Name: event top_sentence; Type: DEFAULT; Schema: newshound; Owner: newshound
---
-
-ALTER TABLE ONLY event ALTER COLUMN top_sentence SET DEFAULT nextval('event_top_sentence_seq'::regclass);
-
-
---
--- Name: event top_sender; Type: DEFAULT; Schema: newshound; Owner: newshound
---
-
-ALTER TABLE ONLY event ALTER COLUMN top_sender SET DEFAULT nextval('event_top_sender_seq'::regclass);
-
-
---
--- Name: event_alert alert_id; Type: DEFAULT; Schema: newshound; Owner: newshound
---
-
-ALTER TABLE ONLY event_alert ALTER COLUMN alert_id SET DEFAULT nextval('event_alert_alert_id_seq'::regclass);
-
-
---
--- Name: event_alert event_id; Type: DEFAULT; Schema: newshound; Owner: newshound
---
-
-ALTER TABLE ONLY event_alert ALTER COLUMN event_id SET DEFAULT nextval('event_alert_event_id_seq'::regclass);
-
-
---
--- Name: sender id; Type: DEFAULT; Schema: newshound; Owner: newshound
---
-
-ALTER TABLE ONLY sender ALTER COLUMN id SET DEFAULT nextval('sender_id_seq'::regclass);
-
-
---
--- Name: sentence alert_id; Type: DEFAULT; Schema: newshound; Owner: newshound
---
-
-ALTER TABLE ONLY sentence ALTER COLUMN alert_id SET DEFAULT nextval('sentence_alert_id_seq'::regclass);
-
-
---
--- Name: sentence id; Type: DEFAULT; Schema: newshound; Owner: newshound
---
-
-ALTER TABLE ONLY sentence ALTER COLUMN id SET DEFAULT nextval('sentence_id_seq'::regclass);
-
-
---
--- Name: alert alert_pkey; Type: CONSTRAINT; Schema: newshound; Owner: newshound
---
-
-ALTER TABLE ONLY alert
-    ADD CONSTRAINT alert_pkey PRIMARY KEY (id);
-
-
---
--- Name: event event_pkey; Type: CONSTRAINT; Schema: newshound; Owner: newshound
---
-
-ALTER TABLE ONLY event
-    ADD CONSTRAINT event_pkey PRIMARY KEY (id);
-
-
---
--- Name: sender sender_pkey; Type: CONSTRAINT; Schema: newshound; Owner: newshound
---
-
-ALTER TABLE ONLY sender
-    ADD CONSTRAINT sender_pkey PRIMARY KEY (id);
-
-
---
--- Name: sentence sentence_pkey; Type: CONSTRAINT; Schema: newshound; Owner: newshound
---
-
-ALTER TABLE ONLY sentence
-    ADD CONSTRAINT sentence_pkey PRIMARY KEY (id);
-
-
---
--- Name: fki_fk_alert; Type: INDEX; Schema: newshound; Owner: newshound
---
-
-CREATE INDEX fki_fk_alert ON sentence USING btree (alert_id);
-
-
---
--- Name: fki_fk_event; Type: INDEX; Schema: newshound; Owner: newshound
---
-
-CREATE INDEX fki_fk_event ON event_alert USING btree (event_id);
-
-
---
--- Name: fki_fk_event_alert; Type: INDEX; Schema: newshound; Owner: newshound
---
-
-CREATE INDEX fki_fk_event_alert ON event_alert USING btree (alert_id);
-
-
---
--- Name: fki_fk_sender; Type: INDEX; Schema: newshound; Owner: newshound
---
-
-CREATE INDEX fki_fk_sender ON event USING btree (top_sender);
-
-
---
--- Name: fki_fk_sentence; Type: INDEX; Schema: newshound; Owner: newshound
---
-
-CREATE INDEX fki_fk_sentence ON event USING btree (top_sentence);
-
-
---
--- Name: sentence fk_alert; Type: FK CONSTRAINT; Schema: newshound; Owner: newshound
---
-
-ALTER TABLE ONLY sentence
-    ADD CONSTRAINT fk_alert FOREIGN KEY (alert_id) REFERENCES alert(id);
-
-
---
--- Name: event_alert fk_alert; Type: FK CONSTRAINT; Schema: newshound; Owner: newshound
---
-
-ALTER TABLE ONLY event_alert
-    ADD CONSTRAINT fk_alert FOREIGN KEY (alert_id) REFERENCES alert(id);
-
-
---
--- Name: event_alert fk_event; Type: FK CONSTRAINT; Schema: newshound; Owner: newshound
---
-
-ALTER TABLE ONLY event_alert
-    ADD CONSTRAINT fk_event FOREIGN KEY (event_id) REFERENCES event(id);
-
-
---
--- Name: alert fk_sender; Type: FK CONSTRAINT; Schema: newshound; Owner: newshound
---
-
-ALTER TABLE ONLY alert
-    ADD CONSTRAINT fk_sender FOREIGN KEY (sender_id) REFERENCES sender(id);
-
-
---
--- Name: event fk_sender; Type: FK CONSTRAINT; Schema: newshound; Owner: newshound
---
-
-ALTER TABLE ONLY event
-    ADD CONSTRAINT fk_sender FOREIGN KEY (top_sender) REFERENCES sender(id);
-
-
---
--- Name: event fk_sentence; Type: FK CONSTRAINT; Schema: newshound; Owner: newshound
---
-
-ALTER TABLE ONLY event
-    ADD CONSTRAINT fk_sentence FOREIGN KEY (top_sentence) REFERENCES sentence(id);
-
-
---
--- PostgreSQL database dump complete
---
-
-INSERT INTO sender
-    (name, url_index, color)
-    VALUES
-    ('cnn', -1, 'B60002'),
-    ('foxnews.com', 0, '234E6C'),
-    ('foxbusiness.com', -1, '343434'),
-    ('nbcnews.com', -1, '343434'),
-    ('nytimes.com', 3, '1A1A1A'),
-    ('the washington post', 2, '222'),
-    ('wsj.com', 1, '444242'),
-    ('politico', -1, '256396'),
-    ('los angeles times', -1, '000'),
-    ('cbs', 2,  '313943'),
-    ('abc', -1, '1b6295'),
-    ('usatoday.com', 6, '1877B6'),
-    ('yahoo', -1, '7B0099'),
-    ('ft', 2, 'FFF1E0'),
-    ('bbc', 4, 'c00000'),
-    ('npr', 3,  '5f82be'),
-    ('time', -1,  'e90606'),
-    ('bloomberg.com', -1, '110c09');
+    id bigint NOT NULL DEFAULT nextval('sentence_id_seq'::regclass),
+    CONSTRAINT sentence_pkey PRIMARY KEY (id),
+    CONSTRAINT fk_sentence_alert FOREIGN KEY (alert_id)
+        REFERENCES newshound.alert (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
+
+ALTER TABLE newshound.sentence
+    OWNER to newshound;
+
+-- Table: newshound.event
+
+-- DROP TABLE newshound.event;
+
+CREATE TABLE newshound.event
+(
+    id integer NOT NULL DEFAULT nextval('event_id_seq'::regclass),
+    top_phrases text[] COLLATE pg_catalog."default",
+    start timestamp without time zone,
+    "end" timestamp without time zone,
+    top_sentence integer NOT NULL,
+    top_sender integer NOT NULL,
+    CONSTRAINT pk_event PRIMARY KEY (id),
+    CONSTRAINT fk_event_top_sender FOREIGN KEY (top_sender)
+        REFERENCES newshound.sender (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT fk_event_top_sentence FOREIGN KEY (top_sentence)
+        REFERENCES newshound.sentence (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
+
+ALTER TABLE newshound.event
+    OWNER to newshound;
+
+-- Table: newshound.event_alert
+
+-- DROP TABLE newshound.event_alert;
+
+CREATE TABLE newshound.event_alert
+(
+    event_id integer NOT NULL,
+    alert_id integer NOT NULL,
+    CONSTRAINT fk_event_alert_alert FOREIGN KEY (alert_id)
+        REFERENCES newshound.alert (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT fk_event_alert_event FOREIGN KEY (event_id)
+        REFERENCES newshound.event (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
+
+ALTER TABLE newshound.event_alert
+    OWNER to newshound;
