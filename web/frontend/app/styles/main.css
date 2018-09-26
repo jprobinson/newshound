@@ -217,6 +217,20 @@ th .glyphicon {
     border-color: white;
     color: white;
 }
+.nbc,
+.nbc div {
+    background: white;
+    border-color: #343434;
+    color: #343434;
+}
+.nbc .fc-event-time,
+.nbc-header,
+.nbc .ui-dialog-titlebar {
+    background: black url('http://msnbcmedia.msn.com/i/MSNBC/Templates/z_Story_Hybrid/img/msnbc-hdr-bg.jpg') bottom no-repeat;
+    ;
+    border-color: white;
+    color: white;
+}
 .nbcnewscom,
 .nbcnewscom div {
     background: white;
@@ -254,6 +268,19 @@ th .glyphicon {
 .thewashingtonpost-header,
 .thewashingtonpost .ui-dialog-titlebar {
     background: #222;
+    border-color: white;
+    color: white;
+}
+.thewallstreetjournal,
+.thewallstreetjournal div {
+    background: white;
+    border-color: #444242;
+    color: black;
+}
+.thewallstreetjournal .fc-event-time,
+.thewallstreetjournal-header,
+.thewallstreetjournal .ui-dialog-titlebar {
+    background: #444242;
     border-color: white;
     color: white;
 }

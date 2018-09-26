@@ -182,6 +182,7 @@ var SenderColors = map[string]string{
 	"foxnews.com":         "#234E6C",
 	"foxbusiness.com":     "#343434",
 	"nbcnews.com":         "#343434",
+	"nbc":                 "#343434",
 	"nytimes.com":         "#1A1A1A",
 	"the washington post": "#222",
 	"wsj.com":             "#444242",

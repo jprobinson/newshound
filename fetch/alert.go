@@ -21,26 +21,27 @@ import (
 )
 
 var Senders = map[string]bool{
-	"cnn":                     true,
-	"foxnews.com":             true,
-	"foxbusiness.com":         true,
-	"nbcnews.com":             true,
-	"nbc":                     true,
-	"nytimes.com":             true,
-	"the washington post":     true,
-	"wsj.com":                 true,
-	"the wall street journal": true,
-	"politico":                true,
-	"los angeles times":       true,
-	"cbs":                     true,
-	"abc":                     true,
-	"usatoday.com":            true,
-	"yahoo":                   true,
-	"ft":                      true,
-	"bbc":                     true,
-	"npr":                     true,
-	"time":                    true,
-	"bloomberg.com":           true,
+	"cnn":                      true,
+	"foxnews.com":              true,
+	"foxbusiness.com":          true,
+	"nbcnews.com":              true,
+	"nbc":                      true,
+	"nytimes.com":              true,
+	"the washington post":      true,
+	"wsj.com":                  true,
+	"the wall street journal":  true,
+	"the wall street journal.": true,
+	"politico":                 true,
+	"los angeles times":        true,
+	"cbs":                      true,
+	"abc":                      true,
+	"usatoday.com":             true,
+	"yahoo":                    true,
+	"ft":                       true,
+	"bbc":                      true,
+	"npr":                      true,
+	"time":                     true,
+	"bloomberg.com":            true,
 }
 
 func NewNewsAlert(msg eazye.Email, address string) (newshound.NewsAlert, error) {
@@ -481,6 +482,8 @@ func findSender(from *mail.Address) string {
 	// by default, just grab the first word
 	sender := strings.SplitN(from.Name, " ", -1)[0]
 
+	sender = strings.TrimSuffix(sender, ".")
+
 	lower := strings.ToLower(sender)
 	if lower == "la" {
 		sender = "Los Angeles Times"
@@ -528,12 +531,12 @@ var (
 		"CBS":                     2,
 		"FT":                      2,
 		"WSJ.com":                 1,
-		"The Wall Street Journal": 3,
+		"The Wall Street Journal": 2,
 		"USATODAY.com":            6,
 		"NYTimes.com":             3,
 		"The Washington Post":     2,
 		"FoxNews.com":             0,
-		"NPR":                     3,
+		"NPR":                     0,
 	}
 	badSubjects = map[string]struct{}{
 		"ABC":      struct{}{},

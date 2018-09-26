@@ -80,12 +80,12 @@ func NewConfig() *Config {
 
 	readBytes, err := ioutil.ReadFile(configFile)
 	if err != nil {
-		log.Fatalf("Cannot read config file: %s %s", config, err)
+		log.Fatalf("Cannot read config file: %#v %s", config, err)
 	}
 
 	err = json.Unmarshal(readBytes, &config)
 	if err != nil {
-		log.Fatalf("Cannot parse JSON in config file: %s %s", config, err)
+		log.Fatalf("Cannot parse JSON in config file: %#v %s", config, err)
 	}
 
 	return &config
