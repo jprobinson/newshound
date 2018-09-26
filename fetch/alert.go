@@ -529,14 +529,14 @@ var (
 	senderStoryURLs = map[string]int{
 		"BBC":                     4,
 		"CBS":                     2,
-		"FT":                      2,
+		"FT":                      0,
 		"WSJ.com":                 1,
 		"The Wall Street Journal": 2,
 		"USATODAY.com":            6,
 		"NYTimes.com":             3,
 		"The Washington Post":     2,
 		"FoxNews.com":             0,
-		"NPR":                     0,
+		"NPR":                     1,
 	}
 	badSubjects = map[string]struct{}{
 		"ABC":      struct{}{},
