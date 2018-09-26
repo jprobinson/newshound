@@ -25,6 +25,7 @@ var Senders = map[string]bool{
 	"foxnews.com":         true,
 	"foxbusiness.com":     true,
 	"nbcnews.com":         true,
+	"nbc":                 true,
 	"nytimes.com":         true,
 	"the washington post": true,
 	"wsj.com":             true,

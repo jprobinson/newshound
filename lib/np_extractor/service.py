@@ -26,6 +26,7 @@ class NPService(BaseHTTPRequestHandler):
         self.end_headers()
 
         self.wfile.write(json.dumps(np_results))
+        self.finish()
         return
 
     def extract(self, raw_text):
