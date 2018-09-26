@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bitly/go-nsq"
+	nsq "github.com/bitly/go-nsq"
 	"github.com/jprobinson/eazye"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
