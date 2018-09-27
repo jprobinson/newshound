@@ -36,6 +36,7 @@ var Senders = map[string]bool{
 	"cbs":                      true,
 	"abc":                      true,
 	"usatoday.com":             true,
+	"usa today":                true,
 	"yahoo":                    true,
 	"ft":                       true,
 	"bbc":                      true,
@@ -157,12 +158,17 @@ var (
 		[]byte("national/global news alert  •"),
 		[]byte("technology news alert  •"),
 		[]byte("sports news alert  •"),
+		[]byte("\u200c\u00a0\u200c\u00a0"),
 		[]byte("economy/business news alert  •"),
+		[]byte("breaking news from"),
 		[]byte("national politics news alert  •"),
 		[]byte("to your address book"),
+		[]byte("view in web"),
+		[]byte("trouble \nviewing"),
 		[]byte("to ensure delivery"),
 		[]byte("having difficulty"),
 		[]byte("having trouble"),
+		[]byte("viewing this email"),
 		[]byte("to view this"),
 		[]byte("please add"),
 		[]byte("get complete coverage"),
@@ -258,6 +264,7 @@ var (
 		"bloomberg.com":                struct{}{},
 		"nytimes.com":                  struct{}{},
 		"usatoday.com":                 struct{}{},
+		"USA Today":                    struct{}{},
 		"foxnews.com":                  struct{}{},
 		"home delivery":                struct{}{},
 		"the wall street journal":      struct{}{},
@@ -309,6 +316,7 @@ func isNews(line []byte, address []byte, addrStart, sender []byte) bool {
 	}
 
 	lower := bytes.ToLower(line)
+	lower = bytes.TrimSpace(lower)
 	if bytes.HasPrefix(lower, nationalJunk) && bytes.Contains(lower, dotJunk) {
 		return false
 	}
@@ -329,7 +337,7 @@ func isNews(line []byte, address []byte, addrStart, sender []byte) bool {
 		}
 	}
 
-	if len(lower) < 30 {
+	if len(lower) < 50 {
 		// string conversion..OUCH! at least its only on small strings...
 		lowerStr := string(lower)
 		if _, isJunk := junkFillers[lowerStr]; isJunk {
@@ -487,6 +495,11 @@ func findSender(from *mail.Address) string {
 	lower := strings.ToLower(sender)
 	if lower == "la" {
 		sender = "Los Angeles Times"
+	}
+
+	// deal with usa today
+	if lower == "usa" {
+		sender = "USA Today"
 	}
 
 	// deal with any 'the's and 'los'
