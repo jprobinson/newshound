@@ -375,6 +375,19 @@ th .glyphicon {
     border-color: black;
     color: black;
 }
+.usatoday,
+.usatoday div {
+    background: white;
+    border-color: #1877B6;
+    color: black;
+}
+.usatoday .fc-event-time,
+.usatoday-header,
+.usatoday .ui-dialog-titlebar {
+    background: #1877B6;
+    border-color: #1877B6;
+    color: white;
+}
 .usatodaycom,
 .usatodaycom div {
     background: white;
