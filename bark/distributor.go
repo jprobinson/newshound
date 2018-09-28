@@ -194,6 +194,7 @@ var SenderColors = map[string]string{
 	"abc":                      "#1b6295",
 	"usatoday.com":             "#1877B6",
 	"usatoday":                 "#1877B6",
+	"usa today":                "#1877B6",
 	"yahoo":                    "#7B0099",
 	"ft":                       "#FFF1E0",
 	"bbc":                      "#c00000",
