@@ -1,2 +1,4 @@
 *.pyc
 *.swp
+node_modules
+web/calendar/build
