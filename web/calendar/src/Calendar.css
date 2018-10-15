@@ -1,0 +1,295 @@
+#cal-container {
+	padding: 15px;
+}
+
+.fc-state-default {
+    background-image: none !important;
+    background-repeat: none ! important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+}
+.fc-state-down,
+.fc-state-active {
+    background-image: none;
+    box-shadow: none !important;
+}
+.fc-event {
+    cursor: pointer;
+}
+.fc-state-highlight, .fc-today {
+    background: #f8f8f8 !important;
+}
+.fc-state-default.fc-corner-left,
+.fc-state-default.fc-corner-right,
+.fc-ltr .fc-event-hori.fc-event-start,
+.fc-rtl .fc-event-hori.fc-event-end,
+.fc-ltr .fc-event-hori.fc-event-end,
+.fc-rtl .fc-event-hori.fc-event-start,
+.fc-event-vert.fc-event-end,
+.fc-event-vert.fc-event-start {
+    border-radius: 0 !important;
+}
+
+.cnn,
+.cnn div {
+    background: white;
+    border-color: #B60002;
+    color: #B60002;
+}
+.cnn .fc-time,
+.cnn-header,
+.cnn-header .close,
+.cnn .ui-dialog-titlebar {
+    background: #B60002;
+    border-color: white;
+    color: white;
+}
+.foxnewscom,
+.foxnewscom div {
+    background: white;
+    border-color: #234E6C;
+    color: #234E6C;
+}
+.foxnewscom .fc-time,
+.foxnewscom-header,
+.foxnewscom .ui-dialog-titlebar {
+    background: #234E6C;
+    border-color: white;
+    color: white;
+}
+.foxbusinesscom,
+.foxbusinesscom div {
+    background: white;
+    border-color: #343434;
+    color: #343434;
+}
+.foxbusinesscom .fc-time,
+.foxbusinesscom-header,
+.foxbusinesscom .ui-dialog-titlebar {
+    background: #343434;
+    border-color: white;
+    color: white;
+}
+.nbc,
+.nbc div {
+    background: white;
+    border-color: #343434;
+    color: #343434;
+}
+.nbc .fc-time,
+.nbc-header,
+.nbc .ui-dialog-titlebar {
+    background: black url('http://msnbcmedia.msn.com/i/MSNBC/Templates/z_Story_Hybrid/img/msnbc-hdr-bg.jpg') bottom no-repeat;
+    ;
+    border-color: white;
+    color: white;
+}
+.nbcnewscom,
+.nbcnewscom div {
+    background: white;
+    border-color: #343434;
+    color: #343434;
+}
+.nbcnewscom .fc-time,
+.nbcnewscom-header,
+.nbcnewscom .ui-dialog-titlebar {
+    background: black url('http://msnbcmedia.msn.com/i/MSNBC/Templates/z_Story_Hybrid/img/msnbc-hdr-bg.jpg') bottom no-repeat;
+    ;
+    border-color: white;
+    color: white;
+}
+.nytimescom,
+.nytimescom div {
+    background: white;
+    border-color: #004276;
+    color: #004276;
+}
+.nytimescom .fc-time,
+.nytimescom-header,
+.nytimescom .ui-dialog-titlebar {
+    background: #1A1A1A;
+    border-color: white;
+    color: white;
+}
+.thewashingtonpost,
+.thewashingtonpost div {
+    background: white;
+    border-color: #222;
+    color: black;
+}
+.thewashingtonpost .fc-time,
+.thewashingtonpost-header,
+.thewashingtonpost .ui-dialog-titlebar {
+    background: #222;
+    border-color: white;
+    color: white;
+}
+.thewallstreetjournal,
+.thewallstreetjournal div {
+    background: white;
+    border-color: #444242;
+    color: black;
+}
+.thewallstreetjournal .fc-time,
+.thewallstreetjournal-header,
+.thewallstreetjournal .ui-dialog-titlebar {
+    background: #444242;
+    border-color: white;
+    color: white;
+}
+.wsjcom,
+.wsjcom div {
+    background: white;
+    border-color: #444242;
+    color: black;
+}
+.wsjcom .fc-time,
+.wsjcom-header,
+.wsjcom .ui-dialog-titlebar {
+    background: #444242;
+    border-color: white;
+    color: white;
+}
+.politico,
+.politico div {
+    background: white;
+    border-color: #256396;
+    color: #AA0101;
+}
+.politico .fc-time,
+.politico-header,
+.politico .ui-dialog-titlebar {
+    background: #256396;
+    border-color: white;
+    color: white;
+}
+.losangelestimes .fc-time,
+.losangelestimes-header,
+.losangelestimes .ui-dialog-titlebar {
+    background: black;
+    border-color: white;
+    color: white;
+}
+.losangelestimes,
+.losangelestimes div {
+    background-color: white;
+    border-color: black;
+    color: black;
+}
+.abc .fc-time,
+.abc-header,
+.abc .ui-dialog-titlebar {
+    background: url('http://a.abcnews.com/assets/images/v2/default_nav_bg.gif') repeat-x;
+    border-color: white;
+    color: white;
+}
+.abc,
+.abc div {
+    background-color: white;
+    border-color: black;
+    color: black;
+}
+.bloombergcom .fc-time,
+.bloombergcom-header,
+.bloombergcom .ui-dialog-titlebar {
+    background-color: #110c09;
+    border-color: white;
+    color: white;
+}
+.bloombergcom,
+.bloombergcom div {
+    background-color: white;
+    border-color: black;
+    color: black;
+}
+.cbs .fc-time,
+.cbs-header,
+.cbs .ui-dialog-titlebar {
+    background: url('http://asset1.cbsistatic.com/cnwk.1d/i/cbs/generic/genericNavBg.jpg') repeat-x;
+    border-color: white;
+    color: white;
+}
+.cbs,
+.cbs div {
+    background-color: white;
+    border-color: black;
+    color: black;
+}
+.npr .fc-time,
+.npr-header,
+.npr .ui-dialog-titlebar {
+    background-color: #5f82be;
+    border-color: white;
+    color: white;
+}
+.npr,
+.npr div {
+    background-color: white;
+    border-color: black;
+    color: black;
+}
+.usatoday,
+.usatoday div {
+    background: white;
+    border-color: #1877B6;
+    color: black;
+}
+.usatoday .fc-time,
+.usatoday-header,
+.usatoday .ui-dialog-titlebar {
+    background: #1877B6;
+    border-color: #1877B6;
+    color: white;
+}
+.usatodaycom,
+.usatodaycom div {
+    background: white;
+    border-color: #1877B6;
+    color: black;
+}
+.usatodaycom .fc-time,
+.usatodaycom-header,
+.usatodaycom .ui-dialog-titlebar {
+    background: #1877B6;
+    border-color: #1877B6;
+    color: white;
+}
+.yahoo,
+.yahoo div {
+    background: white;
+    border-color: #7B0099;
+    color: black;
+}
+.yahoo .fc-time,
+.yahoo-header,
+.yahoo .ui-dialog-titlebar {
+    background: #7B0099;
+    border-color: #7B0099;
+    color: white;
+}
+.ft,
+.ft div {
+    background: white;
+    border-color: #2e6e9e;
+    color: black;
+}
+.ft .fc-time,
+.ft-header,
+.ft .ui-dialog-titlebar {
+    background: #FFF1E0;
+    border-color: #2e6e9e;
+    color: black;
+}
+.bbc,
+.bbc div {
+    background: white;
+    border-color: #c00000;
+    color: black;
+}
+.bbc .fc-time,
+.bbc-header,
+.bbc.ui-dialog-titlebar {
+    background: #c00000;
+    border-color: #c00000;
+    color: white;
+}
