@@ -164,6 +164,7 @@ var (
 		[]byte("national politics news alert  •"),
 		[]byte("to your address book"),
 		[]byte("view in web"),
+		[]byte("view in browser"),
 		[]byte("trouble \nviewing"),
 		[]byte("to ensure delivery"),
 		[]byte("having difficulty"),
