@@ -165,6 +165,7 @@ var (
 		[]byte("national politics news alert  •"),
 		[]byte("to your address book"),
 		[]byte("view in web"),
+		[]byte("view in browser"),
 		[]byte("trouble \nviewing"),
 		[]byte("to ensure delivery"),
 		[]byte("having difficulty"),
@@ -301,11 +302,13 @@ var (
 		"news alert":          struct{}{},
 		"national news alert": struct{}{},
 		"sports alert":        struct{}{},
+		"news\n \nalert":      struct{}{},
 	}
 	nationalJunk = []byte("national")
 	dotJunk      = []byte("•")
 	likeJunk     = []byte("like")
 	followJunk   = []byte("follow")
+	contactsJunk = []byte("to your contacts")
 	twitter      = []byte("twitter")
 	facebook     = []byte("facebook")
 )
@@ -345,6 +348,10 @@ func isNews(line []byte, address []byte, addrStart, sender []byte) bool {
 
 	// if it's just the sender and little else, likely crap
 	if len(bytes.Replace(lower, sender, []byte{}, -1)) < 5 {
+		return false
+	}
+	// Add me to your contacts!
+	if bytes.Contains(lower, contactsJunk) {
 		return false
 	}
 
