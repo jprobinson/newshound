@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/jasonmoo/toget"
 	"github.com/jprobinson/eazye"
@@ -113,8 +114,8 @@ var (
 
 func periodCheck(line []byte) []byte {
 	if len(line) > 0 &&
-		!bytes.HasSuffix(bytes.TrimSpace(line), period) &&
-		!bytes.HasSuffix(bytes.TrimSpace(line), comma) {
+		!bytes.HasSuffix(trimSpace(line), period) &&
+		!bytes.HasSuffix(trimSpace(line), comma) {
 		line = append(line, periodWithSpace...)
 	}
 	return line
@@ -309,6 +310,25 @@ var (
 	facebook     = []byte("facebook")
 )
 
+const (
+	zeroWidthSpace        = '\u200B'
+	zeroWidthNoBreakSpace = '\uFEFF'
+	zeroWidthJoiner       = '\u200D'
+	zeroWidthNonJoiner    = '\u200C'
+	newLine               = `\n`
+)
+
+func trimSpace(b []byte) []byte {
+	return bytes.TrimFunc(bytes.TrimSpace(b), func(r rune) bool {
+		switch r {
+		case zeroWidthSpace, zeroWidthNonJoiner, zeroWidthNoBreakSpace, zeroWidthJoiner:
+			return true
+		default:
+			return unicode.IsSpace(r)
+		}
+	})
+}
+
 func isNews(line []byte, address []byte, addrStart, sender []byte) bool {
 	// less than 5 chars? very likely crap
 	if len(line) < 5 {
@@ -316,7 +336,7 @@ func isNews(line []byte, address []byte, addrStart, sender []byte) bool {
 	}
 
 	lower := bytes.ToLower(line)
-	lower = bytes.TrimSpace(lower)
+	lower = trimSpace(lower)
 	if bytes.HasPrefix(lower, nationalJunk) && bytes.Contains(lower, dotJunk) {
 		return false
 	}
