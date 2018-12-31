@@ -315,13 +315,15 @@ const (
 	zeroWidthNoBreakSpace = '\uFEFF'
 	zeroWidthJoiner       = '\u200D'
 	zeroWidthNonJoiner    = '\u200C'
-	newLine               = `\n`
+	emDash                = '\u2014'
 )
 
 func trimSpace(b []byte) []byte {
 	return bytes.TrimFunc(bytes.TrimSpace(b), func(r rune) bool {
 		switch r {
 		case zeroWidthSpace, zeroWidthNonJoiner, zeroWidthNoBreakSpace, zeroWidthJoiner:
+			return true
+		case emDash:
 			return true
 		default:
 			return unicode.IsSpace(r)
