@@ -134,7 +134,7 @@ func findNews(text [][]byte, address, sender string) []byte {
 	badLines := 0
 	senderBytes := bytes.ToLower([]byte(sender))
 	for _, line := range text {
-		line := bytes.Trim(line, "-| ?")
+		line := trimSpace(line)
 		if isNews(line, addr, addrStart, senderBytes) {
 			badLines = 0
 			news = append(news, line)
@@ -214,6 +214,8 @@ var (
 		"view this":                    struct{}{},
 		"—":                            struct{}{},
 		"to unsubscribe":               struct{}{},
+		"unsubscribe from this":        struct{}{},
+		"unsubscribe from this\nemail": struct{}{},
 		"e-mail alerts":                struct{}{},
 		"view it online":               struct{}{},
 		"complete coverage":            struct{}{},
@@ -274,6 +276,7 @@ var (
 		"et":                           struct{}{},
 		"pt":                           struct{}{},
 		"nbcnews.com":                  struct{}{},
+		"npr":                          struct{}{},
 		"sponsored\u00a0by":            struct{}{},
 		"sponsored\xa0by":              struct{}{},
 		"@nbcnews":                     struct{}{},
@@ -341,7 +344,6 @@ func isNews(line []byte, address []byte, addrStart, sender []byte) bool {
 	}
 
 	lower := bytes.ToLower(line)
-	lower = trimSpace(lower)
 	if bytes.HasPrefix(lower, nationalJunk) && bytes.Contains(lower, dotJunk) {
 		return false
 	}
@@ -350,6 +352,7 @@ func isNews(line []byte, address []byte, addrStart, sender []byte) bool {
 	if len(bytes.Replace(lower, sender, []byte{}, -1)) < 5 {
 		return false
 	}
+
 	// Add me to your contacts!
 	if bytes.Contains(lower, contactsJunk) {
 		return false
