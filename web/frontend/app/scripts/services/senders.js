@@ -8,6 +8,7 @@ angular.module('newshoundApp')
 		nbcnewscom: '#343434',
 		nbc: '#343434',
 		nytimescom: '#1A1A1A',
+		thenewyorktimes: '#1A1A1A',
 		thewashingtonpost: '#222',
 		wsjcom: '#444242',
 		thewallstreetjournal: '#444242',
