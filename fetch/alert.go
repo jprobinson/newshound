@@ -268,7 +268,7 @@ var (
 		"bloomberg tv+":                struct{}{},
 		"bloomberg.com":                struct{}{},
 		"nytimes.com":                  struct{}{},
-		"the new york times":           true,
+		"the new york times":           struct{}{},
 		"usatoday.com":                 struct{}{},
 		"USA Today":                    struct{}{},
 		"foxnews.com":                  struct{}{},
