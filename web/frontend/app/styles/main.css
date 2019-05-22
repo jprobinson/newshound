@@ -258,6 +258,19 @@ th .glyphicon {
     border-color: white;
     color: white;
 }
+.thenewyorktimes,
+.thenewyorktimes div {
+    background: white;
+    border-color: #004276;
+    color: #004276;
+}
+.thenewyorktimes .fc-event-time,
+.thenewyorktimes-header,
+.thenewyorktimes .ui-dialog-titlebar {
+    background: #1A1A1A;
+    border-color: white;
+    color: white;
+}
 .thewashingtonpost,
 .thewashingtonpost div {
     background: white;
