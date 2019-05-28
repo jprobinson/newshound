@@ -1,0 +1,48 @@
+pipeline:
+  deploy-fetchd:
+    image: nytimes/drone-gae
+    action: deploy
+    beta: true
+    project: newshound
+    dir: fetch/fetchd
+    app_file: app.yaml
+    version: "${DRONE_COMMIT}"
+    vars: '{ "MAIL_KEY": "$$MAIL_KEY", "DB_PWD": "$$DB_PWD", "EMAIL": "$$EMAIL"}'
+    secrets:
+      - source: google_credentials
+        target: GAE_CREDENTIALS
+      - source: mail_key
+        target: MAIL_KEY
+      - source: fetch_pwd
+        target: DB_PWD
+      - source: email
+        target: EMAIL
+    when:
+      branch: [gae]
+      event: push
+
+  publish-np-image:
+    image: plugins/gcr
+    registry: gcr.io
+    repo: newshound/np
+    tag: "${DRONE_COMMIT}"
+    json_key:
+      from_secret: google_credentials
+    when:
+      branch: [gae]
+      event: push
+
+  deploy:
+    image: nytimes/drone-gae
+    action: deploy
+    project: newshound
+    dir: np_extractor
+    app_file: app.yaml
+    addl_args: '{ "--image-url": "gcr.io/newshoun/np:${DRONE_COMMIT}" }'
+    version: "${DRONE_COMMIT}"
+    secrets:
+      - source: google_credentials
+        target: GAE_CREDENTIALS
+    when:
+      branch: [gae]
+      event: push

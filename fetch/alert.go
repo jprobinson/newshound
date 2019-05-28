@@ -47,7 +47,7 @@ var Senders = map[string]bool{
 	"bloomberg.com":            true,
 }
 
-func NewNewsAlert(msg eazye.Email, address string) (newshound.NewsAlert, error) {
+func NewNewsAlert(msg eazye.Email, host, address string) (newshound.NewsAlert, error) {
 	sender := findSender(msg.From)
 
 	// default to HTML, but grab text if we must.
@@ -81,11 +81,11 @@ func NewNewsAlert(msg eazye.Email, address string) (newshound.NewsAlert, error) 
 		news = append(news, blankSpace...)
 		news = append(news, []byte(na.Subject)...)
 	}
-	na.Tags, na.Sentences, na.TopSentence, err = callNP(news)
+	na.Tags, na.Sentences, na.TopSentence, err = callNP(host, news)
 	return na, err
 }
 
-func ReParseNewsAlert(na newshound.NewsAlert, address string) (newshound.NewsAlert, error) {
+func ReParseNewsAlert(na newshound.NewsAlert, host, address string) (newshound.NewsAlert, error) {
 	body := []byte(na.RawBody)
 	na.ArticleUrl = findArticleUrl(na.Sender, body)
 	na.Body = scrubBody(body, address)
@@ -102,7 +102,7 @@ func ReParseNewsAlert(na newshound.NewsAlert, address string) (newshound.NewsAle
 		news = append(news, blankSpace...)
 		news = append(news, []byte(na.Subject)...)
 	}
-	na.Tags, na.Sentences, na.TopSentence, err = callNP(news)
+	na.Tags, na.Sentences, na.TopSentence, err = callNP(host, news)
 	return na, err
 }
 

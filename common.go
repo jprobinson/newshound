@@ -1,23 +1,16 @@
 package newshound
 
 import (
-	"encoding/json"
-	"io/ioutil"
 	"log"
 	"time"
 
 	"github.com/jprobinson/eazye"
+	"github.com/kelseyhightower/envconfig"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
 const (
-	configFile = "/opt/newshound/etc/config.json"
-
-	ServerLog = "/var/log/newshound/server.log"
-	FetchLog  = "/var/log/newshond/fetchd.log"
-	AccessLog = "/var/log/newshound/access.log"
-
 	WebDir = "/opt/newshound/www"
 
 	NewsAlertTopic       = "news-alerts"
@@ -33,8 +26,6 @@ type Config struct {
 	MarkRead          bool `json:"mark_as_read"`
 	eazye.MailboxInfo `,inline`
 
-	NSQDAddr     string `json:"nsqd-addr"`
-	NSQLAddr     string `json:"nsqlookup-addr"`
 	BarkdChannel string `json:"barkd-channel"`
 
 	SlackAlerts []struct {
@@ -76,18 +67,8 @@ func (c *Config) MgoSession() (*mgo.Session, error) {
 }
 
 func NewConfig() *Config {
-	config := Config{}
-
-	readBytes, err := ioutil.ReadFile(configFile)
-	if err != nil {
-		log.Fatalf("Cannot read config file: %#v %s", config, err)
-	}
-
-	err = json.Unmarshal(readBytes, &config)
-	if err != nil {
-		log.Fatalf("Cannot parse JSON in config file: %#v %s", config, err)
-	}
-
+	var config Config
+	envconfig.MustProcess("", &config)
 	return &config
 }
 

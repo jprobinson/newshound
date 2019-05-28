@@ -2,15 +2,18 @@ package fetch
 
 import (
 	"bytes"
+	"context"
 	"encoding/gob"
 	"fmt"
 	"log"
+	"os"
 	"runtime"
 	"strings"
 	"sync"
 	"time"
 
-	nsq "github.com/bitly/go-nsq"
+	pubsub "github.com/NYTimes/gizmo/pubsub"
+	"github.com/NYTimes/gizmo/pubsub/gcp"
 	"github.com/jprobinson/eazye"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -21,19 +24,13 @@ import (
 // https://github.com/golang/go/issues/3575 :(
 var procs = runtime.NumCPU()
 
-func FetchMail(cfg *newshound.Config, sess *mgo.Session) {
+func FetchMail(ctx context.Context, cfg *Config, sess *mgo.Session) {
 	log.Print("getting mail")
 	start := time.Now()
 
-	// get a hold of NSQ to we can emit alerts
-	producer, err := nsq.NewProducer(cfg.NSQDAddr, nsq.NewConfig())
-	if err != nil {
-		log.Printf("unable to initiate NSQ producer at @ %s: %s", cfg.NSQDAddr, err)
-	}
-
 	// give it 1000 buffer so we can load whatever IMAP throws at us in memory
 	alerts := make(chan newshound.NewsAlert, 100)
-	mail, err := eazye.GenerateUnread(cfg.MailboxInfo, cfg.MarkRead, false)
+	mail, err := eazye.GenerateUnread(cfg.Mailbox, cfg.MarkRead, false)
 	if err != nil {
 		log.Fatal("unable to get mail: ", err)
 	}
@@ -42,7 +39,7 @@ func FetchMail(cfg *newshound.Config, sess *mgo.Session) {
 	for i := 0; i < procs; i++ {
 		parsers.Add(1)
 		// multi goroutines so we can utilize the CPU while waiting for URLs
-		go parseMessages(cfg.User, mail, alerts, &parsers)
+		go parseMessages(cfg.Mailbox.User, cfg.NPHost, mail, alerts, &parsers)
 	}
 
 	s := sess.Copy()
@@ -51,8 +48,19 @@ func FetchMail(cfg *newshound.Config, sess *mgo.Session) {
 	na := newsAlerts(db)
 	ne := newsEvents(db)
 
+	proj := os.Getenv("GOOGLE_CLOUD_PROJECT")
+	apub, err := gcp.NewPublisher(ctx, gcp.Config{Topic: "alerts", ProjectID: proj})
+	if err != nil {
+		log.Fatal("unable to init alerts publisher: ", err)
+	}
+
+	epub, err := gcp.NewPublisher(ctx, gcp.Config{Topic: "events", ProjectID: proj})
+	if err != nil {
+		log.Fatal("unable to init events publisher: ", err)
+	}
+
 	completeCount := make(chan int, 1)
-	go saveAndRefresh(na, ne, alerts, completeCount, producer)
+	go saveAndRefresh(na, ne, alerts, completeCount, apub, epub)
 
 	// wait for the parsers to complete and then close the alerts channel
 	parsers.Wait()
@@ -62,7 +70,7 @@ func FetchMail(cfg *newshound.Config, sess *mgo.Session) {
 	log.Printf("fetched %d messages in %s", count, time.Since(start))
 }
 
-func ReParse(cfg *newshound.Config, sess *mgo.Session) error {
+func ReParse(cfg *Config, sess *mgo.Session) error {
 	log.Print("reparsing mail")
 	start := time.Now()
 
@@ -93,11 +101,11 @@ func ReParse(cfg *newshound.Config, sess *mgo.Session) error {
 	for i := 0; i < procs; i++ {
 		parsers.Add(1)
 		// multi goroutines so we can utilize the CPU while waiting for URLs
-		go reParseMessages(cfg.User, alerts, reAlerts, &parsers)
+		go reParseMessages(cfg.Mailbox.User, cfg.NPHost, alerts, reAlerts, &parsers)
 	}
 
 	completeCount := make(chan int, 1)
-	go saveAndRefresh(na, ne, reAlerts, completeCount, nil)
+	go saveAndRefresh(na, ne, reAlerts, completeCount, nil, nil)
 
 	// wait for the parsers to complete and then close the alerts channel
 	parsers.Wait()
@@ -121,7 +129,7 @@ func isNotFound(err error) bool {
 }
 
 // saveAndRefresh will insert all alerts passed through the channel and kick off all event refreshes
-func saveAndRefresh(na *mgo.Collection, ne *mgo.Collection, alerts <-chan newshound.NewsAlert, completeCount chan<- int, producer *nsq.Producer) {
+func saveAndRefresh(na *mgo.Collection, ne *mgo.Collection, alerts <-chan newshound.NewsAlert, completeCount chan<- int, apub, epub pubsub.Publisher) {
 	var count int
 	timeframes := map[int64]struct{}{}
 
@@ -134,13 +142,14 @@ func saveAndRefresh(na *mgo.Collection, ne *mgo.Collection, alerts <-chan newsho
 		}
 
 		// emit alert notification
-		if producer != nil {
+		if apub != nil {
 			var buff bytes.Buffer
 			err = gob.NewEncoder(&buff).Encode(&alert.NewsAlertLite)
 			if err != nil {
 				log.Print("unable to gob alert: ", err)
 			} else {
-				if err = producer.Publish(newshound.NewsAlertTopic, buff.Bytes()); err != nil {
+				ctx := context.Background()
+				if err = apub.PublishRaw(ctx, "", buff.Bytes()); err != nil {
 					log.Print("unable to publish alert: ", err)
 				}
 			}
@@ -155,7 +164,7 @@ func saveAndRefresh(na *mgo.Collection, ne *mgo.Collection, alerts <-chan newsho
 		timeframes[aTime.Unix()] = struct{}{}
 		if len(timeframes) > 5 {
 			for tf, _ := range timeframes {
-				if err = EventRefresh(na, ne, time.Unix(tf, 0), producer); err != nil {
+				if err = EventRefresh(na, ne, time.Unix(tf, 0), epub); err != nil {
 					log.Print("problems refreshing event: ", err)
 				}
 			}
@@ -164,14 +173,14 @@ func saveAndRefresh(na *mgo.Collection, ne *mgo.Collection, alerts <-chan newsho
 	}
 	// flush the timeframe buffer at the end
 	for tf, _ := range timeframes {
-		if err = EventRefresh(na, ne, time.Unix(tf, 0), producer); err != nil {
+		if err = EventRefresh(na, ne, time.Unix(tf, 0), epub); err != nil {
 			log.Print("problems refreshing event: ", err)
 		}
 	}
 	completeCount <- count
 }
 
-func reParseMessages(user string, alerts <-chan newshound.NewsAlert, reAlerts chan<- newshound.NewsAlert, wg *sync.WaitGroup) {
+func reParseMessages(user, host string, alerts <-chan newshound.NewsAlert, reAlerts chan<- newshound.NewsAlert, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	var (
@@ -179,7 +188,7 @@ func reParseMessages(user string, alerts <-chan newshound.NewsAlert, reAlerts ch
 		err error
 	)
 	for alert := range alerts {
-		if na, err = ReParseNewsAlert(alert, user); err != nil {
+		if na, err = ReParseNewsAlert(alert, host, user); err != nil {
 			// panic so that we stop the reparse and dont lose any data.
 			// we're good to die at this point bc temp collections ftw!
 			log.Fatal("unable to reparse email: ", err)
@@ -189,7 +198,7 @@ func reParseMessages(user string, alerts <-chan newshound.NewsAlert, reAlerts ch
 	}
 }
 
-func parseMessages(user string, mail chan eazye.Response, alerts chan<- newshound.NewsAlert, wg *sync.WaitGroup) {
+func parseMessages(user, host string, mail chan eazye.Response, alerts chan<- newshound.NewsAlert, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	var (
@@ -202,7 +211,7 @@ func parseMessages(user string, mail chan eazye.Response, alerts chan<- newshoun
 			return
 		}
 
-		if na, err = NewNewsAlert(resp.Email, user); err != nil {
+		if na, err = NewNewsAlert(resp.Email, host, user); err != nil {
 			log.Print("unable to parse email: ", err)
 			continue
 		}

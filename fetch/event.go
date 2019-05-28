@@ -2,6 +2,7 @@ package fetch
 
 import (
 	"bytes"
+	"context"
 	"encoding/gob"
 	"fmt"
 	"log"
@@ -10,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bitly/go-nsq"
+	pubsub "github.com/NYTimes/gizmo/pubsub"
 	"github.com/jprobinson/newshound"
 
 	"gopkg.in/mgo.v2"
@@ -33,7 +34,7 @@ func minOccurances(alertCount int) int {
 	return int(math.Max(math.Ceil(float64(alertCount)*minOccurPerc), 2.0))
 }
 
-func EventRefresh(na *mgo.Collection, ne *mgo.Collection, eventTime time.Time, producer *nsq.Producer) error {
+func EventRefresh(na *mgo.Collection, ne *mgo.Collection, eventTime time.Time, pub pubsub.Publisher) error {
 	// find all alerts within a event timeframe of the given time and refresh the events
 	start := eventTime.Add(-eventTimeframe)
 	end := eventTime.Add(eventTimeframe)
@@ -45,7 +46,7 @@ func EventRefresh(na *mgo.Collection, ne *mgo.Collection, eventTime time.Time, p
 	}
 
 	for _, alert := range eligible {
-		if err = UpdateEvents(na, ne, alert, producer); err != nil {
+		if err = UpdateEvents(na, ne, alert, pub); err != nil {
 			return err
 		}
 	}
@@ -53,7 +54,7 @@ func EventRefresh(na *mgo.Collection, ne *mgo.Collection, eventTime time.Time, p
 	return nil
 }
 
-func UpdateEvents(na *mgo.Collection, ne *mgo.Collection, a newshound.NewsAlert, producer *nsq.Producer) error {
+func UpdateEvents(na *mgo.Collection, ne *mgo.Collection, a newshound.NewsAlert, pub pubsub.Publisher) error {
 
 	cluster, tags, err := findLikeAlertCluster(na, a)
 	if err != nil {
@@ -99,15 +100,16 @@ func UpdateEvents(na *mgo.Collection, ne *mgo.Collection, a newshound.NewsAlert,
 		return err
 	}
 
+	ctx := context.Background()
 	// emit event notification if new event
-	if producer != nil {
+	if pub != nil {
 		if newID {
 			var buff bytes.Buffer
 			err = gob.NewEncoder(&buff).Encode(&event)
 			if err != nil {
 				log.Print("unable to gob event: ", err)
 			} else {
-				if err = producer.Publish(newshound.NewsEventTopic, buff.Bytes()); err != nil {
+				if err = pub.PublishRaw(ctx, "", buff.Bytes()); err != nil {
 					log.Print("unable to publish event: ", err)
 				}
 			}
@@ -118,7 +120,7 @@ func UpdateEvents(na *mgo.Collection, ne *mgo.Collection, a newshound.NewsAlert,
 			if err != nil {
 				log.Print("unable to gob event: ", err)
 			} else {
-				if err = producer.Publish(newshound.NewsEventUpdateTopic, buff.Bytes()); err != nil {
+				if err = pub.PublishRaw(ctx, "", buff.Bytes()); err != nil {
 					log.Print("unable to publish event update: ", err)
 				}
 			}

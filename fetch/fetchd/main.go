@@ -1,37 +1,24 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
+	"net/http"
+	"os"
 	"time"
 
-	"github.com/jprobinson/go-utils/utils"
 	"gopkg.in/mgo.v2"
 
-	"github.com/jprobinson/newshound"
 	"github.com/jprobinson/newshound/fetch"
 )
 
-const logPath = "/var/log/newshound/fetchd.log"
-
-var (
-	logArg  = flag.String("log", logPath, "log path")
-	reparse = flag.Bool("r", false, "reparse all alerts and events")
-)
-
 func main() {
-
+	reparse := flag.Bool("r", false, "reparse all alerts and events")
 	flag.Parse()
 
-	if *logArg != "stderr" {
-		logSetup := utils.NewDefaultLogSetup(*logArg)
-		logSetup.SetupLogging()
-		go utils.ListenForLogSignal(logSetup)
-	} else {
-		log.SetFlags(log.LstdFlags | log.Lshortfile)
-	}
-
-	config := newshound.NewConfig()
+	ctx := context.Background()
+	config := fetch.NewConfig()
 
 	sess, err := config.MgoSession()
 	if err != nil {
@@ -46,7 +33,21 @@ func main() {
 		return
 	}
 
-	go fetchMail(config, sess)
+	go func() {
+		port := os.Getenv("PORT")
+		if port == "" {
+			port = "8080"
+		}
+
+		log.Printf("listening on %s", port)
+		// for GAE
+		go http.ListenAndServe(":"+port,
+			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			}))
+	}()
+
+	go fetchMail(ctx, config, sess)
 
 	mapReduce(sess)
 }
@@ -65,9 +66,9 @@ func mapReduce(sess *mgo.Session) {
 	}
 }
 
-func fetchMail(config *newshound.Config, sess *mgo.Session) {
+func fetchMail(ctx context.Context, config *fetch.Config, sess *mgo.Session) {
 	for {
-		fetch.FetchMail(config, sess)
+		fetch.FetchMail(ctx, config, sess)
 		time.Sleep(30 * time.Second)
 	}
 }
