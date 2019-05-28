@@ -2,8 +2,7 @@ pipeline:
   deploy-fetchd:
     image: google/cloud-sdk:latest
     commands:
-      - echo "$$GAE_CREDENTIALS"
-      - echo "$$GAE_CREDENTIALS" | base64 -d > /tmp/gcloud.json
+      - echo "$$GAE_CREDENTIALS" > /tmp/gcloud.json
       - gcloud auth activate-service-account --key-file /tmp/gcloud.json
       - cd fetch/fetchd
       - sed -i "s/MAIL_KEY/$$MAIL_KEY/g" app.yaml
