@@ -1,13 +1,15 @@
 pipeline:
   deploy-fetchd:
-    image: nytimes/drone-gae
-    action: deploy
-    beta: true
-    project: newshound
-    dir: fetch/fetchd
-    app_file: app.yaml
+    image: google/cloud-sdk:latest
+    commands:
+      - echo "$$GAE_CREDENTIALS" > "/tmp/gcloud.json"
+      - gcloud auth activate-service-account --key-file /tmp/gcloud.json
+      - cd fetch/fetchd
+      - sed -i "s/MAIL_KEY/$$MAIL_KEY/g" app.yaml
+      - sed -i "s/DB_PWD/$$DB_PWD/g" app.yaml
+      - sed -i "s/EMAIL/$$EMAIL/g" app.yaml
+      - gcloud beta app deploy --project newshound app.yaml
     version: "${DRONE_COMMIT}"
-    vars: '{ "MAIL_KEY": "$$MAIL_KEY", "DB_PWD": "$$DB_PWD", "EMAIL": "$$EMAIL"}'
     secrets:
       - source: google_credentials
         target: GAE_CREDENTIALS

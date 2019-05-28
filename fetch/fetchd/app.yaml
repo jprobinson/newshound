@@ -11,9 +11,9 @@ env_variables:
   NP_HOST: "https://np-dot-newshound.appspot.com"
   DB_URL: "10.128.0.2"
   DB_USER: fetch
-  DB_PASSWORD: "{{ .DB_PWD }}"
-  MAIL_USER: "{{ .EMAIL }}"
-  MAIL_PWD: "{{ .MAIL_KEY }}"
+  DB_PASSWORD: "DB_PWD"
+  MAIL_USER: "EMAIL"
+  MAIL_PWD: "MAIL_KEY"
   MAIL_HOST: "imap.gmail.com"
   TLS: true
   FOLDER: "inbox"
