@@ -20,6 +20,8 @@ pipeline:
     registry: gcr.io
     repo: newshound/np
     tag: "${DRONE_COMMIT}"
+    context: np_extractor
+    dockerfile: np_extractor/Dockerfile
     json_key:
       from_secret: google_credentials
     when:
