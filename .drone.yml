@@ -8,9 +8,16 @@ pipeline:
     app_file: app.yaml
     version: "${DRONE_COMMIT}"
     max_versions: 2
+    vars: '{"MAIL_KEY":"$$MAIL_KEY", "DB_PWD":"$$DB_PWD", "EMAIL": "$$EMAIL" }'
     secrets:
       - source: google_credentials
         target: GAE_CREDENTIALS
+      - source: mail_key
+        target: MAIL_KEY
+      - source: fetch_pwd
+        target: DB_PWD
+      - source: email
+        target: EMAIL
     when:
       branch: [gae]
       event: push
