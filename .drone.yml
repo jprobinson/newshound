@@ -7,6 +7,7 @@ pipeline:
     dir: fetch/fetchd
     app_file: app.yaml
     version: "${DRONE_COMMIT}"
+    max_versions: 2
     secrets:
       - source: google_credentials
         target: GAE_CREDENTIALS
@@ -33,6 +34,7 @@ pipeline:
     app_file: app.yaml
     addl_args: '{ "--image-url": "gcr.io/newshoun/np:${DRONE_COMMIT}" }'
     version: "${DRONE_COMMIT}"
+    max_versions: 2
     secrets:
       - source: google_credentials
         target: GAE_CREDENTIALS
