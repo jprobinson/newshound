@@ -8,7 +8,7 @@ pipeline:
     app_file: app.yaml
     version: "${DRONE_COMMIT}"
     max_versions: 2
-    vars: '{"MAIL_KEY":"$$MAIL_KEY", "DB_PWD":"$$DB_PWD", "EMAIL": "$$EMAIL" }'
+    vars: '{"MAIL_KEY":"$$MAIL_KEY", "DB_PWD":"$$DB_PWD", "EMAIL": "$$EMAIL"}'
     secrets:
       - source: google_credentials
         target: GAE_CREDENTIALS

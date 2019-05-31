@@ -19,4 +19,4 @@ env_variables:
   MAIL_HOST: "imap.gmail.com"
   TLS: true
   FOLDER: "inbox"
-  MARK_READ: true
+  MARK_READ: "true"
