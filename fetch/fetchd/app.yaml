@@ -7,7 +7,7 @@ vpc_access_connector:
 manual_scaling:
   instances: 1
 
-instance_class: B4
+instance_class: B2
 
 env_variables:
   NP_HOST: "https://np-dot-newshound.appspot.com"
