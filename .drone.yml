@@ -41,7 +41,7 @@ pipeline:
     project: newshound
     dir: np_extractor
     app_file: app.yaml
-    addl_args: '{ "--image-url": "gcr.io/newshoun/np:${DRONE_COMMIT}" }'
+    addl_args: '{ "--image-url": "gcr.io/newshound/np:${DRONE_COMMIT}" }'
     version: "${DRONE_COMMIT}"
     max_versions: 2
     secrets:
