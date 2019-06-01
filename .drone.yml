@@ -1,4 +1,33 @@
 pipeline:
+  build-ui:
+    image: digitallyseamless/nodejs-bower-grunt:0.10
+    commands:
+      - cd web/frontend/
+      - npm install
+      - bower install
+      - grunt build
+    when:
+      branch: [gae]
+      event: push
+
+  deploy-ui:
+    image: nytimes/drone-gae:latest
+    action: deploy
+    project: newshound
+    dir: web/frontend
+    app_file: app.yaml
+    version: "${DRONE_COMMIT}"
+    max_versions: 2
+    vars: '{"DB_PWD":"$$DB_PWD"}'
+    secrets:
+      - source: google_credentials
+        target: GAE_CREDENTIALS
+      - source: fetch_pwd
+        target: DB_PWD
+    when:
+      branch: [gae]
+      event: push
+
   deploy-fetchd:
     image: nytimes/drone-gae:latest
     action: deploy

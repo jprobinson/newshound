@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/jprobinson/go-utils/utils"
 	"github.com/jprobinson/go-utils/web"
 
 	"github.com/jprobinson/newshound"
@@ -14,10 +13,6 @@ import (
 
 func main() {
 	config := newshound.NewConfig()
-
-	logSetup := utils.NewDefaultLogSetup(newshound.ServerLog)
-	logSetup.SetupLogging()
-	go utils.ListenForLogSignal(logSetup)
 
 	router := mux.NewRouter()
 
