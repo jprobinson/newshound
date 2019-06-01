@@ -170,6 +170,7 @@ var (
 		[]byte("trouble \nviewing"),
 		[]byte("to ensure delivery"),
 		[]byte("having difficulty"),
+		[]byte("trouble viewing this email"),
 		[]byte("having trouble"),
 		[]byte("viewing this email"),
 		[]byte("to view this"),

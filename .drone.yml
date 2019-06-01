@@ -5,7 +5,6 @@ pipeline:
     beta: true
     project: newshound
     dir: fetch/fetchd
-    app_file: app.yaml
     version: "${DRONE_COMMIT}"
     max_versions: 2
     vars: '{"MAIL_KEY":"$$MAIL_KEY", "DB_PWD":"$$DB_PWD", "EMAIL": "$$EMAIL"}'
@@ -40,13 +39,33 @@ pipeline:
     action: deploy
     project: newshound
     dir: np_extractor
-    app_file: app.yaml
     addl_args: '{ "--image-url": "gcr.io/newshound/np:${DRONE_COMMIT}" }'
     version: "${DRONE_COMMIT}"
     max_versions: 2
     secrets:
       - source: google_credentials
         target: GAE_CREDENTIALS
+    when:
+      branch: [gae]
+      event: push
+
+  deploy-barkd:
+    image: nytimes/drone-gae:latest
+    action: deploy
+    project: newshound
+    dir: bark/barkd
+    version: "${DRONE_COMMIT}"
+    max_versions: 2
+    vars: '{"SLACK_KEYS":"$$SLACK_KEYS", "TWITTER_TOKENS":"$$TWITTER_TOKENS", "TWITTER_SECRETS": "$$TWITTER_SECRETS"}'
+    secrets:
+      - source: google_credentials
+        target: GAE_CREDENTIALS
+      - source: slack_keys
+        target: SLACK_KEYS
+      - source: twitter_tokens
+        target: TWITTER_TOKENS
+      - source: twitter_secrets
+        target: TWITTER_SECRETS
     when:
       branch: [gae]
       event: push
