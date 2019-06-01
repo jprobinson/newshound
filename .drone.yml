@@ -1,6 +1,6 @@
 pipeline:
   build-ui:
-    image: digitallyseamless/nodejs-bower-grunt:0.10
+    image: digitallyseamless/nodejs-bower-grunt
     commands:
       - cd web/frontend/
       - npm install
