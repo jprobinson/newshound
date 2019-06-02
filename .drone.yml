@@ -1,5 +1,5 @@
 pipeline:
-  build-ui:
+  build-web:
     image: digitallyseamless/nodejs-bower-grunt
     commands:
       - cd web/frontend/
@@ -10,11 +10,11 @@ pipeline:
       branch: [gae]
       event: push
 
-  deploy-ui:
+  deploy-default:
     image: nytimes/drone-gae:latest
     action: deploy
     project: newshound
-    dir: web/frontend
+    dir: web
     app_file: app.yaml
     version: "${DRONE_COMMIT}"
     max_versions: 2
