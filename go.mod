@@ -3,6 +3,7 @@ module github.com/jprobinson/newshound
 go 1.12
 
 require (
+	cloud.google.com/go v0.36.0
 	github.com/ChimeraCoder/anaconda v2.0.0+incompatible
 	github.com/ChimeraCoder/tokenbucket v0.0.0-20131201223612-c5a927568de7 // indirect
 	github.com/NYTimes/gizmo v1.2.7
@@ -20,6 +21,7 @@ require (
 	github.com/paulrosania/go-charset v0.0.0-20190326053356-55c9d7a5834c // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/sloonz/go-qprintable v0.0.0-20160203160305-775b3a4592d5 // indirect
+	go.opencensus.io v0.19.0
 	golang.org/x/exp v0.0.0-20190121172915-509febef88a4
 	golang.org/x/net v0.0.0-20190522155817-f3200d17e092
 	golang.org/x/text v0.3.2
