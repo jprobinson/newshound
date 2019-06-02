@@ -10,21 +10,18 @@
     "select2": "~3.4.5",
     "bootstrap": "~3.0.3",
     "angular": "1.2.6",
-    "angular-resource": "1.2.6",
+    "angular-resource": "~1.4",
     "angular-bootstrap": "0.10.0",
-    "angular-sanitize": "1.2.6",
-    "angular-route": "1.2.6",
+    "angular-sanitize": "~1.4",
+    "angular-route": "~1.4",
     "angular-ui-calendar": "latest",
     "angular-ui-select2": "~0.0.5",
     "highcharts-ng": "~0.0.4"
   },
-  "devDependencies": {
-    "angular-mocks": "1.2.6",
-    "angular-scenario": "1.2.6"
-  },
+  "devDependencies": {},
   "resolutions": {
     "jquery": "2.x",
-    "angular": "1.2.26",
+    "angular": "~1.4.x",
     "fullcalendar": "~1.x"
   }
 }
