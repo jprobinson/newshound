@@ -49,7 +49,6 @@ func NewService() (server.MixedService, error) {
 	}
 
 	cfg := NewConfig()
-	log.Printf("config? %#v", cfg)
 	sess, err := cfg.MgoSession()
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to init mgo")
