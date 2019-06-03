@@ -12,8 +12,10 @@ handlers:
   script: auto
 - url: /.*
   static_dir: frontend/dist
+  upload: frontend/dist
 - url: /
   static_dir: frontend/dist
+  upload: frontend/dist
 
 env_variables:
   DB_URL: "10.128.0.2"
