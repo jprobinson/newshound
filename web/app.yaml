@@ -10,8 +10,10 @@ automatic_scaling:
 handlers:
 - url: /
   static_dir: frontend/dist
+- url: /.*
+  static_dir: frontend/dist
 - url: /svc/.*
-  script: auto
+  script: _go_app
 
 env_variables:
   DB_URL: "10.128.0.2"
