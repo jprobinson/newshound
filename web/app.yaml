@@ -13,7 +13,7 @@ handlers:
 - url: /.*
   static_dir: frontend/dist
 - url: /svc/.*
-  script: _go_app
+  script: auto
 
 env_variables:
   DB_URL: "10.128.0.2"
