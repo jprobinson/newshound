@@ -10,9 +10,21 @@ automatic_scaling:
 handlers:
 - url: /svc/.*
   script: auto
-- url: /.*
+- url: /
+  static_files: frontend/dist/index.html
+  upload: frontend/dist/index.html
+- url: /images/.*
+  static_files: frontend/dist/images/\1
+  upload: frontend/dist/images/.*
+- url: /styles/.*
+  static_files: frontend/dist/styles/\1
+  upload: frontend/dist/styles/.*
+- url: /scripts/.*
+  static_files: frontend/dist/scripts/\1
+  upload: frontend/dist/scripts/.*
+- url: /(.*)
   static_files: frontend/dist/\1
-  upload: frontend/dist/.*\.(html|js|css|ico)$
+  upload: frontend/dist/.*
 
 env_variables:
   DB_URL: "10.128.0.2"
