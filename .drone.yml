@@ -22,7 +22,7 @@ pipeline:
   publish-web-image:
     image: plugins/gcr
     registry: gcr.io
-    repo: newshtound/web
+    repo: newshound/web
     tag: "${DRONE_COMMIT}"
     context: web
     dockerfile: web/Dockerfile
