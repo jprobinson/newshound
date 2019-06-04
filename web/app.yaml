@@ -8,13 +8,11 @@ automatic_scaling:
   max_idle_instances: 1
 
 handlers:
-- url: /
-  static_files: frontend/dist/index.html
-  upload: frontend/dist/index.html
 - url: /svc/.*
   script: auto
 - url: /.*
-  static_dir: frontend/dist
+  static_files: frontend/dist/\1
+  upload: frontend/dist/.*\.(html|js|css|ico)$
 
 env_variables:
   DB_URL: "10.128.0.2"
