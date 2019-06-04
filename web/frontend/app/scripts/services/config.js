@@ -6,10 +6,10 @@ angular.module('newshoundApp')
             return {
                 apiHost: function() {
                     var apiHost = "svc/newshound-api/v1";
-                    if ($location.host().indexOf('jprbnsn.com') == -1) {
-//                        apiHost = "http://10.0.1.4:8080/"+ apiHost;
-                        apiHost = "http://newshound.jprbnsn.com/" + apiHost;
+                    if ($location.host().indexOf('appspot.com') == -1) {
+                        apiHost = "http://newshound.appspot.com/" + apiHost;
                     }
+
                     return apiHost;
                 }
             };
