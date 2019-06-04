@@ -9,7 +9,7 @@ FROM scratch
 COPY --from=alpine /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=golang /usr/local/go/lib/time/ /usr/local/go/lib/time/
 
-ADD web /web
+ADD server /server
 ADD frontend/dist /public
 
-ENTRYPOINT ["/web"]
+ENTRYPOINT ["/server"]

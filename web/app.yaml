@@ -7,10 +7,6 @@ vpc_access_connector:
 automatic_scaling:
   max_idle_instances: 1
 
-handlers:
-- url: /.*
-  script: auto
-
 env_variables:
   DB_URL: "10.128.0.2"
   DB_USER: fetch
