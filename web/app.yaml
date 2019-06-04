@@ -28,3 +28,4 @@ env_variables:
   DB_URL: "10.128.0.2"
   DB_USER: fetch
   DB_PASSWORD: "{{ .DB_PWD }}"
+  DIR: /public

@@ -14,11 +14,13 @@ func main() {
 	if err != nil {
 		log.Fatalf("unable to init service: %s", err)
 	}
-	var cfg server.Config
+
+	cfg := server.Config{HTTPPort: 8080}
 	port := os.Getenv("PORT")
 	if port != "" {
 		cfg.HTTPPort, _ = strconv.Atoi(port)
 	}
+
 	server.Init("", &cfg)
 
 	server.Register(svc)
