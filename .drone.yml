@@ -14,7 +14,8 @@ pipeline:
     image: golang:1
     commands:
       - cd web
-      - go build
+      - go build -o web .
+      - ls -la
     when:
       branch: [gae]
       event: push
