@@ -2,8 +2,6 @@ package main
 
 import (
 	"log"
-	"os"
-	"strconv"
 
 	"github.com/NYTimes/gizmo/server"
 	"github.com/jprobinson/newshound/web/api"
@@ -15,13 +13,7 @@ func main() {
 		log.Fatalf("unable to init service: %s", err)
 	}
 
-	cfg := server.Config{HTTPPort: 8080}
-	port := os.Getenv("PORT")
-	if port != "" {
-		cfg.HTTPPort, _ = strconv.Atoi(port)
-	}
-
-	server.Init("", &cfg)
+	server.Init("", &server.Config{HTTPPort: 8080})
 
 	server.Register(svc)
 
