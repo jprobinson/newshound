@@ -94,9 +94,11 @@ func (s *service) Endpoints() map[string]map[string]http.HandlerFunc {
 		"/fonts/{file}": {
 			"GET": http.StripPrefix("/fonts/", http.FileServer(http.Dir(s.dir+"/fonts/"))).ServeHTTP,
 		},
+		/*
 		"/": {
 			"GET": http.FileServer(http.Dir(s.dir + "/")).ServeHTTP,
 		},
+		*/
 
 		"/svc/newshound-api/v1/alert_html/{alert_id}": {
 			"GET": s.findAlertHTML,
