@@ -16,7 +16,6 @@ pipeline:
     project: newshound
     dir: web
     app_file: app.yaml
-    addl_args: '{ "--image-url": "gcr.io/newshound/web:${DRONE_COMMIT}" }'
     version: "${DRONE_COMMIT}"
     max_versions: 2
     secrets:
