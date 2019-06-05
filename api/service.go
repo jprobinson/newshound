@@ -81,7 +81,7 @@ func (s *service) Endpoints() map[string]map[string]http.HandlerFunc {
 func (s *service) JSONEndpoints() map[string]map[string]server.JSONEndpoint {
 	return map[string]map[string]server.JSONEndpoint{
 		"/svc/newshound-api/v1/find_alerts/{start}/{end}": {
-			"GET": s.findOrderedAlerts,
+			"GET": s.findAlertsByDate,
 		},
 		"/svc/newshound-api/v1/ordered_alerts/{alert_ids}": {
 			"GET": s.findOrderedAlerts,
