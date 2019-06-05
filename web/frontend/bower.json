@@ -14,7 +14,7 @@
     "angular-bootstrap": "0.10.0",
     "angular-sanitize": "~1.4",
     "angular-route": "~1.4",
-    "angular-ui-calendar": "latest",
+    "angular-ui-calendar": "0.8.1",
     "angular-ui-select2": "~0.0.5",
     "highcharts-ng": "~0.0.4"
   },

@@ -24,8 +24,8 @@ angular.module('newshoundApp')
 				getAlerts: function(start, end) {
 					var deferred = $q.defer();
 
-					var startString = start.format("YYYY-MM-DD");
-					var endString = end.format("YYYY-MM-DD");
+					var startString = $filter('date')(start, "yyyy-MM-dd");
+					var endString = $filter('date')(end, "yyyy-MM-dd");
 					$http({
 						url: config.apiHost() + "/find_alerts/" + startString + "/" + endString,
 						method: "GET",

@@ -8,7 +8,6 @@ angular.module('newshoundApp')
 			// Public API here
 			return {
 				getSenderReport: function(report_type) {
-                    console.log("WHAAA");
                     var report_name = "";
                     switch (report_type) {
                         case "avg_events":
