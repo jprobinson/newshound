@@ -7,7 +7,7 @@ angular.module('newshoundApp')
                 apiHost: function() {
                     var apiHost = "svc/newshound-api/v1";
                     if ($location.host().indexOf('appspot.com') == -1) {
-                        apiHost = "http://newshound.appspot.com/" + apiHost;
+                        apiHost = "https://newshound.jprbnsn.com/" + apiHost;
                     }
 
                     return apiHost;

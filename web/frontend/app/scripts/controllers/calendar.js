@@ -52,12 +52,13 @@ angular.module('newshoundApp')
 
             var goToDate = function(dateStr) {
                 if (dateStr) {
+					console.log("gotodate", dateStr);
                     var dateVals = dateStr.split('-');
                     if (dateVals.length != 3) {
                         console.log('invalid date!');
                     } else {
                         var startDate = new Date(dateVals[0], dateVals[1] - 1, dateVals[2]);
-                        $scope.theCalendar.fullCalendar('gotoDate', startDate);
+                        $scope.uiConfig.calendar.fullCalendar('gotoDate', startDate);
                     }
                 } else {
                     $route.reload();
@@ -111,7 +112,7 @@ angular.module('newshoundApp')
                 if (newDate == oldDate) {
                     return;
                 }
-                var newDateStr = $filter('date')(newDate, "yyyy-MM-dd");
+                var newDateStr = newDate.format("YYYY-MM-DD");
                 if (newDate &&
                     ($scope.startDate >= newDateStr) ||
                     ($scope.endDate <= newDateStr)) {
@@ -152,8 +153,8 @@ angular.module('newshoundApp')
             };
 
             var viewRender = function(view, element) {
-                var start = $filter('date')(view.start, "yyyy-MM-dd");
-                var end = $filter('date')(view.end, "yyyy-MM-dd");
+                var start = view.start.format("YYYY-MM-DD");
+                var end = view.end.format("YYYY-MM-DD");
                 var searchVals = $location.search();
                 if (!$scope.startDate && searchVals.start) {
                     start = searchVals.start;
@@ -182,8 +183,9 @@ angular.module('newshoundApp')
                 } else if ((start != $scope.startDate) || (end != $scope.endDate)) {
                     $scope.startDate = start;
                     $scope.endDate = end;
-                    searchVals.start = $filter('date')(view.start, "yyyy-MM-dd");
-                    searchVals.end = $filter('date')(view.end, "yyyy-MM-dd");
+					console.log("search starttt", view.start);
+                    searchVals.start = view.start.format("YYYY-MM-DD");
+                    searchVals.end = view.end.format("YYYY-MM-DD");
                     searchVals.display = $scope.calDisplay;
                     $location.search(searchVals);
                 }
