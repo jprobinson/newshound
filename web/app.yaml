@@ -7,6 +7,11 @@ vpc_access_connector:
 automatic_scaling:
   max_idle_instances: 1
 
+handlers:
+- url: /.*
+  script: _go_app
+  secure: always
+
 env_variables:
   DB_URL: "10.128.0.2"
   DB_USER: fetch
