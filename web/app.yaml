@@ -9,7 +9,7 @@ automatic_scaling:
 
 handlers:
 - url: /.*
-  script: _go_app
+  script: auto
   secure: always
 
 env_variables:
