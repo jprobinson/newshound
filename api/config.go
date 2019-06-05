@@ -21,6 +21,7 @@ func NewConfig() *Config {
 
 func (c *Config) MgoSession() (*mgo.Session, error) {
 	// make conn pass it to data
+	log.Printf("connecting to %s", c.DBURL)
 	sess, err := mgo.Dial(c.DBURL)
 	if err != nil {
 		log.Printf("Unable to connect to newshound db! - %s", err.Error())

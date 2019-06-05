@@ -28,12 +28,12 @@ pipeline:
   deploy-api:
     image: nytimes/drone-gae:latest
     action: deploy
+    beta: true
     project: newshound
     dir: api/server 
     app_file: app.yaml
     version: "${DRONE_COMMIT}"
     max_versions: 2
-    beta: true
     vars: '{"DB_PWD":"$$DB_PWD"}'
     secrets:
       - source: google_credentials
