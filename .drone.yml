@@ -14,7 +14,7 @@ pipeline:
     image: golang:1
     commands:
       - cd web
-      - go build -o server .
+      - CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o server .
     when:
       branch: [gae]
       event: push
