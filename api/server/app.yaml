@@ -1,0 +1,18 @@
+runtime: go111
+service: api
+
+vpc_access_connector:
+  name: "projects/newshound/locations/us-central1/connectors/newshound-db"
+
+automatic_scaling:
+  max_idle_instances: 1
+
+handlers:
+- url: /.*
+  script: auto
+  secure: always
+
+env_variables:
+  DB_URL: "10.128.0.2"
+  DB_USER: fetch
+  DB_PASSWORD: "{{ .DB_PWD }}"

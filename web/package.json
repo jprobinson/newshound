@@ -30,7 +30,7 @@
     "grunt-karma": "~0.7.1"
   },
   "engines": {
-    "node": ">=0.10.0"
+    "node": ">=8"
   },
   "scripts": {
     "test": "grunt test"

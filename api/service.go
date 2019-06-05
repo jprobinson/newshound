@@ -4,13 +4,13 @@ import (
 	"context"
 	"log"
 	"net/http"
-	"os"
 
 	"cloud.google.com/go/profiler"
 	"github.com/NYTimes/gizmo/observe"
 	"github.com/NYTimes/gizmo/server"
 	"github.com/NYTimes/gizmo/server/kit"
 	"github.com/pkg/errors"
+	"github.com/rs/cors"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/trace"
 	"gopkg.in/mgo.v2"
@@ -54,16 +54,11 @@ func NewService() (server.MixedService, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to init mgo")
 	}
-	dir := os.Getenv("DIR")
-	if dir == "" {
-		dir = "./frontend/dist"
-	}
-	return &service{sess: sess, dir: dir}, nil
+	return &service{sess: sess}, nil
 }
 
 type service struct {
 	sess *mgo.Session
-	dir  string
 }
 
 func (s *service) Prefix() string {
@@ -71,35 +66,11 @@ func (s *service) Prefix() string {
 }
 
 func (s *service) Middleware(h http.Handler) http.Handler {
-	return h
+	return cors.Default().Handler(h)
 }
 
 func (s *service) Endpoints() map[string]map[string]http.HandlerFunc {
 	return map[string]map[string]http.HandlerFunc{
-		"/{file}": {
-			"GET": http.FileServer(http.Dir(s.dir + "/")).ServeHTTP,
-		},
-		"/styles/{file}": {
-			"GET": http.StripPrefix("/styles/", http.FileServer(http.Dir(s.dir+"/styles/"))).ServeHTTP,
-		},
-		"/images/{file}": {
-			"GET": http.StripPrefix("/images/", http.FileServer(http.Dir(s.dir+"/images/"))).ServeHTTP,
-		},
-		"/scripts/{file}": {
-			"GET": http.StripPrefix("/scripts/", http.FileServer(http.Dir(s.dir+"/scripts/"))).ServeHTTP,
-		},
-		"/views/{file}": {
-			"GET": http.StripPrefix("/views/", http.FileServer(http.Dir(s.dir+"/views/"))).ServeHTTP,
-		},
-		"/fonts/{file}": {
-			"GET": http.StripPrefix("/fonts/", http.FileServer(http.Dir(s.dir+"/fonts/"))).ServeHTTP,
-		},
-		/*
-		"/": {
-			"GET": http.FileServer(http.Dir(s.dir + "/")).ServeHTTP,
-		},
-		*/
-
 		"/svc/newshound-api/v1/alert_html/{alert_id}": {
 			"GET": s.findAlertHTML,
 		},

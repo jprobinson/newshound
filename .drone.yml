@@ -10,35 +10,28 @@ pipeline:
       branch: [gae]
       event: push
 
-  build-api:
-    image: golang:1
-    commands:
-      - cd web
-      - CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o server .
-    when:
-      branch: [gae]
-      event: push
-
-  publish-web-image:
-    image: plugins/gcr
-    registry: gcr.io
-    repo: newshound/web
-    tag: "${DRONE_COMMIT}"
-    context: web
-    dockerfile: web/Dockerfile
-    json_key:
-      from_secret: google_credentials
-    when:
-      branch: [gae]
-      event: push
-
-  deploy-default:
+  deploy-web:
     image: nytimes/drone-gae:latest
     action: deploy
     project: newshound
     dir: web
     app_file: app.yaml
     addl_args: '{ "--image-url": "gcr.io/newshound/web:${DRONE_COMMIT}" }'
+    version: "${DRONE_COMMIT}"
+    max_versions: 2
+    secrets:
+      - source: google_credentials
+        target: GAE_CREDENTIALS
+    when:
+      branch: [gae]
+      event: push
+
+  deploy-api:
+    image: nytimes/drone-gae:latest
+    action: deploy
+    project: newshound
+    dir: api/server 
+    app_file: app.yaml
     version: "${DRONE_COMMIT}"
     max_versions: 2
     beta: true

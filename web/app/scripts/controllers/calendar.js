@@ -140,7 +140,7 @@ angular.module('newshoundApp')
                 }
 
                 promise.then(function(events) {
-                    $scope.startInput = start;
+                    $scope.startInput = $filter('date')(start, "MMM d, y");
                     $scope.endInput = end;
                     callback(events);
                     fetchInProgress = false;

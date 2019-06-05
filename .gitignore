@@ -1,3 +1,4 @@
 *.pyc
-web/web
+web/dist
+node_modules
 *.swp

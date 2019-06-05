@@ -1,19 +1,19 @@
-runtime: go111
+runtime: nodejs8
 service: default
-
-vpc_access_connector:
-  name: "projects/newshound/locations/us-central1/connectors/newshound-db"
 
 automatic_scaling:
   max_idle_instances: 1
 
 handlers:
-- url: /.*
-  script: auto
+- url: /
+  static_files: dist/index.html
+  upload: dist/index.html
   secure: always
-
-env_variables:
-  DB_URL: "10.128.0.2"
-  DB_USER: fetch
-  DB_PASSWORD: "{{ .DB_PWD }}"
-  DIR: /public
+- url: /(.+)
+  static_files: dist/\1
+  upload: dist/(.*\.(html|ico|png|txt))
+  secure: always
+- url: /(.+)/(.+)
+  static_files: dist/\1/\2
+  upload: dist/(.*\.(html|ico|css|js|png|ttf|woff))
+  secure: always

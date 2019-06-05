@@ -20,6 +20,7 @@ require (
 	github.com/mxk/go-imap v0.0.0-20150429134902-531c36c3f12d // indirect
 	github.com/paulrosania/go-charset v0.0.0-20190326053356-55c9d7a5834c // indirect
 	github.com/pkg/errors v0.8.1
+	github.com/rs/cors v1.6.0
 	github.com/sloonz/go-qprintable v0.0.0-20160203160305-775b3a4592d5 // indirect
 	go.opencensus.io v0.19.0
 	golang.org/x/exp v0.0.0-20190121172915-509febef88a4
