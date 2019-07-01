@@ -1,0 +1,6 @@
+cron:
+- description: kick off sender data mapreduce
+  url: /mapreduce
+  schedule: every 1 hours
+  timezone: America/New_York
+  target: fetchd
