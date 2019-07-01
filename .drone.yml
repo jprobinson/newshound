@@ -69,10 +69,9 @@ pipeline:
 
   deploy-fetchd-cron:
     image: nytimes/drone-gae:latest
-    action: deploy
+    action: update_cron
     project: newshound
     dir: fetch/fetchd
-    app_file: cron.yaml
     secrets:
       - source: google_credentials
         target: GAE_CREDENTIALS
