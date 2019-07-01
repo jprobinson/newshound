@@ -74,7 +74,7 @@ pipeline:
     dir: fetch/fetchd
     secrets:
       - source: google_credentials
-        target: GAE_CREDENTIALS
+        target: gae_credentials
     when:
       branch: [gae]
       event: push
