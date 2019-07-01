@@ -67,18 +67,6 @@ pipeline:
       branch: [gae]
       event: push
 
-  deploy-fetchd-cron:
-    image: nytimes/drone-gae:latest
-    action: update_cron
-    project: newshound
-    dir: fetch/fetchd
-    secrets:
-      - source: google_credentials
-        target: gae_credentials
-    when:
-      branch: [gae]
-      event: push
-
   publish-np-image:
     image: plugins/gcr
     registry: gcr.io
