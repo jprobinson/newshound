@@ -10,6 +10,7 @@ import (
 
 	"gopkg.in/mgo.v2"
 
+	"github.com/gorilla/mux"
 	"github.com/jprobinson/newshound/fetch"
 )
 
@@ -34,36 +35,29 @@ func main() {
 	}
 
 	go func() {
+		mv := mux.NewRouter()
+		mv.HandleFunc("/mapreduce", func(w http.ResponseWriter, r *http.Request) {
+			err := fetch.MapReduce(sess)
+			if err != nil {
+				log.Print("problems performing mapreduce: ", err)
+			}
+			w.WriteHeader(http.StatusOK)
+		})
+		ok := func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}
+		mv.HandleFunc("/_ah/warmup", ok)
+		mv.HandleFunc("/", ok)
+		// for GAE
 		port := os.Getenv("PORT")
 		if port == "" {
 			port = "8080"
 		}
-
 		log.Printf("listening on %s", port)
-		// for GAE
-		go http.ListenAndServe(":"+port,
-			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			}))
+		http.ListenAndServe(":"+port, mv)
 	}()
 
-	go fetchMail(ctx, config, sess)
-
-	mapReduce(sess)
-}
-
-func mapReduce(sess *mgo.Session) {
-	for {
-		err := fetch.MapReduce(sess)
-		if err != nil {
-			log.Print("problems performing mapreduce: ", err)
-
-			time.Sleep(5 * time.Minute)
-			continue
-		}
-
-		time.Sleep(1 * time.Hour)
-	}
+	fetchMail(ctx, config, sess)
 }
 
 func fetchMail(ctx context.Context, config *fetch.Config, sess *mgo.Session) {
