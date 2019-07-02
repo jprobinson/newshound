@@ -5,7 +5,7 @@ angular.module('newshoundApp')
         function($location) {
             return {
                 apiHost: function() {
-                    return "https://api-dot-newshound.appspot.com/svc/newshound-api/v1";
+                    return "https://api.newshound.email/svc/newshound-api/v1";
                 }
             };
         }
