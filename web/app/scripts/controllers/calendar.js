@@ -25,9 +25,9 @@ angular.module('newshoundApp')
 
                     if (newDisplay != $scope.calDisplay) {
                         $scope.calDisplay = newDisplay;
-                    }
+					}
 
-                    goToDate(newStart);
+					goToDate(newStart);
                 } else if (newDisplay != $scope.calDisplay) {
                     $scope.theCalendar.fullCalendar('refetchEvents');
                 }
@@ -54,7 +54,7 @@ angular.module('newshoundApp')
                 if (dateStr) {
                     var dateVals = dateStr.split('-');
                     if (dateVals.length != 3) {
-                        console.log('invalid date!');
+                        console.log('invalid date!', dateStr);
                     } else {
                         var startDate = new Date(dateVals[0], dateVals[1] - 1, dateVals[2]);
                         $scope.theCalendar.fullCalendar('gotoDate', startDate);
@@ -115,7 +115,7 @@ angular.module('newshoundApp')
                 if (newDate &&
                     ($scope.startDate >= newDateStr) ||
                     ($scope.endDate <= newDateStr)) {
-                    $scope.theCalendar.fullCalendar('gotoDate', newDate);
+					goToDate(newDate);
                 }
             }
             $scope.$watch('startInput', dateChange);
