@@ -65,7 +65,9 @@ func NewService() (kit.Service, error) {
 
 	for i, token := range cfg.TwitterTokens {
 		secret := cfg.TwitterSecrets[i]
-		alerts = append(alerts, NewTwitterAlertBarker(token, secret))
+		consumer := cfg.TwitterConsumers[i]
+		consumerSecret := cfg.TwitterConsumerSecrets[i]
+		alerts = append(alerts, NewTwitterAlertBarker(consumer, consumerSecret, token, secret))
 		events = append(events, NewTwitterEventBarker(token, secret))
 		twitters++
 	}
