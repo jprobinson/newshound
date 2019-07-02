@@ -1,0 +1,6 @@
+dispatch:
+- url: "newshound.email/*"
+  service: default
+- url: "api.newshound.email/*"
+  service: api
+
