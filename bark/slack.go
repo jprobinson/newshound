@@ -102,13 +102,13 @@ func sendSlack(bot, key, title, link, message, color string) error {
 }
 
 func alertLink(alert newshound.NewsAlertLite) string {
-	return fmt.Sprintf("http://newshound.jprbnsn.com/#/calendar?start=%s&display=alerts&alert=%s",
+	return fmt.Sprintf("http://newshound.email/#/calendar?start=%s&display=alerts&alert=%s",
 		alert.Timestamp.Format("2006-01-02"),
 		alert.ID.Hex())
 }
 
 func eventLink(event newshound.NewsEvent) string {
-	return fmt.Sprintf("http://newshound.jprbnsn.com/#/calendar?start=%s&display=events&event=%s",
+	return fmt.Sprintf("http://newshound.email/#/calendar?start=%s&display=events&event=%s",
 		event.EventStart.Format("2006-01-02"),
 		event.ID.Hex())
 }
