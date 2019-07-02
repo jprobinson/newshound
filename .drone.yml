@@ -7,7 +7,7 @@ pipeline:
       - bower install
       - grunt build
     when:
-      branch: [gae]
+      branch: [master]
       event: push
 
   deploy-web:
@@ -22,7 +22,7 @@ pipeline:
       - source: google_credentials
         target: GAE_CREDENTIALS
     when:
-      branch: [gae]
+      branch: [master]
       event: push
 
   deploy-api:
@@ -41,7 +41,7 @@ pipeline:
       - source: fetch_pwd
         target: DB_PWD
     when:
-      branch: [gae]
+      branch: [master]
       event: push
 
   deploy-fetchd:
@@ -64,7 +64,7 @@ pipeline:
       - source: email
         target: EMAIL
     when:
-      branch: [gae]
+      branch: [master]
       event: push
 
   publish-np-image:
@@ -77,7 +77,7 @@ pipeline:
     json_key:
       from_secret: google_credentials
     when:
-      branch: [gae]
+      branch: [master]
       event: push
 
   deploy-np:
@@ -93,7 +93,7 @@ pipeline:
       - source: google_credentials
         target: GAE_CREDENTIALS
     when:
-      branch: [gae]
+      branch: [master]
       event: push
 
   deploy-barkd:
@@ -115,5 +115,5 @@ pipeline:
       - source: twitter_secrets
         target: TWITTER_SECRETS
     when:
-      branch: [gae]
+      branch: [master]
       event: push
