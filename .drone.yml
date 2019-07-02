@@ -104,7 +104,7 @@ pipeline:
     app_file: app.yaml
     version: "${DRONE_COMMIT}"
     max_versions: 2
-    vars: '{"SLACK_KEYS":"$$SLACK_KEYS", "TWITTER_TOKENS":"$$TWITTER_TOKENS", "TWITTER_SECRETS": "$$TWITTER_SECRETS"}'
+    vars: '{"SLACK_KEYS":"$$SLACK_KEYS", "TWITTER_TOKENS":"$$TWITTER_TOKENS", "TWITTER_SECRETS": "$$TWITTER_SECRETS", "TWITTER_CONSUMERS": "$$TWITTER_CONSUMERS", "TWITTER_CONSUMER_SECRETS": "$$TWITTER_CONSUMER_SECRETS"}'
     secrets:
       - source: google_credentials
         target: GAE_CREDENTIALS
@@ -114,6 +114,10 @@ pipeline:
         target: TWITTER_TOKENS
       - source: twitter_secrets
         target: TWITTER_SECRETS
+      - source: twitter_consumers
+        target: TWITTER_CONSUMERS
+      - source: twitter_consumer_secrets
+        target: TWITTER_CONSUMER_SECRETS
     when:
       branch: [master]
       event: push

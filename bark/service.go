@@ -18,8 +18,10 @@ import (
 type econfig struct {
 	SlackKeys []string `envconfig:"SLACK_KEYS"`
 
-	TwitterTokens  []string `envconfig:"TWITTER_TOKENS"`
-	TwitterSecrets []string `envconfig:"TWITTER_SECRETS"`
+	TwitterTokens          []string `envconfig:"TWITTER_TOKENS"`
+	TwitterSecrets         []string `envconfig:"TWITTER_SECRETS"`
+	TwitterConsumers       []string `envconfig:"TWITTER_CONSUMERS"`
+	TwitterConsumerSecrets []string `envconfig:"TWITTER_CONSUMER_SECRETS"`
 
 	Auth gcp.IdentityConfig `envconfig:"AUTH"`
 }

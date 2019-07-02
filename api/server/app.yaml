@@ -7,6 +7,8 @@ vpc_access_connector:
 automatic_scaling:
   max_idle_instances: 1
 
+instance_class: F2
+
 handlers:
 - url: /.*
   script: auto
