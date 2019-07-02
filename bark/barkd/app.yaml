@@ -4,9 +4,6 @@ service: barkd
 automatic_scaling:
   max_idle_instances: 1
 
-inbound_services:
-    - warmup
-
 env_variables:
   SLACK_KEYS: "{{ .SLACK_KEYS }}"
   TWITTER_TOKENS: "{{ .TWITTER_TOKENS }}"
