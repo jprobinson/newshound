@@ -2,6 +2,7 @@ package bark
 
 import (
 	"context"
+	"log"
 	"net/http"
 
 	"github.com/NYTimes/gizmo/auth"
@@ -43,8 +44,9 @@ func NewService() (kit.Service, error) {
 	}
 
 	var (
-		alerts []AlertBarker
-		events []EventBarker
+		alerts             []AlertBarker
+		events             []EventBarker
+		slackers, twitters int
 	)
 
 	for _, key := range cfg.SlackKeys {
@@ -52,6 +54,7 @@ func NewService() (kit.Service, error) {
 			SlackConfig{Key: key, BotName: "Newshound Alerts"}))
 		events = append(events, NewSlackEventBarker(
 			SlackConfig{Key: key, BotName: "Newshound Alerts"}))
+		slackers++
 	}
 
 	if len(cfg.TwitterSecrets) != len(cfg.TwitterTokens) {
@@ -62,7 +65,11 @@ func NewService() (kit.Service, error) {
 		secret := cfg.TwitterSecrets[i]
 		alerts = append(alerts, NewTwitterAlertBarker(token, secret))
 		events = append(events, NewTwitterEventBarker(token, secret))
+		twitters++
 	}
+
+	log.Printf("starting with %d slack accounts and %d twitter accounts",
+		slackers, twitters)
 
 	return &service{
 		verifier:  v,
