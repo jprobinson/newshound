@@ -12,23 +12,17 @@ import (
 	"github.com/jprobinson/newshound"
 )
 
-type slackKey struct {
-	key     string
-	botName string
+type SlackConfig struct {
+	Key     string `envconfig:"SLACK_KEY"`
+	BotName string `envconfig:"SLACK_BOT_NAME"`
 }
 
-func AddSlackAlertBot(d *Distributor, key, botName string) {
-	skey := slackKey{key, botName}
-	d.AddAlertBarker(&SlackAlertBarker{skey})
-}
-
-func AddSlackEventBot(d *Distributor, key, botName string) {
-	skey := slackKey{key, botName}
-	d.AddEventBarker(&SlackEventBarker{skey})
+func NewSlackAlertBarker(cfg SlackConfig) *SlackAlertBarker {
+	return &SlackAlertBarker{cfg: cfg}
 }
 
 type SlackAlertBarker struct {
-	key slackKey
+	cfg SlackConfig
 }
 
 func (s *SlackAlertBarker) Bark(alert newshound.NewsAlertLite) error {
@@ -37,11 +31,15 @@ func (s *SlackAlertBarker) Bark(alert newshound.NewsAlertLite) error {
 	link := alertLink(alert)
 	message := fmt.Sprintf("\n%s\n<%s|more...>", alert.TopSentence, link)
 	color := SenderColors[strings.ToLower(alert.Sender)]
-	return sendSlack(s.key.botName, s.key.key, title, link, message, color)
+	return sendSlack(s.cfg.BotName, s.cfg.Key, title, link, message, color)
+}
+
+func NewSlackEventBarker(cfg SlackConfig) *SlackEventBarker {
+	return &SlackEventBarker{cfg: cfg}
 }
 
 type SlackEventBarker struct {
-	key slackKey
+	cfg SlackConfig
 }
 
 func (s *SlackEventBarker) Bark(event newshound.NewsEvent) error {
@@ -51,7 +49,7 @@ func (s *SlackEventBarker) Bark(event newshound.NewsEvent) error {
 		event.TopSentence,
 		strings.TrimSuffix(event.TopSender, ".com"),
 		link)
-	return sendSlack(s.key.botName, s.key.key, title, link, message, "#439FE0")
+	return sendSlack(s.cfg.BotName, s.cfg.Key, title, link, message, "#439FE0")
 }
 
 type slackAttachment struct {

@@ -20,10 +20,10 @@ type npResp struct {
 	TopSentence string               `json:"top_sentence"`
 }
 
-func callNP(body []byte) (tags []string, sentences []newshound.Sentence, topSentence string, err error) {
+func callNP(host string, body []byte) (tags []string, sentences []newshound.Sentence, topSentence string, err error) {
 
 	var resp *http.Response
-	resp, err = http.Post("http://127.0.0.1:1029/", "application/json", bytes.NewReader(body))
+	resp, err = http.Post(host, "application/json", bytes.NewReader(body))
 	if err != nil {
 		log.Print("unable to hit np_extractor: ", err)
 		return

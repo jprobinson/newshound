@@ -1,0 +1,19 @@
+runtime: nodejs8
+service: default
+
+automatic_scaling:
+  max_idle_instances: 1
+
+handlers:
+- url: /
+  static_files: dist/index.html
+  upload: dist/index.html
+  secure: always
+- url: /(.+)/(.+)
+  static_files: dist/\1/\2
+  upload: dist/(.*\.(html|ico|css|js|png|ttf|woff))
+  secure: always
+- url: /(.+)
+  static_files: dist/\1
+  upload: dist/(.*\.(html|ico|png|txt))
+  secure: always

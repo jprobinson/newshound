@@ -1,37 +1,25 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
+	"net/http"
+	"os"
 	"time"
 
-	"github.com/jprobinson/go-utils/utils"
 	"gopkg.in/mgo.v2"
 
-	"github.com/jprobinson/newshound"
+	"github.com/gorilla/mux"
 	"github.com/jprobinson/newshound/fetch"
 )
 
-const logPath = "/var/log/newshound/fetchd.log"
-
-var (
-	logArg  = flag.String("log", logPath, "log path")
-	reparse = flag.Bool("r", false, "reparse all alerts and events")
-)
-
 func main() {
-
+	reparse := flag.Bool("r", false, "reparse all alerts and events")
 	flag.Parse()
 
-	if *logArg != "stderr" {
-		logSetup := utils.NewDefaultLogSetup(*logArg)
-		logSetup.SetupLogging()
-		go utils.ListenForLogSignal(logSetup)
-	} else {
-		log.SetFlags(log.LstdFlags | log.Lshortfile)
-	}
-
-	config := newshound.NewConfig()
+	ctx := context.Background()
+	config := fetch.NewConfig()
 
 	sess, err := config.MgoSession()
 	if err != nil {
@@ -46,28 +34,35 @@ func main() {
 		return
 	}
 
-	go fetchMail(config, sess)
-
-	mapReduce(sess)
-}
-
-func mapReduce(sess *mgo.Session) {
-	for {
-		err := fetch.MapReduce(sess)
-		if err != nil {
-			log.Print("problems performing mapreduce: ", err)
-
-			time.Sleep(5 * time.Minute)
-			continue
+	go func() {
+		mv := mux.NewRouter()
+		mv.HandleFunc("/mapreduce", func(w http.ResponseWriter, r *http.Request) {
+			err := fetch.MapReduce(sess)
+			if err != nil {
+				log.Print("problems performing mapreduce: ", err)
+			}
+			w.WriteHeader(http.StatusOK)
+		})
+		ok := func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
 		}
+		mv.HandleFunc("/_ah/warmup", ok)
+		mv.HandleFunc("/", ok)
+		// for GAE
+		port := os.Getenv("PORT")
+		if port == "" {
+			port = "8080"
+		}
+		log.Printf("listening on %s", port)
+		http.ListenAndServe(":"+port, mv)
+	}()
 
-		time.Sleep(1 * time.Hour)
-	}
+	fetchMail(ctx, config, sess)
 }
 
-func fetchMail(config *newshound.Config, sess *mgo.Session) {
+func fetchMail(ctx context.Context, config *fetch.Config, sess *mgo.Session) {
 	for {
-		fetch.FetchMail(config, sess)
+		fetch.FetchMail(ctx, config, sess)
 		time.Sleep(30 * time.Second)
 	}
 }

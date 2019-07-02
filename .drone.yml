@@ -1,0 +1,119 @@
+pipeline:
+  build-web:
+    image: digitallyseamless/nodejs-bower-grunt
+    commands:
+      - cd web
+      - npm install
+      - bower install
+      - grunt build
+    when:
+      branch: [master]
+      event: push
+
+  deploy-web:
+    image: nytimes/drone-gae:latest
+    action: deploy
+    project: newshound
+    dir: web
+    app_file: app.yaml
+    version: "${DRONE_COMMIT}"
+    max_versions: 2
+    secrets:
+      - source: google_credentials
+        target: GAE_CREDENTIALS
+    when:
+      branch: [master]
+      event: push
+
+  deploy-api:
+    image: nytimes/drone-gae:latest
+    action: deploy
+    beta: true
+    project: newshound
+    dir: api/server 
+    app_file: app.yaml
+    version: "${DRONE_COMMIT}"
+    max_versions: 2
+    vars: '{"DB_PWD":"$$DB_PWD"}'
+    secrets:
+      - source: google_credentials
+        target: GAE_CREDENTIALS
+      - source: fetch_pwd
+        target: DB_PWD
+    when:
+      branch: [master]
+      event: push
+
+  deploy-fetchd:
+    image: nytimes/drone-gae:latest
+    action: deploy
+    beta: true
+    project: newshound
+    dir: fetch/fetchd
+    app_file: app.yaml
+    version: "${DRONE_COMMIT}"
+    max_versions: 2
+    vars: '{"MAIL_KEY":"$$MAIL_KEY", "DB_PWD":"$$DB_PWD", "EMAIL": "$$EMAIL"}'
+    secrets:
+      - source: google_credentials
+        target: GAE_CREDENTIALS
+      - source: mail_key
+        target: MAIL_KEY
+      - source: fetch_pwd
+        target: DB_PWD
+      - source: email
+        target: EMAIL
+    when:
+      branch: [master]
+      event: push
+
+  publish-np-image:
+    image: plugins/gcr
+    registry: gcr.io
+    repo: newshound/np
+    tag: "${DRONE_COMMIT}"
+    context: np_extractor
+    dockerfile: np_extractor/Dockerfile
+    json_key:
+      from_secret: google_credentials
+    when:
+      branch: [master]
+      event: push
+
+  deploy-np:
+    image: nytimes/drone-gae
+    action: deploy
+    project: newshound
+    dir: np_extractor
+    app_file: app.yaml
+    addl_args: '{ "--image-url": "gcr.io/newshound/np:${DRONE_COMMIT}" }'
+    version: "${DRONE_COMMIT}"
+    max_versions: 2
+    secrets:
+      - source: google_credentials
+        target: GAE_CREDENTIALS
+    when:
+      branch: [master]
+      event: push
+
+  deploy-barkd:
+    image: nytimes/drone-gae:latest
+    action: deploy
+    project: newshound
+    dir: bark/barkd
+    app_file: app.yaml
+    version: "${DRONE_COMMIT}"
+    max_versions: 2
+    vars: '{"SLACK_KEYS":"$$SLACK_KEYS", "TWITTER_TOKENS":"$$TWITTER_TOKENS", "TWITTER_SECRETS": "$$TWITTER_SECRETS"}'
+    secrets:
+      - source: google_credentials
+        target: GAE_CREDENTIALS
+      - source: slack_keys
+        target: SLACK_KEYS
+      - source: twitter_tokens
+        target: TWITTER_TOKENS
+      - source: twitter_secrets
+        target: TWITTER_SECRETS
+    when:
+      branch: [master]
+      event: push
