@@ -24,7 +24,7 @@ func (s *service) findAlertsByDate(r *http.Request) (int, interface{}, error) {
 	sess, db := s.getDB()
 	defer sess.Close()
 
-	alerts, err := FindAlertsByDate(db, startTime, endTime)
+	alerts, err := FindAlertsByDate(r.Context(), db, startTime, endTime)
 	if err != nil {
 		log.Printf("unable to access alerts by date - %s", err)
 		return http.StatusInternalServerError, "server error", nil
@@ -42,7 +42,7 @@ func (s *service) findOrderedAlerts(r *http.Request) (int, interface{}, error) {
 	sess, db := s.getDB()
 	defer sess.Close()
 
-	alerts, err := FindOrderedAlerts(db, alertIDs)
+	alerts, err := FindOrderedAlerts(r.Context(), db, alertIDs)
 	if err != nil {
 		log.Printf("unable to access alerts - %s", err)
 		return http.StatusInternalServerError, "server error", nil
@@ -60,7 +60,7 @@ func (s *service) findAlert(r *http.Request) (int, interface{}, error) {
 	sess, db := s.getDB()
 	defer sess.Close()
 
-	alert, err := FindAlertByID(db, alertID)
+	alert, err := FindAlertByID(r.Context(), db, alertID)
 	if err != nil {
 		log.Printf("unable to access alert - %s", err)
 		return http.StatusInternalServerError, "server error", nil
@@ -77,7 +77,7 @@ func (s *service) findAlertHTML(w http.ResponseWriter, r *http.Request) {
 	sess, db := s.getDB()
 	defer sess.Close()
 
-	alertHtml, err := FindAlertHtmlByID(db, alertID)
+	alertHtml, err := FindAlertHtmlByID(r.Context(), db, alertID)
 	if err != nil {
 		log.Printf("unable to access alert HTML - %s", err)
 		http.Error(w, "server error", http.StatusInternalServerError)
@@ -100,7 +100,7 @@ func (s *service) eventFeed(r *http.Request) (int, interface{}, error) {
 	sess, db := s.getDB()
 	defer sess.Close()
 
-	events, err := FindEventsByDateReverse(db, startTime, endTime)
+	events, err := FindEventsByDateReverse(r.Context(), db, startTime, endTime)
 	if err != nil {
 		log.Printf("unable to access events feed: %s", err)
 		return http.StatusInternalServerError, "server error", nil
@@ -121,7 +121,7 @@ func (s *service) findEventsByDate(r *http.Request) (int, interface{}, error) {
 	sess, db := s.getDB()
 	defer sess.Close()
 
-	events, err := FindEventsByDate(db, startTime, endTime)
+	events, err := FindEventsByDate(r.Context(), db, startTime, endTime)
 	if err != nil {
 		log.Printf("unable to access events by date: %s", err)
 		return http.StatusInternalServerError, "server error", nil
@@ -139,7 +139,7 @@ func (s *service) findEvent(r *http.Request) (int, interface{}, error) {
 	sess, db := s.getDB()
 	defer sess.Close()
 
-	event, err := FindEventByID(db, eventID)
+	event, err := FindEventByID(r.Context(), db, eventID)
 	if err != nil {
 		log.Printf("unable to access event by event_id - %s", err)
 		return http.StatusInternalServerError, "server error", nil

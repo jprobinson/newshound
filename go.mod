@@ -4,9 +4,10 @@ go 1.12
 
 require (
 	cloud.google.com/go v0.36.0
+	contrib.go.opencensus.io/exporter/stackdriver v0.9.1
 	github.com/ChimeraCoder/anaconda v2.0.0+incompatible
 	github.com/ChimeraCoder/tokenbucket v0.0.0-20131201223612-c5a927568de7 // indirect
-	github.com/NYTimes/gizmo v1.2.7
+	github.com/NYTimes/gizmo v1.2.8
 	github.com/azr/backoff v0.0.0-20160115115103-53511d3c7330 // indirect
 	github.com/dustin/go-jsonpointer v0.0.0-20160814072949-ba0abeacc3dc // indirect
 	github.com/dustin/gojson v0.0.0-20160307161227-2e71ec9dd5ad // indirect
