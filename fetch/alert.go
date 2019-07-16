@@ -211,6 +211,7 @@ var (
 		"ft exclusive":                 struct{}{},
 		"advertisement":                struct{}{},
 		"advertise":                    struct{}{},
+		"democracy dies in darkness":   struct{}{},
 		"for more":                     struct{}{},
 		"share this":                   struct{}{},
 		"view this":                    struct{}{},
