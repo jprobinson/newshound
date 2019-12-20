@@ -11,6 +11,8 @@ import (
 	"gopkg.in/mgo.v2"
 
 	"github.com/NYTimes/gizmo/observe"
+	"github.com/NYTimes/gizmo/pubsub"
+	"github.com/NYTimes/gizmo/pubsub/gcp"
 	"github.com/gorilla/mux"
 	"github.com/jprobinson/newshound/fetch"
 )
@@ -25,6 +27,17 @@ func main() {
 	observe.RegisterAndObserveGCP(func(err error) {
 		log.Printf("observe error: %s", err)
 	})
+
+	proj := os.Getenv("GOOGLE_CLOUD_PROJECT")
+	apub, err := gcp.NewPublisher(ctx, gcp.Config{Topic: "alerts", ProjectID: proj})
+	if err != nil {
+		log.Fatal("unable to init alerts publisher: ", err)
+	}
+
+	epub, err := gcp.NewPublisher(ctx, gcp.Config{Topic: "events", ProjectID: proj})
+	if err != nil {
+		log.Fatal("unable to init events publisher: ", err)
+	}
 
 	sess, err := config.MgoSession()
 	if err != nil {
@@ -62,12 +75,12 @@ func main() {
 		http.ListenAndServe(":"+port, mv)
 	}()
 
-	fetchMail(ctx, config, sess)
+	fetchMail(ctx, config, sess, apub, epub)
 }
 
-func fetchMail(ctx context.Context, config *fetch.Config, sess *mgo.Session) {
+func fetchMail(ctx context.Context, config *fetch.Config, sess *mgo.Session, apub, epub pubsub.MultiPublisher) {
 	for {
-		fetch.FetchMail(ctx, config, sess)
+		fetch.FetchMail(ctx, config, sess, apub, epub)
 		time.Sleep(30 * time.Second)
 	}
 }

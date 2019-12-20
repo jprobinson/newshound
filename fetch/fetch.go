@@ -6,14 +6,12 @@ import (
 	"encoding/gob"
 	"fmt"
 	"log"
-	"os"
 	"runtime"
 	"strings"
 	"sync"
 	"time"
 
 	pubsub "github.com/NYTimes/gizmo/pubsub"
-	"github.com/NYTimes/gizmo/pubsub/gcp"
 	"github.com/jprobinson/eazye"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -24,7 +22,7 @@ import (
 // https://github.com/golang/go/issues/3575 :(
 var procs = runtime.NumCPU()
 
-func FetchMail(ctx context.Context, cfg *Config, sess *mgo.Session) {
+func FetchMail(ctx context.Context, cfg *Config, sess *mgo.Session, apub, epub pubsub.MultiPublisher) {
 	log.Print("getting mail")
 	start := time.Now()
 
@@ -47,17 +45,6 @@ func FetchMail(ctx context.Context, cfg *Config, sess *mgo.Session) {
 	db := newshoundDB(s)
 	na := newsAlerts(db)
 	ne := newsEvents(db)
-
-	proj := os.Getenv("GOOGLE_CLOUD_PROJECT")
-	apub, err := gcp.NewPublisher(ctx, gcp.Config{Topic: "alerts", ProjectID: proj})
-	if err != nil {
-		log.Fatal("unable to init alerts publisher: ", err)
-	}
-
-	epub, err := gcp.NewPublisher(ctx, gcp.Config{Topic: "events", ProjectID: proj})
-	if err != nil {
-		log.Fatal("unable to init events publisher: ", err)
-	}
 
 	completeCount := make(chan int, 1)
 	go saveAndRefresh(na, ne, alerts, completeCount, apub, epub)
