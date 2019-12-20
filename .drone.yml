@@ -1,51 +1,58 @@
-pipeline:
-  build-web:
-    image: digitallyseamless/nodejs-bower-grunt
-    commands:
-      - cd web
-      - npm install
-      - bower install
-      - grunt build
-    when:
-      branch: [master]
-      event: push
+---
+kind: pipeline
+type: docker
+name: default
 
-  deploy-web:
-    image: nytimes/drone-gae:latest
+steps:
+- name: build-web
+  image: digitallyseamless/nodejs-bower-grunt
+  commands:
+    - cd web
+    - npm install
+    - bower install
+    - grunt build
+  when:
+    event: push
+
+- name: deploy-web
+  image: nytimes/drone-gae:latest
+  settings:
     action: deploy
     project: newshound
     dir: web
     app_file: app.yaml
     version: "${DRONE_COMMIT}"
     max_versions: 2
-    secrets:
-      - source: google_credentials
-        target: GAE_CREDENTIALS
-    when:
-      branch: [master]
-      event: push
+  environment:
+    GAE_CREDENTIALS:
+      from_secret: google_credentials
+  when:
+    branch: [master]
+    event: push
 
-  deploy-api:
-    image: nytimes/drone-gae:latest
+- name: deploy-api
+  image: nytimes/drone-gae:latest
+  settings:
     action: deploy
     beta: true
     project: newshound
-    dir: api/server 
+    dir: api/server
     app_file: app.yaml
     version: "${DRONE_COMMIT}"
     max_versions: 2
     vars: '{"DB_PWD":"$$DB_PWD"}'
-    secrets:
-      - source: google_credentials
-        target: GAE_CREDENTIALS
-      - source: fetch_pwd
-        target: DB_PWD
-    when:
-      branch: [master]
-      event: push
+  environment:
+    GAE_CREDENTIALS:
+      from_secret: google_credentials
+    DB_PWD:
+      from_secret: fetch_pwd
+  when:
+    branch: [master]
+    event: push
 
-  deploy-fetchd:
-    image: nytimes/drone-gae:latest
+- name: deploy-fetchd
+  image: nytimes/drone-gae:latest
+  settings:
     action: deploy
     beta: true
     project: newshound
@@ -54,21 +61,22 @@ pipeline:
     version: "${DRONE_COMMIT}"
     max_versions: 2
     vars: '{"MAIL_KEY":"$$MAIL_KEY", "DB_PWD":"$$DB_PWD", "EMAIL": "$$EMAIL"}'
-    secrets:
-      - source: google_credentials
-        target: GAE_CREDENTIALS
-      - source: mail_key
-        target: MAIL_KEY
-      - source: fetch_pwd
-        target: DB_PWD
-      - source: email
-        target: EMAIL
-    when:
-      branch: [master]
-      event: push
+  environment:
+    GAE_CREDENTIALS:
+      from_secret: google_credentials
+    DB_PWD:
+      from_secret: fetch_pwd
+    MAIL_KEY:
+      from_secret: mail_key
+    EMAIL:
+      from_secret: email
+  when:
+    branch: [master]
+    event: push
 
-  publish-np-image:
-    image: plugins/gcr
+- name: publish-np-image
+  image: plugins/gcr
+  settings:
     registry: gcr.io
     repo: newshound/np
     tag: "${DRONE_COMMIT}"
@@ -76,12 +84,13 @@ pipeline:
     dockerfile: np_extractor/Dockerfile
     json_key:
       from_secret: google_credentials
-    when:
-      branch: [master]
-      event: push
+  when:
+    branch: [master]
+    event: push
 
-  deploy-np:
-    image: nytimes/drone-gae
+- name: deploy-np
+  image: nytimes/drone-gae:latest
+  settings:
     action: deploy
     project: newshound
     dir: np_extractor
@@ -89,15 +98,16 @@ pipeline:
     addl_args: '{ "--image-url": "gcr.io/newshound/np:${DRONE_COMMIT}" }'
     version: "${DRONE_COMMIT}"
     max_versions: 2
-    secrets:
-      - source: google_credentials
-        target: GAE_CREDENTIALS
-    when:
-      branch: [master]
-      event: push
+  environment:
+    GAE_CREDENTIALS:
+      from_secret: google_credentials
+  when:
+    branch: [master]
+    event: push
 
-  deploy-barkd:
-    image: nytimes/drone-gae:latest
+- name: deploy-barkd
+  image: nytimes/drone-gae:latest
+  settings:
     action: deploy
     project: newshound
     dir: bark/barkd
@@ -105,19 +115,19 @@ pipeline:
     version: "${DRONE_COMMIT}"
     max_versions: 2
     vars: '{"SLACK_KEYS":"$$SLACK_KEYS", "TWITTER_TOKENS":"$$TWITTER_TOKENS", "TWITTER_SECRETS": "$$TWITTER_SECRETS", "TWITTER_CONSUMERS": "$$TWITTER_CONSUMERS", "TWITTER_CONSUMER_SECRETS": "$$TWITTER_CONSUMER_SECRETS"}'
-    secrets:
-      - source: google_credentials
-        target: GAE_CREDENTIALS
-      - source: slack_keys
-        target: SLACK_KEYS
-      - source: twitter_tokens
-        target: TWITTER_TOKENS
-      - source: twitter_secrets
-        target: TWITTER_SECRETS
-      - source: twitter_consumers
-        target: TWITTER_CONSUMERS
-      - source: twitter_consumer_secrets
-        target: TWITTER_CONSUMER_SECRETS
-    when:
-      branch: [master]
-      event: push
+  environment:
+    GAE_CREDENTIALS:
+      from_secret: google_credentials
+    SLACK_KEYS:
+      from_secret: slack_keys
+    TWITTER_TOKENS:
+      from_secret: twitter_tokens
+    TWITTER_SECRETS:
+      from_secret: twitter_secrets
+    TWITTER_CONSUMERS:
+      from_secret: twitter_consumers
+    TWITTER_CONSUMER_SECRETS:
+      from_secret: twitter_consumer_secrets
+  when:
+    branch: [master]
+    event: push

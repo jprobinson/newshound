@@ -10,6 +10,7 @@ import (
 
 	"gopkg.in/mgo.v2"
 
+	"github.com/NYTimes/gizmo/observe"
 	"github.com/gorilla/mux"
 	"github.com/jprobinson/newshound/fetch"
 )
@@ -20,6 +21,10 @@ func main() {
 
 	ctx := context.Background()
 	config := fetch.NewConfig()
+
+	observe.RegisterAndObserveGCP(func(err error) {
+		log.Printf("observe error: %s", err)
+	})
 
 	sess, err := config.MgoSession()
 	if err != nil {
