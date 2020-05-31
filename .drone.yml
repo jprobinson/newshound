@@ -74,6 +74,33 @@ steps:
     branch: [master]
     event: push
 
+- name: deploy-barkd
+  image: nytimes/drone-gae:latest
+  settings:
+    action: deploy
+    project: newshound
+    dir: bark/barkd
+    app_file: app.yaml
+    version: "${DRONE_COMMIT}"
+    max_versions: 2
+    vars: '{"SLACK_KEYS":"$$SLACK_KEYS", "TWITTER_TOKENS":"$$TWITTER_TOKENS", "TWITTER_SECRETS": "$$TWITTER_SECRETS", "TWITTER_CONSUMERS": "$$TWITTER_CONSUMERS", "TWITTER_CONSUMER_SECRETS": "$$TWITTER_CONSUMER_SECRETS"}'
+  environment:
+    GAE_CREDENTIALS:
+      from_secret: google_credentials
+    SLACK_KEYS:
+      from_secret: slack_keys
+    TWITTER_TOKENS:
+      from_secret: twitter_tokens
+    TWITTER_SECRETS:
+      from_secret: twitter_secrets
+    TWITTER_CONSUMERS:
+      from_secret: twitter_consumers
+    TWITTER_CONSUMER_SECRETS:
+      from_secret: twitter_consumer_secrets
+  when:
+    branch: [master]
+    event: push
+
 - name: publish-np-image
   image: plugins/gcr
   settings:
@@ -101,33 +128,6 @@ steps:
   environment:
     GAE_CREDENTIALS:
       from_secret: google_credentials
-  when:
-    branch: [master]
-    event: push
-
-- name: deploy-barkd
-  image: nytimes/drone-gae:latest
-  settings:
-    action: deploy
-    project: newshound
-    dir: bark/barkd
-    app_file: app.yaml
-    version: "${DRONE_COMMIT}"
-    max_versions: 2
-    vars: '{"SLACK_KEYS":"$$SLACK_KEYS", "TWITTER_TOKENS":"$$TWITTER_TOKENS", "TWITTER_SECRETS": "$$TWITTER_SECRETS", "TWITTER_CONSUMERS": "$$TWITTER_CONSUMERS", "TWITTER_CONSUMER_SECRETS": "$$TWITTER_CONSUMER_SECRETS"}'
-  environment:
-    GAE_CREDENTIALS:
-      from_secret: google_credentials
-    SLACK_KEYS:
-      from_secret: slack_keys
-    TWITTER_TOKENS:
-      from_secret: twitter_tokens
-    TWITTER_SECRETS:
-      from_secret: twitter_secrets
-    TWITTER_CONSUMERS:
-      from_secret: twitter_consumers
-    TWITTER_CONSUMER_SECRETS:
-      from_secret: twitter_consumer_secrets
   when:
     branch: [master]
     event: push
