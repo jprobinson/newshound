@@ -81,6 +81,6 @@ func main() {
 func fetchMail(ctx context.Context, config *fetch.Config, sess *mgo.Session, apub, epub pubsub.MultiPublisher) {
 	for {
 		fetch.FetchMail(ctx, config, sess, apub, epub)
-		time.Sleep(30 * time.Second)
+		time.Sleep(120 * time.Second)
 	}
 }

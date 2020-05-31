@@ -1,2 +1,7 @@
 runtime: python37
 service: np
+
+automatic_scaling:
+  max_idle_instances: 1
+
+instance_class: F1

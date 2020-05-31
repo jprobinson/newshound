@@ -1,8 +1,10 @@
-runtime: go111
+runtime: go112
 service: barkd
 
 automatic_scaling:
   max_idle_instances: 1
+
+instance_class: F1
 
 env_variables:
   SLACK_KEYS: "{{ .SLACK_KEYS }}"

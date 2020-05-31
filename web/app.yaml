@@ -4,6 +4,8 @@ service: default
 automatic_scaling:
   max_idle_instances: 1
 
+instance_class: F1
+
 handlers:
 - url: /
   static_files: dist/index.html
